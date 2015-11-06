@@ -1,0 +1,12 @@
+Package: copsupp
+Type: Package
+Title: Copula-related functions to supplement the CopulaModel package
+Version: 0.1
+Date: 2015-10-18
+Author: Vincenzo Coia
+Maintainer: Vincenzo Coia <vincen.coia@stat.ubc.ca>
+Description: Has functions for the new copula; completes the independence copula functions; friendly vine simulator; D-vine functions
+License: NA
+LazyData: TRUE
+Suggests: knitr
+VignetteBuilder: knitr

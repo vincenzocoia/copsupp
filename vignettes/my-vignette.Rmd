@@ -1,0 +1,44 @@
+---
+title: "copsupp: supplemental copula functions"
+author: "Vincenzo Coia"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{copsupp: supplemental copula functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The copsupp package contains copula-related functions as an extension to the CopulaModel package.
+
+## New Copula
+
+The functions for the new copula follow the convention of CopulaModel, and are:
+
+* `pnew()`
+* `logdnew()`
+* `dnew()`
+* `rnew()`
+* `qcondnew()`
+* `pcondnew()`
+* `pcondnew21()`
+* `pcondnew12()`
+
+## Independence copula
+
+I included a fuller suite of functions for the independence copula just so that, when modelling, one can choose the independence copula for an edge in the vine, and the corresponding function calls will exist.
+
+* `pcondindepcop()`
+* `qcondindepcop()`
+* `qcondindep()`
+
+## Vines
+
+I made functions to compute the conditional distribution of a variable given variables "upstream or downstream". Also the quantile function.
+
+* `pcondD()`
+* `qcondD()`
+
+I also made a function to simulate from a vine, which uses the "vinesim" family of functions in CopulaModel:
+
+* `fvinesim()`
