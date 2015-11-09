@@ -7,7 +7,17 @@
 pcondseq.vine(ord, xdat, rvinefit, FX = identity)
 }
 \arguments{
+\item{ord}{Integer vector; variables in the order that you'll be linking them
+up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
+
+\item{xdat}{Vector of a single observation, or matrix of multiple observations
+of the variables.}
+
 \item{rvinefit}{The vine fit to data \code{xdat}. See details.}
+
+\item{FX}{List of vectorized functions that are the marginals corresponding
+to the columns of \code{xdat}. Or just one function if it's a common function.
+Default is \code{identity} so that \code{xdat} can be uniform data if you want.}
 }
 \description{
 Temp

@@ -101,120 +101,16 @@ pcondseq.generic <- function(ord, xdat, fX, Fcond = NULL){
     })
 }
 
-#' Subset a vine array
-#'
-#' Find the vine connecting a subset of variables from a bigger vine, if
-#' it exists.
-#'
-#' @param A vine array
-#' @param select Vector of variable indices in \code{diag(A)} to subset,
-#' if possible.
-#' @details Just a technicality:
-#' by saying a subset "doesn't have an existing vine", I mean that
-#' a vine can't be formed using nodes and edges from
-#' the original -- not that the
-#' joint distribution of the selected variables can't be created from a vine
-#' (so as to say, for example, that the simplifying assumption of vines
-#' doesn't hold for this distribution).
-#' @return Returns a vine array of the subsetted variables, or \code{NULL} if
-#' the subset don't form a vine.
-#' @examples
-#' ## Try a D-Vine
-#' A <- CopulaModel::Dvinearray(5)
-#' rvinesubset(A, c(2, 3, 4))
-#' rvinesubset(A, c(4, 1))
-#' ## The numbering doesn't have to be 1,2,3,...
-#' A <- makeuppertri(2 + c(1,1,1,1,4, 2,2,3,1, 3,2,3, 4,2, 5), 6, 6)[1:5, 2:6]
-#' rvinesubset(A, 2 + c(1,3,4))
-#' @export
-rvinesubset <- function(A, select) {
-    p <- ncol(A)
-    k <- length(select)
-    if (k == p) return(A)
-    if (k == 1) return(matrix(select))
-    diagA <- diag(A)
-    notselect <- setdiff(diag(A), select)
-    ## Indices to keep (i.e. what columns of A, or which of the
-    ##   ordered variables to keep?)
-    ikeep <- sapply(select, function(s) which(diagA == s))
-    ilose <- setdiff(1:p, ikeep)
-    ## Select entries to remove from the vine array (as TRUE entries).
-    #### Bottom-left zeroes need removal.
-    removal <- lower.tri(diag(p))
-    #### "Extraneous" area needs removal (i.e. higher-level trees
-    ####   that are impossible with this selection)
-    removal[k:p, k:p] <- removal[k:p, k:p] | upper.tri(diag(p-k+1))
-    #### Columns where our selection is not on the diagonal need removing:
-    removal[, ilose] <- TRUE
-    #### Select remaining variables that need removal.
-    removal[, ikeep] <- removal[, ikeep] |
-        apply(A[, ikeep], 1:2, function(t) t %in% notselect)
-    ## There should be (k+1) choose 2 variable indices remaining if the
-    ##  subsetted vine "exists".
-    remain <- A[!removal]  # A vector.
-    if (length(remain) == choose(k+1, 2)) {
-        subA <- makeuppertri(remain, k+1, k+1, byRow = FALSE)
-        subA <- subA[, -1]
-        subA <- subA[-(k+1), ]
-    } else {
-        subA <- NULL
-    }
-    subA
-}
-
-#' Is a Vine Array a D-Vine?
-#'
-#' @param A Vine array matrix.
-#' @return Logical -- \code{TRUE} if \code{A} is a D-vine. \code{FALSE} if not.
-#' If \code{A} is not a matrix, or has \code{integer(0)} columns,
-#' it'll return \code{NULL}.
-#' @examples
-#' is.dvine(CopulaModel::Dvinearray(5))
-#' is.dvine(CopulaModel::Cvinearray(6))
-#' is.dvine("hello")
-#' @export
-is.dvine <- function(A) {
-    if (!is.matrix(A)) return(NULL)
-    p <- ncol(A)
-    if (p == 1) return(TRUE)
-    if (p == 0) return(NULL)
-    ## In tree 1, nodes should appear maximum of two times.
-    nodes1 <- A[1, -1]
-    nodes2 <- diag(A)[-1]
-    max(table(c(nodes1, nodes2))) <= 2
-}
-
-#' Are variables Vine Leaves?
-#'
-#' Check whether some variables on a vine are "leaves" -- that is, only
-#' connect to one other variable on the first tree.
-#'
-#' @param A Vine array matrix.
-#' @param select Vector of vine variables that you want to query.
-#' @return Vector of length \code{length(select)} of logicals.
-#' @examples
-#' A <- CopulaModel::Dvinearray(5)
-#' is.vineleaf(A, 5)
-#' A <- rvinesubset(A, 2:4)
-#' is.vineleaf(A, 3:4)
-#' is.vineleaf(A, integer(0))
-is.vineleaf <- function(A, select=diag(A)) {
-    if (!is.matrix(A)) return(NULL)
-    if (length(select) == 0) return(logical(0))
-    if (ncol(A) == 0) return(NULL) # Only after checking length(select) > 0.
-    ## Get nodes on tree 1:
-    nodes1 <- A[1, -1]
-    nodes2 <- diag(A)[-1]
-    freq <- table(c(nodes1, nodes2))
-    freq.select <- freq[as.character(select)]
-    res <- freq.select == 1
-    attributes(res) <- NULL
-    res
-}
-
 #' Temp
 #'
+#' @param ord Integer vector; variables in the order that you'll be linking them
+#' up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).
+#' @param xdat Vector of a single observation, or matrix of multiple observations
+#' of the variables.
 #' @param rvinefit The vine fit to data \code{xdat}. See details.
+#' @param FX List of vectorized functions that are the marginals corresponding
+#' to the columns of \code{xdat}. Or just one function if it's a common function.
+#' Default is \code{identity} so that \code{xdat} can be uniform data if you want.
 #' @details The argument \code{rvinefit} can either be:
 #'
 #' \enumerate{
@@ -233,18 +129,50 @@ is.vineleaf <- function(A, select=diag(A)) {
 #' }
 pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity) {
     ## Standardize input
-    if (is.vector(xdat)) xdat <- matrix(xdat, nrow = 1)
-    p <- ncol(xdat)
-    if (length(FX) != p) FX <- rep(list(FX), p)
+    if (is.vector(xdat)) xdat <- matrix(xdat, ncol = length(xdat))
+    if (nrow(xdat) == 0) if (ncol(xdat) == 0) return(numeric(0)) else return(xdat)
+    p <- length(ord)  # May be < ncol(xdat).
+    if (length(FX) == 1) FX <- rep(list(FX), p)
+    ## re-order xdat and marginals so that they're in the order of ord.
+    xdat <- xdat[, ord]
+    if (is.vector(xdat)) xdat <- matrix(xdat, ncol = 1)
+    FX <- FX[ord]
     ## Uniformize data
     udat <- xdat
     for (col in 1:p) udat[, col] <- FX[[col]](xdat[, col])
+    ## Don't go any further if p==1
+    if (p == 1) return(udat)
     ## Vine-specific input:
     A <- rvinefit$A
     ## Get sub-vine arrays for ord[1], ..., ord[k], if they exist.
     subA <- list()
-    for (k in 1:p) subA[[k]] <- rvinesubset(A, ord[1:k])
-    ## Which are D-Vines that? Their formulas don't have integrals.
-    whichD <- sapply(subA, is.dvine)
+    isleaf <- logical(0)
+    isD <- logical(0)
+    for (k in 1:p) {
+        subA[[k]] <- rvinesubset(A, ord[1:k])
+        ## Which have ord[k] as a leaf?
+        isleaf <- c(isleaf, is.vineleaf(subA[[k]], ord[[k]]))
+        ## Which are D-Vines? that have ord[k] as a leaf?
+        isD <- c(isD, is.dvine(subA[[k]]))
+    }
+    ## Find conditional cdfs (I'll have to construct the list backwards first):
+    Fcondlist <- list()
+    for (k in p:2) {
+        subAk <- subA[[k]]
+        if (is.null(subAk)) {
+            ## Need to integrate the density.
+        } else {
+            if (isleaf[k] & isD[k]) {
+                ## Can use the formula for D-Vine -- no integration.
 
+            } else {
+                ## Can integrate the conditional density.
+            }
+        }
+    }
+    #### And finally, for k == 1,
+    Fcondlist <- list(udat[, 1])
+    ## Reverse, and collapse into a matrix.
+    Fcondlist <- rev(Fcondlist)
+    do.call(cbind, Fcondlist)
 }

@@ -3,6 +3,7 @@
 export(dnew)
 export(fvinesim)
 export(is.dvine)
+export(is.vineleaf)
 export(ktaunew)
 export(logdnew)
 export(makeuppertri)
