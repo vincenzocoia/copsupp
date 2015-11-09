@@ -30,8 +30,12 @@ joint distribution of the selected variables can't be created from a vine
 doesn't hold for this distribution).
 }
 \examples{
+## Try a D-Vine
 A <- CopulaModel::Dvinearray(5)
 rvinesubset(A, c(2, 3, 4))
 rvinesubset(A, c(4, 1))
+## The numbering doesn't have to be 1,2,3,...
+A <- makeuppertri(2 + c(1,1,1,1,4, 2,2,3,1, 3,2,3, 4,2, 5), 6, 6)[1:5, 2:6]
+rvinesubset(A, 2 + c(1,3,4))
 }
 

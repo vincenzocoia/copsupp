@@ -16,7 +16,7 @@ Temp
 The argument \code{rvinefit} can either be:
 
 \enumerate{
-     \item the output of \code{\link{VineCopula::RVineCopSelect}}, or
+     \item the output of \code{\link{VineCopula::RVineCopSelect}} (Version 1.6), or
      \item a list with the following named entries:
      \itemize{
          \item \code{A}: The vine array, as used in the

@@ -2,6 +2,7 @@
 
 export(dnew)
 export(fvinesim)
+export(is.dvine)
 export(ktaunew)
 export(logdnew)
 export(makeuppertri)

@@ -119,9 +119,13 @@ pcondseq.generic <- function(ord, xdat, fX, Fcond = NULL){
 #' @return Returns a vine array of the subsetted variables, or \code{NULL} if
 #' the subset don't form a vine.
 #' @examples
+#' ## Try a D-Vine
 #' A <- CopulaModel::Dvinearray(5)
 #' rvinesubset(A, c(2, 3, 4))
 #' rvinesubset(A, c(4, 1))
+#' ## The numbering doesn't have to be 1,2,3,...
+#' A <- makeuppertri(2 + c(1,1,1,1,4, 2,2,3,1, 3,2,3, 4,2, 5), 6, 6)[1:5, 2:6]
+#' rvinesubset(A, 2 + c(1,3,4))
 #' @export
 rvinesubset <- function(A, select) {
     p <- ncol(A)
@@ -158,13 +162,63 @@ rvinesubset <- function(A, select) {
     subA
 }
 
+#' Is a Vine Array a D-Vine?
+#'
+#' @param A Vine array matrix.
+#' @return Logical -- \code{TRUE} if \code{A} is a D-vine. \code{FALSE} if not.
+#' If \code{A} is not a matrix, or has \code{integer(0)} columns,
+#' it'll return \code{NULL}.
+#' @examples
+#' is.dvine(CopulaModel::Dvinearray(5))
+#' is.dvine(CopulaModel::Cvinearray(6))
+#' is.dvine("hello")
+#' @export
+is.dvine <- function(A) {
+    if (!is.matrix(A)) return(NULL)
+    p <- ncol(A)
+    if (p == 1) return(TRUE)
+    if (p == 0) return(NULL)
+    ## In tree 1, nodes should appear maximum of two times.
+    nodes1 <- A[1, -1]
+    nodes2 <- diag(A)[-1]
+    max(table(c(nodes1, nodes2))) <= 2
+}
+
+#' Are variables Vine Leaves?
+#'
+#' Check whether some variables on a vine are "leaves" -- that is, only
+#' connect to one other variable on the first tree.
+#'
+#' @param A Vine array matrix.
+#' @param select Vector of vine variables that you want to query.
+#' @return Vector of length \code{length(select)} of logicals.
+#' @examples
+#' A <- CopulaModel::Dvinearray(5)
+#' is.vineleaf(A, 5)
+#' A <- rvinesubset(A, 2:4)
+#' is.vineleaf(A, 3:4)
+#' is.vineleaf(A, integer(0))
+is.vineleaf <- function(A, select=diag(A)) {
+    if (!is.matrix(A)) return(NULL)
+    if (length(select) == 0) return(logical(0))
+    if (ncol(A) == 0) return(NULL) # Only after checking length(select) > 0.
+    ## Get nodes on tree 1:
+    nodes1 <- A[1, -1]
+    nodes2 <- diag(A)[-1]
+    freq <- table(c(nodes1, nodes2))
+    freq.select <- freq[as.character(select)]
+    res <- freq.select == 1
+    attributes(res) <- NULL
+    res
+}
+
 #' Temp
 #'
 #' @param rvinefit The vine fit to data \code{xdat}. See details.
 #' @details The argument \code{rvinefit} can either be:
 #'
 #' \enumerate{
-#'      \item the output of \code{\link{VineCopula::RVineCopSelect}}, or
+#'      \item the output of \code{\link{VineCopula::RVineCopSelect}} (Version 1.6), or
 #'      \item a list with the following named entries:
 #'      \itemize{
 #'          \item \code{A}: The vine array, as used in the
@@ -188,42 +242,9 @@ pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity) {
     ## Vine-specific input:
     A <- rvinefit$A
     ## Get sub-vine arrays for ord[1], ..., ord[k], if they exist.
-    ##   -Doesn't exist? Need to use generic function.
-    ##   -Exists, and ord[k] isn't a leaf on a D-Vine? There's a formula for
-    ##      conditional density. Just need one integral.
-    ##   -Exists, and ord[k] is a leaf on a D-Vine? Closed formula for conditional cdf.
-    ordinv <- sapply(1:p, function(i) which(i == ord)) # inverse permutation
-    A <- varrayperm(A, ordinv[diag(A)])  # Now, diag(A) represents the order of adding k.
-    subA <- list(matrix(1))
-    for (k in 1+seq_len(p-2)) { # For p>=3, this is 2:(p-1).
-        ## Select zeroes to remove from vine array.
-        removal <- lower.tri(diag(p))
-        ## Select "sensitive" triangle to remove.
-        removal[k:p, k:p] <- removal[k:p, k:p] | upper.tri(diag(p-k+1))
-        ## Remove unused columns
-        removal[, ordinv[(k+1):p]] <- TRUE
-        ## Select remaining variables that need removal.
-        removal[, ordinv[1:k]] <- removal[, ordinv[1:k]] |
-            apply(A[, ordinv[1:k]], 1:2, function(t) t %in% (k+1):p)
-        ## There should be (k+1) choose 2 variable indices remaining if it's a
-        ##  valid vine.
-        remain <- A[!removal]
-        if (length(remain) == choose(k+1, 2)) {
-            subA[[k]] <- makeuppertri(remain, k+1, k+1, byRow = FALSE)
-            subA[[k]] <- subA[[k]][, -1]
-            subA[[k]] <- subA[[k]][-(k+1), ]
-        } else {
-            subA[[k]] <- NULL
-        }
-    }
-    subA[[p]] <- A
-    #### Which are D-Vines anyways?
-    whichD <- sapply(subA, function(subA_){
-        if (is.null(subA_)) return(FALSE)
-        if (ncol(subA_) == 1) return(FALSE)
-        ## In tree 1, nodes should appear maximum of two times.
-        max(table(c(subA_[1, -1], diag(subA_)[-1]))) <= 2
-    })
-
+    subA <- list()
+    for (k in 1:p) subA[[k]] <- rvinesubset(A, ord[1:k])
+    ## Which are D-Vines that? Their formulas don't have integrals.
+    whichD <- sapply(subA, is.dvine)
 
 }
