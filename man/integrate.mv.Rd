@@ -17,6 +17,10 @@ each variable entered into \code{f}. Can be infinite.}
 \value{
 A numeric value of the integral. The other information
 outputted by the \code{\link{integrate}} function are ignored.
+
+If the length of the limit vectors is zero, it will be assumed that
+\code{f} has no arguments, so \code{f()} will be returned.
+returned.
 }
 \description{
 Integrate a multivariate function (R^p -> R).
@@ -27,7 +31,7 @@ using the \code{\link{integrate}} function.
 
 It's reasonably fast
 when \code{f} takes two variables, and slow when \code{f} takes 3 variables.
-For 4 or more, prehaps look into alternative approaches.
+For 4 or more, perhaps look into alternative approaches.
 
 If you're support is finite, you're better off using
 \code{\link{cubature::adaptIntegrate}}.

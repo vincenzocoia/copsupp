@@ -9,7 +9,7 @@
 #'
 #' @param ord Integer vector; variables in the order that you'll be linking them
 #' up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).
-#' @param xdat \code{p}-length vector, or \code{p}-columns matrix of predictors.
+#' @param dat \code{p}-length vector, or \code{p}-columns matrix of predictors.
 #' @param fX Function; the density of the covariates. Should accept a vector
 #' with each component in the space (-Inf, Inf) and return a non-negative real.
 #' @param Fcond If you already have some of the conditional distributions,
@@ -18,119 +18,74 @@
 #' evaluated at the data). Make a \code{NULL} entry if you don't have that cdf.
 #' The \code{k}th entry should correspond to the cdf of
 #' \code{ord[k]|ord[1:(k-1)]}.
-#' @return If \code{xdat} is a vector, returns a
+#' @return If \code{dat} is a vector, returns a
 #' vector of evaluated cdfs of predictors
 #' \code{ord[1]}, \code{ord[2]|ord[1]}, ..., \code{ord[p]|ord[1:(p-1)]}.
 #'
-#' If \code{xdat} is a matrix, returns a matrix of such evaluated cdfs.
+#' If \code{dat} is a matrix, returns a matrix of such evaluated cdfs.
 #' @note If some of your covariates don't have support on (-Inf, Inf), be sure
 #' that the density still evaluates properly (to zero) outside of the support,
 #' because this function integrates from -Inf to Inf.
 #' @details If you include a function as an entry in \code{Fcond}, it should
-#' either:
-#'
-#'  \enumerate{
-#'      \item accept a vector if it's the cdf of a
-#'      single variable (that is \code{ord[1]}), or
-#'      \item accept a matrix if it's the cdf of \code{ord[k]|ord[1:(k-1)]}, with
-#'      columns representing variables \code{ord[c(k, 1:(k-1))]}.
-#' }
-#'
-#' It should return a vector.
+#' accept a vector representing variables \code{ord[c(k, 1:(k-1))]}.
+#' @examples
+#' dat <- c(0.4, 0.5, 0.6)
+#' pdf <- function(x) as.integer(all(x>0) & all(x<1))
+#' pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(identity, NULL, NULL))
 #' @export
-pcondseq.generic <- function(ord, xdat, fX, Fcond = NULL){
-    if (is.vector(xdat)) xdat <- matrix(xdat, nrow = 1)
-    p <- length(ord)  # Could be less than ncol(xdat)
-    pdat <- ncol(xdat)
-    ## Permute xdat so that the variables are in order of 'ord'.
-    xdat <- xdat[, ord]
-    if (p == 1) xdat <- matrix(xdat, ncol = 1)
-    if (is.vector(xdat)) xdat <- matrix(xdat, nrow = 1)
-    ## Change fX so that it accepts a permuted vector.
-    ## Note: Will need to re-permute the permuted vector back to normal. So get
-    ##        the inverse permutation first.
-    ordinv <- sapply(1:p, function(i) which(ord == i))
-    if (p < pdat) {
-        ## Need to integrate-out unused variables.
-        integration <- list()
-        fXperm <- function(xvecperm) {
-            for (int in setdiff(1:pdat, ord)) {
-                integration <- c(integration, )
+pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
+    if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
+    p <- length(ord)  # Could be less than ncol(dat)
+    pdat <- ncol(dat)
+    ## Permute dat so that the variables are in order of 'ord'.
+    dat <- dat[, ord]
+    if (p == 1) dat <- matrix(dat, ncol = 1)
+    if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
+    ## Change fX so that it accepts a vector in the order of ord.
+    notused <- setdiff(1:pdat, ord)
+    if (length(notused) > 0) {
+        fXperm <- function(xperm) {
+            integrand <- function(xnotused) {
+                xfull <- rep(NA, pdat)
+                xfull[ord] <- xperm
+                xfull[notused] <- xnotused
+                fX(xfull)
             }
-            fX(xvecperm[ordinv])
+            integrate.mv(integrand, rep(-Inf, pdat-p), rep(Inf, pdat-p))
         }
     } else {
-        fXperm <- function(xvecperm) fX(xvecperm[ordinv])
+        ## Inverse order:
+        ordinv <- sapply(1:p, function(i) which(ord == i))
+        fXperm <- function(xperm) fX(xperm[ordinv])
     }
     ## Work with one observation at a time.
-    for (i in 1:nrow(xdat)) {
-        xvec <- xdat[i, ]
-        ## Get integrands needed to compute Fp|1:(p-1), F(p-1)|1:(p-2), etc.
+    res <- list(numeric(0))
+    for (i in 1:nrow(dat)) {
+        xvec <- dat[i, ]
+        ## Get integrands needed to compute F1, F2|1, F3|1:2, ..., Fp|1:(p-1)
         integrand <- list()
-        pareval <- list() # partially evaluated pdf
-        for (j in 1:(p-1)) {
-            ## Evaluate at conditional variables:
-            pareval[[j]] <- function(xj, xupper) fXperm(c(xvec[seq_len(j-1)], xj, xupper))
-            ## Integrate-out the upper variables, and get the (vectorized)
-            ##  integrand in variable j.
-            integrand <- function(x1j) fXperm(c(x1j, xvec[seq_len()]))
-            for (int in j+seq_len(p-j)) { # Variables (j+1):p need integrating
-
+        for (j in 1:p) {
+            ## Get the integrand needed to compute Fj|1:(j-1):
+            ## integrate-out the upper variables, and evaluate at the lower ones
+            integrand[[j]] <- function(xj) {
+                pareval <- function(xup = numeric(0))
+                    fXperm(c(xvec[seq_len(j-1)], xj, xup))
+                integrate.mv(pareval, rep(-Inf, p-j), rep(Inf, p-j))
             }
-        }
-        pareval[[p]] <- function(xp) fXperm(c(xvec[seq_len(p-1)], xp))
-
-    }
-
-
-    ## Find the marginal distributions of 1, 1:2, ..., 1:p by integrating.
-    ##  We might not need all of them, but the integration only happens
-    ##  when the function is called anyway.
-    ##  (Yes we're building the list backwards, because I can't fill in the
-    ##  list starting at the end. Just reverse it after.)
-    fXseqrev <- list(fXperm)
-    for (i in 1 + seq_len(p-1)) {  # is 2:p as long as p>1; integer(0) otherwise
-        fXseqrev[[i]] <- function(xvec) {
-            g <- function(xlast) fXseqrev[[i-1]](c(xvec, xlast))
-            gg <- Vectorize(g)
-            integrate(gg, -Inf, Inf)$value
-        }
-    }
-    fXseq <- rev(fXseqrev)
-    ## Find the conditional cdfs one-by-one:
-    sapply(1:p, function(k){
-        ## We're on the cdf of k|1:(k-1). Get conditioned variable indices:
-        cond <- ord[seq_len(k-1)] # Could be empty.
-        ## Get evaluated conditional distribution:
-        ## If this conditional cdf is already given, no need for integration.
-        if (!is.null(Fcond[[k]])) {
-            ## Are the cdfs already evaluated?
-            if (is.vector(Fcond[[k]])) {
-                ## Yes. Just use them.
-                res <- Fcond[[k]]
+            ## Integrate to find the Fcond, unless it's already provided.
+            if (is.null(Fcond[[j]])) {
+                res[[i]][j] <- integrate.mv(integrand[[j]], -Inf, xvec[j]) /
+                    integrate.mv(integrand[[j]], -Inf, Inf)
             } else {
-                ## No. A vectorized function was entered, so just evaluate.
-                res <- Fcond[[k]](xdat[, c(k, cond)])
+                if (is.function(Fcond[[j]])) {
+                    res[[i]][j] <- Fcond[[j]](c(xvec[j], xvec[seq_len(j-1)]))
+                } else {
+                    res[[i]][j] <- Fcond[[j]][i]
+                }
             }
-        } else {
-            ## Need to integrate. So, need to work with one observation at a time.
-            res <- sapply(1:nrow(xdat), function(row){
-                ## Make density of variables c(cond, k), as a function of
-                ##  variable k (i.e. evaluated at cond variables)
-                xvarcond <- xdat[row, cond]
-                xvark <- xdat[row, k]
-                fk <- function(xk_) fXseq[[k]](c(xvarcond, xk_))
-                ## Integrate to evaluate conditional cdf.
-                fk <- Vectorize(fk)
-                integ <- integrate(fk, -Inf, xvark)
-                area <- integrate(fk, -Inf, Inf)
-                if (integ$message != "OK")
-                    stop (paste0("Integrate error, variable ", k, ": ", integ$message))
-                integ$value / area$value
-            })
         }
-        res
-    })
+    }
+    do.call(rbind, res)
 }
 
 #' Temp

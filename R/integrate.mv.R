@@ -11,12 +11,16 @@
 #'
 #' It's reasonably fast
 #' when \code{f} takes two variables, and slow when \code{f} takes 3 variables.
-#' For 4 or more, prehaps look into alternative approaches.
+#' For 4 or more, perhaps look into alternative approaches.
 #'
 #' If you're support is finite, you're better off using
 #' \code{\link{cubature::adaptIntegrate}}.
 #' @return A numeric value of the integral. The other information
 #' outputted by the \code{\link{integrate}} function are ignored.
+#'
+#' If the length of the limit vectors is zero, it will be assumed that
+#' \code{f} has no arguments, so \code{f()} will be returned.
+#' returned.
 #' @note Only a rectangular support is allowed.
 #'
 #' This function could probably be improved if some of the support is finite,
@@ -30,6 +34,7 @@
 integrate.mv <- function(f, lower, upper, ...) {
     p <- length(lower)
     if (p != length(upper)) stop("Lower and upper endpoints of unequal length.")
+    if (p == 0) return(f())
     if (p == 1) {
         integrand <- Vectorize(f)
         return(integrate(integrand, lower, upper, ...)$value)

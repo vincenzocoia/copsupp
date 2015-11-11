@@ -4,13 +4,13 @@
 \alias{pcondseq.generic}
 \title{Find sequential conditional cdfs}
 \usage{
-pcondseq.generic(ord, xdat, fX, Fcond = NULL)
+pcondseq.generic(ord, dat, fX, Fcond = NULL)
 }
 \arguments{
 \item{ord}{Integer vector; variables in the order that you'll be linking them
 up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
 
-\item{xdat}{\code{p}-length vector, or \code{p}-columns matrix of predictors.}
+\item{dat}{\code{p}-length vector, or \code{p}-columns matrix of predictors.}
 
 \item{fX}{Function; the density of the covariates. Should accept a vector
 with each component in the space (-Inf, Inf) and return a non-negative real.}
@@ -23,11 +23,11 @@ The \code{k}th entry should correspond to the cdf of
 \code{ord[k]|ord[1:(k-1)]}.}
 }
 \value{
-If \code{xdat} is a vector, returns a
+If \code{dat} is a vector, returns a
 vector of evaluated cdfs of predictors
 \code{ord[1]}, \code{ord[2]|ord[1]}, ..., \code{ord[p]|ord[1:(p-1)]}.
 
-If \code{xdat} is a matrix, returns a matrix of such evaluated cdfs.
+If \code{dat} is a matrix, returns a matrix of such evaluated cdfs.
 }
 \description{
 From a \code{p}-variate joint distribution,
@@ -39,20 +39,16 @@ Allows for permutations of \code{1:p} too.
 }
 \details{
 If you include a function as an entry in \code{Fcond}, it should
-either:
-
- \enumerate{
-     \item accept a vector if it's the cdf of a
-     single variable (that is \code{ord[1]}), or
-     \item accept a matrix if it's the cdf of \code{ord[k]|ord[1:(k-1)]}, with
-     columns representing variables \code{ord[c(k, 1:(k-1))]}.
-}
-
-It should return a vector.
+accept a vector representing variables \code{ord[c(k, 1:(k-1))]}.
 }
 \note{
 If some of your covariates don't have support on (-Inf, Inf), be sure
 that the density still evaluates properly (to zero) outside of the support,
 because this function integrates from -Inf to Inf.
+}
+\examples{
+dat <- c(0.4, 0.5, 0.6)
+pdf <- function(x) as.integer(all(x>0) & all(x<1))
+pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(identity, NULL, NULL))
 }
 
