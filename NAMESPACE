@@ -2,6 +2,7 @@
 
 export(dnew)
 export(fvinesim)
+export(integrate.mv)
 export(is.dvine)
 export(is.vineleaf)
 export(ktaunew)

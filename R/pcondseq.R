@@ -40,31 +40,63 @@
 #' @export
 pcondseq.generic <- function(ord, xdat, fX, Fcond = NULL){
     if (is.vector(xdat)) xdat <- matrix(xdat, nrow = 1)
-    p <- length(ord)
+    p <- length(ord)  # Could be less than ncol(xdat)
+    pdat <- ncol(xdat)
     ## Permute xdat so that the variables are in order of 'ord'.
     xdat <- xdat[, ord]
+    if (p == 1) xdat <- matrix(xdat, ncol = 1)
+    if (is.vector(xdat)) xdat <- matrix(xdat, nrow = 1)
     ## Change fX so that it accepts a permuted vector.
     ## Note: Will need to re-permute the permuted vector back to normal. So get
     ##        the inverse permutation first.
     ordinv <- sapply(1:p, function(i) which(ord == i))
-    fXperm <- function(xvecperm) {
-        xvec <- xvecperm[ordinv]
-        fX(xvec)
+    if (p < pdat) {
+        ## Need to integrate-out unused variables.
+        integration <- list()
+        fXperm <- function(xvecperm) {
+            for (int in setdiff(1:pdat, ord)) {
+                integration <- c(integration, )
+            }
+            fX(xvecperm[ordinv])
+        }
+    } else {
+        fXperm <- function(xvecperm) fX(xvecperm[ordinv])
     }
+    ## Work with one observation at a time.
+    for (i in 1:nrow(xdat)) {
+        xvec <- xdat[i, ]
+        ## Get integrands needed to compute Fp|1:(p-1), F(p-1)|1:(p-2), etc.
+        integrand <- list()
+        pareval <- list() # partially evaluated pdf
+        for (j in 1:(p-1)) {
+            ## Evaluate at conditional variables:
+            pareval[[j]] <- function(xj, xupper) fXperm(c(xvec[seq_len(j-1)], xj, xupper))
+            ## Integrate-out the upper variables, and get the (vectorized)
+            ##  integrand in variable j.
+            integrand <- function(x1j) fXperm(c(x1j, xvec[seq_len()]))
+            for (int in j+seq_len(p-j)) { # Variables (j+1):p need integrating
+
+            }
+        }
+        pareval[[p]] <- function(xp) fXperm(c(xvec[seq_len(p-1)], xp))
+
+    }
+
+
     ## Find the marginal distributions of 1, 1:2, ..., 1:p by integrating.
     ##  We might not need all of them, but the integration only happens
     ##  when the function is called anyway.
     ##  (Yes we're building the list backwards, because I can't fill in the
     ##  list starting at the end. Just reverse it after.)
-    fXseq <- list(fXperm)
+    fXseqrev <- list(fXperm)
     for (i in 1 + seq_len(p-1)) {  # is 2:p as long as p>1; integer(0) otherwise
-        fXseq[[i]] <- function(xvec) {
-            g <- function(xlast) fXseq[[i-1]](c(xvec, xlast))
-            g <- Vectorize(g)
-            integrate(g, -Inf, Inf)$value
+        fXseqrev[[i]] <- function(xvec) {
+            g <- function(xlast) fXseqrev[[i-1]](c(xvec, xlast))
+            gg <- Vectorize(g)
+            integrate(gg, -Inf, Inf)$value
         }
     }
-    fXseq <- rev(fXseq)
+    fXseq <- rev(fXseqrev)
     ## Find the conditional cdfs one-by-one:
     sapply(1:p, function(k){
         ## We're on the cdf of k|1:(k-1). Get conditioned variable indices:
