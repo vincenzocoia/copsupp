@@ -47,8 +47,8 @@ that the density still evaluates properly (to zero) outside of the support,
 because this function integrates from -Inf to Inf.
 }
 \examples{
-dat <- c(0.4, 0.5, 0.6)
-pdf <- function(x) as.integer(all(x>0) & all(x<1))
-pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(identity, NULL, NULL))
+(dat <- matrix(rnorm(3*5), ncol = 3))
+pdf <- function(x) prod(dnorm(x))
+pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(pnorm, NULL))
 }
 

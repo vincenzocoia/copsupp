@@ -29,9 +29,9 @@
 #' @details If you include a function as an entry in \code{Fcond}, it should
 #' accept a vector representing variables \code{ord[c(k, 1:(k-1))]}.
 #' @examples
-#' dat <- c(0.4, 0.5, 0.6)
-#' pdf <- function(x) as.integer(all(x>0) & all(x<1))
-#' pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(identity, NULL, NULL))
+#' (dat <- matrix(rnorm(3*5), ncol = 3))
+#' pdf <- function(x) prod(dnorm(x))
+#' pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(pnorm, NULL))
 #' @export
 pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
@@ -59,8 +59,9 @@ pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
         fXperm <- function(xperm) fX(xperm[ordinv])
     }
     ## Work with one observation at a time.
-    res <- list(numeric(0))
+    res <- list()
     for (i in 1:nrow(dat)) {
+        res[[i]] <- numeric(0)
         xvec <- dat[i, ]
         ## Get integrands needed to compute F1, F2|1, F3|1:2, ..., Fp|1:(p-1)
         integrand <- list()
