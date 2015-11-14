@@ -4,8 +4,8 @@
 \alias{pcond.rvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcond.rvine(dat, A, cond, copmat, cparmat, ntrunc = ncol(A) - 1,
-  FXmarg = identity, FYmarg = identity)
+pcond.rvine(dat, A, cond, copmat, cparmat, FXmarg = identity,
+  FYmarg = identity)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
@@ -25,12 +25,12 @@ to the edges in that tree (in the order of the D-vine, i.e. "left to right").}
 \item{cparmat}{Upper triangular matrix of copula parameters
 corresponding to the copula families in \code{copmat}.}
 
-\item{ntrunc}{Truncation level of vine.}
-
 \item{FXmarg}{List of (univariate) marginal cdfs of X_1, ..., X_p;
 each should be vectorized. Or a single function if the cdf is all the same.}
 
 \item{FYmarg}{Marginal cdf of Y, vectorized.}
+
+\item{ntrunc}{Truncation level of vine.}
 }
 \description{
 Evaluates the conditional distribution of a variable in a regular vine,

@@ -3,36 +3,37 @@
 #' Convert a vine array so that a variable(s) of your choice appears last
 #' (bottom-right corner) of the vine array -- if possible.
 #'
-#' @param A Vine array matrix.
-#' @param ntrunc Truncation integer, between 1 and \code{ncol(A)-1}.
-#' @param leaves Vector of variables in \code{diag(A)} that you want to
+#' @param A Vine array matrix, possibly truncated. Must be in natural order --
+#' if truncated, that means \code{A[, 1+0:nrow(A)]} must be in natural order.
+#' @param leaf Vector of variables that you want to
 #' get new vine array for, if such a vine array exists.
-#' @return A vine array (matrix) with \code{leaves} at the end, if such a
-#' vine array exists; \code{NULL} otherwise. If \code{length(leaves) > 1},
+#' @return A vine array (matrix) with \code{leaf} at the end, if such a
+#' vine array exists; \code{NULL} otherwise. If \code{length(leaf) > 1},
 #' a list of such output is returned, corresponding to the entries
-#' in \code{leaves}
+#' in \code{leaf}.
 #' @note
-#' When the truncation is less than \code{ncol(A) - 2}, the array matrices
-#' that are returned are not \code{ncol(A) x ncol(A)} -- they're
-#' \code{(ntrunc+1) x ncol(A)}, achieved by collapsing the variables on
-#' the diagonal upwards.
+#' There's no functionality yet to convert a truncated vine so that it's leftern
+#' part is in natural order. But if you truncate a vine in natural order, it'll
+#' be fine. Use \code{\link{CopulaModel::varray2NO}} for converting a complete
+#' vine array to natural order.
 #' @examples
-#' A <- makeuppertri(c(1,1,1,1,2,4,
-#'                     2,2,2,1,1,
-#'                     3,3,3,2,
-#'                     4,4,3,
-#'                     5,5,
-#'                     6), 7, 7)[1:6, 2:7]
-#' releaf.varray(A, ntrunc = 2)
-#' releaf.varray(A, ntrunc = 3, leaves = 3:6)
-#' releaf.varray(A, leaves = 5)
+#' A <- makeuppertri(c(4,4,4,4,6,5,
+#'                     6,6,6,4,4,
+#'                     1,1,1,6,
+#'                     5,5,1,
+#'                     2,2,
+#'                     3), 6, 6, incDiag=T)
+#' releaf.varray(trunc.varray(A, 2))
+#' releaf.varray(trunc.varray(A, 3), leaf = 3:6)
+#' releaf.varray(A, leaf = 5)
 #' @export
-releaf.varray <- function(A, ntrunc = ncol(A)-1, leaves=diag(A)) {
+releaf.varray <- function(A, leaf=diag(A)) {
     if (!is.matrix(A)) return(NULL)
-    if (length(leaves) == 0) return(logical(0))
-    if (ncol(A) == 0) return(NULL) # Only after checking length(leaves) > 0.
+    if (length(leaf) == 0) return(logical(0))
+    if (ncol(A) == 0) return(NULL) # Only after checking length(leaf) > 0.
     d <- ncol(A)
-    if (ntrunc == d-1) ntrunc <- d-2
+    ntrunc <- nrow(A) - 1
+    # if (ntrunc == d-1) ntrunc <- d-2
     ## Convert to natural order:
     ANO <- CopulaModel::varray2NO(A)$NOa
     diagNO <- diag(ANO)
@@ -47,13 +48,13 @@ releaf.varray <- function(A, ntrunc = ncol(A)-1, leaves=diag(A)) {
     ncols <- ncol(candcols)
     ## Variables that won't work as leaves:
     bad <- unique(as.vector(candbranches))
-    yesorno <- !(leaves %in% bad)
+    yesorno <- !(leaf %in% bad)
     ## Re-order the vine arrays:
     res <- list()
-    for (i in 1:length(leaves)) {
+    for (i in 1:length(leaf)) {
         if (yesorno[i]) {
             ## Leaf is valid.
-            col <- which(candvars == leaves[i])
+            col <- which(candvars == leaf[i])
             recol <- c((1:ncols)[-col], col)
             res[[i]] <- cbind(leftANO, candcols[, recol])
             if (ntrunc == d-2) {
@@ -66,7 +67,7 @@ releaf.varray <- function(A, ntrunc = ncol(A)-1, leaves=diag(A)) {
             res[[i]] <- NULL
         }
     }
-    names(res) <- leaves
+    names(res) <- leaf
     if (length(res) == 1) res <- res[[1]]
     res
 }
