@@ -5,7 +5,7 @@
 \alias{makeuppertri.list}
 \title{Make an upper triangular matrix}
 \usage{
-makeuppertri(entries, row, col, blanks = 0, byRow = TRUE)
+makeuppertri(entries, row, col, blanks = 0, byRow = TRUE, incDiag = FALSE)
 
 makeuppertri.list(entries, len, row, col, blanks = list(), byRow = TRUE)
 }
@@ -21,6 +21,9 @@ makeuppertri.list(entries, len, row, col, blanks = list(), byRow = TRUE)
 \item{byRow}{Logical; read the \code{entries} by row (as if you're reading)
 (TRUE), or read in vertically (FALSE).}
 
+\item{incDiag}{Should the entries go on the diagonal too? \code{TRUE} if
+so, \code{FALSE} if not.}
+
 \item{len}{Vector of positive integers which specify the lengths of the
 individual vectors that are pooled in \code{entries}.}
 }
@@ -33,6 +36,13 @@ vectors (which would have to be an array with list entries), use
 \code{makeuppertri.list}.
 }
 \examples{
+## Square matrices
+makeuppertri(1:choose(5,2), 5, 5)
+makeuppertri(1:choose(6,2), 5, 5, incDiag = TRUE)
+
+## Not square.
+makeuppertri(1:9, row = 2, col = 5, incDiag = TRUE)
+makeuppertri(1:3, row = 5, col = 3)
 makeuppertri(1:10, 5, 5, byRow = FALSE)
 makeuppertri.list(1:12, c(1, 10, 1), 3, 3)
 }

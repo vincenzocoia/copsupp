@@ -8,12 +8,23 @@
 #' @param blanks What should go in the non-diagonal entries?
 #' @param byRow Logical; read the \code{entries} by row (as if you're reading)
 #' (TRUE), or read in vertically (FALSE).
+#' @param incDiag Should the entries go on the diagonal too? \code{TRUE} if
+#' so, \code{FALSE} if not.
 #' @note Use \code{makeuppertri} to make a matrix. If you want entries to be
 #' vectors (which would have to be an array with list entries), use
 #' \code{makeuppertri.list}.
 #' @rdname makeuppertri
+#' @examples
+#' ## Square matrices
+#' makeuppertri(1:choose(5,2), 5, 5)
+#' makeuppertri(1:choose(6,2), 5, 5, incDiag = TRUE)
+#'
+#' ## Not square.
+#' makeuppertri(1:9, row = 2, col = 5, incDiag = TRUE)
+#' makeuppertri(1:3, row = 5, col = 3)
 #' @export
-makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE){
+makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE, incDiag=FALSE){
+    if (incDiag) col <- col + 1
     if (byRow) {
         comp <- matrix(blanks, row, col)
         tcomp <- t(comp)
@@ -23,7 +34,11 @@ makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE){
         comp <- matrix(blanks, row, col)
         comp[upper.tri(comp)] <- entries
     }
-    comp
+    if (incDiag) {
+        return(comp[, 2:ncol(comp)])
+    } else {
+        return(comp)
+    }
 }
 
 #' @param len Vector of positive integers which specify the lengths of the

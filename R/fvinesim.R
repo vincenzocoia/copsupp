@@ -7,10 +7,10 @@
 #' \code{\link{rvinesimvec2}})
 #'
 #' @param n Number of observations to generate
-#' @param truncA Vine array matrix, possibly truncated (so, #columns should
-#' equal vine copula dimension).
-#' @param cops Vector of strings of the copula names for each edge, in "reading
-#' order" corresponding to \code{truncA} from top-left to bottom-right.
+#' @param A Vine array matrix, possibly truncated.
+#' @param cops
+#' Vector of strings of the copula names for each edge, in "reading
+#' order" corresponding to \code{A} from top-left to bottom-right.
 #' To have the same copula for the entire tree, just name the copula (i.e.
 #' length 1). To have the same copula for each tree, just specify the copulas
 #' for each tree in that order (of length = number of trees).
@@ -22,10 +22,10 @@
 #' "print flag for intermediate results".
 #'
 #' @details
-#' The vine array in \code{truncA} is made up of \code{diag(1:d)} on the diagonal,
+#' The vine array in \code{A} is made up of \code{diag(1:d)} on the diagonal,
 #' with 0 lower triangle, and the vine array in the upper triangle; then the
 #' bottom rows are optionally removed to truncate the vine. Here, \code{d} is
-#' the dimension of the vine copula (\code{=ncol(truncA)}).
+#' the dimension of the vine copula (\code{=ncol(A)}).
 #'
 #' To name the copulas, use the names as in the CopulaModel package. For
 #' example, "Frank" is \code{"frk"}, and "Gumbel" is \code{"gum"}.
@@ -41,12 +41,12 @@
 #' fvinesim(10, A[1:2, ], cops="frk", cpars=rep(2, 7))
 #' @import CopulaModel
 #' @export
-fvinesim <- function(n, truncA, cops, cpars, iprint=FALSE){
+fvinesim <- function(n, A, cops, cpars, iprint=FALSE){
   ## Get extra parameters for rvinesimvec2 function
   ## Dimension of the vine copula:
-  d <- ncol(truncA)
+  d <- ncol(A)
   ## ntrunc: Truncation of the vine (can't be more than d-1)
-  ntrunc <- min(d-1, nrow(truncA))
+  ntrunc <- min(d-1, nrow(A))
   if (ntrunc < d-1) {
     warning("In fvinesim: I haven't yet figured out how to make a truncated vine work.")
   }
@@ -72,6 +72,6 @@ fvinesim <- function(n, truncA, cops, cpars, iprint=FALSE){
   qmat <- makeuppertri(paste0("qcond", cops), ntrunc, d, blanks="")
   pmat <- makeuppertri(paste0("pcond", cops), ntrunc, d, blanks="")
   ## Input arguments into CopulaModel function:
-  rvinesimvec2(n, truncA, ntrunc=ntrunc, parvec=parvec, np=np,
+  rvinesimvec2(n, A, ntrunc=ntrunc, parvec=parvec, np=np,
                qcondmat=qmat, pcondmat=pmat, iprint=iprint)
 }

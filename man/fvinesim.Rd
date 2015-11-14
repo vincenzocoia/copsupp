@@ -4,16 +4,15 @@
 \alias{fvinesim}
 \title{Friendly vine simulation}
 \usage{
-fvinesim(n, truncA, cops, cpars, iprint = FALSE)
+fvinesim(n, A, cops, cpars, iprint = FALSE)
 }
 \arguments{
 \item{n}{Number of observations to generate}
 
-\item{truncA}{Vine array matrix, possibly truncated (so, #columns should
-equal vine copula dimension).}
+\item{A}{Vine array matrix, possibly truncated.}
 
 \item{cops}{Vector of strings of the copula names for each edge, in "reading
-order" corresponding to \code{truncA} from top-left to bottom-right.
+order" corresponding to \code{A} from top-left to bottom-right.
 To have the same copula for the entire tree, just name the copula (i.e.
 length 1). To have the same copula for each tree, just specify the copulas
 for each tree in that order (of length = number of trees).}
@@ -34,10 +33,10 @@ because I can't figure out how to do truncated vines using
 \code{\link{rvinesimvec2}})
 }
 \details{
-The vine array in \code{truncA} is made up of \code{diag(1:d)} on the diagonal,
+The vine array in \code{A} is made up of \code{diag(1:d)} on the diagonal,
 with 0 lower triangle, and the vine array in the upper triangle; then the
 bottom rows are optionally removed to truncate the vine. Here, \code{d} is
-the dimension of the vine copula (\code{=ncol(truncA)}).
+the dimension of the vine copula (\code{=ncol(A)}).
 
 To name the copulas, use the names as in the CopulaModel package. For
 example, "Frank" is \code{"frk"}, and "Gumbel" is \code{"gum"}.
