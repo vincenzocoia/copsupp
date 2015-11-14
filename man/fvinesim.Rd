@@ -11,16 +11,15 @@ fvinesim(n, A, cops, cpars, iprint = FALSE)
 
 \item{A}{Vine array matrix, possibly truncated.}
 
-\item{cops}{Vector of strings of the copula names for each edge, in "reading
-order" corresponding to \code{A} from top-left to bottom-right.
-To have the same copula for the entire tree, just name the copula (i.e.
-length 1). To have the same copula for each tree, just specify the copulas
-for each tree in that order (of length = number of trees).}
+\item{cops}{Upper-triangular matrix of copula names (like "frk" or "gum"),
+corresponding to the edges in vine array \code{A}. Or, a single name
+if it applies to all edges in \code{A}, or a vector of length
+\code{nrow(A)-1} where entry \code{i} corresponds to edges in row \code{i}
+of \code{A}.}
 
-\item{cpars}{List, where each entry is a vector of parameters
-corresponding to the copula in \code{cops}. Optionally, if each copula
-family only has one parameter, this could be a vector. Should have
-\code{length(cpars)} = # of edges in the (truncated) vine.}
+\item{cpars}{Matrix of copula parameters, with entries corresponding to
+entries in \code{cops}. Optionally, if only one copula is being fit for
+the entire vine, could be the copula parameter (a vector).}
 
 \item{iprint}{Logical, as in \code{\link{rvinesimvec2}}, which says
 "print flag for intermediate results".}
@@ -33,10 +32,11 @@ because I can't figure out how to do truncated vines using
 \code{\link{rvinesimvec2}})
 }
 \details{
-The vine array in \code{A} is made up of \code{diag(1:d)} on the diagonal,
-with 0 lower triangle, and the vine array in the upper triangle; then the
-bottom rows are optionally removed to truncate the vine. Here, \code{d} is
-the dimension of the vine copula (\code{=ncol(A)}).
+To truncate a vine array, use \code{\link{trunc.varray}}.
+
+To make a matrix of copulas, use \code{\link{makeuppertri}}. Some copula
+parameters may have more or less parameters than 1 -- in this case,
+enlist the help of \code{\link{makeuppertri.list}}.
 
 To name the copulas, use the names as in the CopulaModel package. For
 example, "Frank" is \code{"frk"}, and "Gumbel" is \code{"gum"}.
@@ -48,9 +48,15 @@ permutation symmetric.
 \examples{
 ## Vine array:
 A <- CopulaModel::Dvinearray(5)
+A <- relabel.varray(A, c(3, 5, 1, 2, 4))
 ## Simulate 10 observations with Frank copulas:
-fvinesim(10, A, cops="frk", cpars=rep(2, choose(5,2)))
-## Same thing, but truncate after tree 2 (doesn't work yet):
-fvinesim(10, A[1:2, ], cops="frk", cpars=rep(2, 7))
+set.seed(123)
+fvinesim(10, A, cops="frk", cpars=2)
+## Same thing, but 2-truncated:
+A <- trunc.varray(A, 2)
+set.seed(123)
+fvinesim(10, A, cops="frk", cpars=2)
+## Notice that variables 3,5,1 -- the first three generated --- are the same
+##  as the complete vine, since they are only linked by 2 trees anyways.
 }
 
