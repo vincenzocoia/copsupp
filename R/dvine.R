@@ -83,7 +83,7 @@ pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
 #' @param cparmat Upper triangular matrix of copula parameters corresponding
 #' to the copula families in \code{copmat}.
 #' @param FXmarg List of (univariate) marginal cdfs of X_1, ..., X_p;
-#' each should be vectorized.
+#' each should be vectorized. Or a single function if the cdf is all the same.
 #' @param FYmarg Marginal cdf of Y, vectorsized.
 #' @note You might want to load the CopulaModel package to load the
 #' copula families.
@@ -95,15 +95,15 @@ pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
 #' library(CopulaModel)
 #' copmat <- makeuppertri("frk", 5, 5)
 #' cparmat <- makeuppertri(1:10, 5, 5)
-#' Fmarg <- list(pnorm, pnorm, pnorm, pnorm, pnorm)
 #'
 #' ## cdf of X1|X2,...,X5 at -2|-1:2
-#' pcondD(-2, -1:2, copmat, cparmat, Fmarg)
+#' pcondD(-2, -1:2, copmat, cparmat, pnorm)
 #' @rdname pcondD
 #' @export
-pcondD <- function(y, x, copmat, cparmat, FXmarg, FYmarg) {
+pcondD <- function(y, x, copmat, cparmat, FXmarg = identity, FYmarg = identity) {
     if (is.vector(x)) x <- matrix(x, nrow = 1)
     num <- ncol(x)
+    if (length(FXmarg) == 1) FXmarg <- rep(list(FXmarg), num)
     x <- cbind(y, x)
     Fmarg <- c(list(FYmarg), FXmarg)
     apply(x, 1, function(row){
@@ -153,9 +153,10 @@ qcondD.generic <- function(tau, x, i, num, copmat, cparmat, Fmarg, Qi_marg){
 #' @param QY Quantile function of Y, vectorized.
 #' @rdname pcondD
 #' @export
-qcondD <- function(tau, x, copmat, cparmat, FXmarg, QY) {
+qcondD <- function(tau, x, copmat, cparmat, FXmarg = identity, QY = identity) {
     if (is.vector(x)) x <- matrix(x, nrow = 1)
     p <- ncol(x)
+    if (length(FXmarg) == 1) FXmarg <- rep(list(FXmarg), p)
     x <- cbind(NA, x)
     Fmarg <- c(NA, FXmarg)
     t(apply(x, 1, function(row){

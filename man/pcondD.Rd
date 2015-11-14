@@ -5,9 +5,9 @@
 \alias{qcondD}
 \title{Conditional D-Vine Distribution}
 \usage{
-pcondD(y, x, copmat, cparmat, FXmarg, FYmarg)
+pcondD(y, x, copmat, cparmat, FXmarg = identity, FYmarg = identity)
 
-qcondD(tau, x, copmat, cparmat, FXmarg, QY)
+qcondD(tau, x, copmat, cparmat, FXmarg = identity, QY = identity)
 }
 \arguments{
 \item{y}{response(s) to evaluate the cdf at. Could be a vector (or matrix
@@ -27,7 +27,7 @@ of the D-vine, i.e. "left to right").}
 to the copula families in \code{copmat}.}
 
 \item{FXmarg}{List of (univariate) marginal cdfs of X_1, ..., X_p;
-each should be vectorized.}
+each should be vectorized. Or a single function if the cdf is all the same.}
 
 \item{FYmarg}{Marginal cdf of Y, vectorsized.}
 
@@ -55,9 +55,8 @@ copula families.
 library(CopulaModel)
 copmat <- makeuppertri("frk", 5, 5)
 cparmat <- makeuppertri(1:10, 5, 5)
-Fmarg <- list(pnorm, pnorm, pnorm, pnorm, pnorm)
 
 ## cdf of X1|X2,...,X5 at -2|-1:2
-pcondD(-2, -1:2, copmat, cparmat, Fmarg)
+pcondD(-2, -1:2, copmat, cparmat, pnorm)
 }
 

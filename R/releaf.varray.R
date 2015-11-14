@@ -1,25 +1,3 @@
-#' Is a Vine Array a D-Vine?
-#'
-#' @param A Vine array matrix.
-#' @return Logical -- \code{TRUE} if \code{A} is a D-vine. \code{FALSE} if not.
-#' If \code{A} is not a matrix, or has \code{integer(0)} columns,
-#' it'll return \code{NULL}.
-#' @examples
-#' is.dvine(CopulaModel::Dvinearray(5))
-#' is.dvine(CopulaModel::Cvinearray(6))
-#' is.dvine("hello")
-#' @export
-is.dvine <- function(A) {
-    if (!is.matrix(A)) return(NULL)
-    p <- ncol(A)
-    if (p == 1) return(TRUE)
-    if (p == 0) return(NULL)
-    ## In tree 1, nodes should appear maximum of two times.
-    nodes1 <- A[1, -1]
-    nodes2 <- diag(A)[-1]
-    max(table(c(nodes1, nodes2))) <= 2
-}
-
 #' "Re-leaf" a Vine Array
 #'
 #' Convert a vine array so that a variable(s) of your choice appears last
@@ -45,11 +23,11 @@ is.dvine <- function(A) {
 #'                     4,4,3,
 #'                     5,5,
 #'                     6), 7, 7)[1:6, 2:7]
-#' releafvarray(A, ntrunc = 2)
-#' releafvarray(A, ntrunc = 3, leaves = 3:6)
-#' releafvarray(A, leaves = 5)
+#' releaf.varray(A, ntrunc = 2)
+#' releaf.varray(A, ntrunc = 3, leaves = 3:6)
+#' releaf.varray(A, leaves = 5)
 #' @export
-releafvarray <- function(A, ntrunc = ncol(A)-1, leaves=diag(A)) {
+releaf.varray <- function(A, ntrunc = ncol(A)-1, leaves=diag(A)) {
     if (!is.matrix(A)) return(NULL)
     if (length(leaves) == 0) return(logical(0))
     if (ncol(A) == 0) return(NULL) # Only after checking length(leaves) > 0.
