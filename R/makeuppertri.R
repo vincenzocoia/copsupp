@@ -24,7 +24,8 @@
 #' makeuppertri(1:3, row = 5, col = 3)
 #' @export
 makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE, incDiag=FALSE){
-    if (incDiag) col <- col + 1
+    if (incDiag)
+        return(makeuppertri(entries, row, col+1, blanks=blanks, byRow=byRow)[, 1+1:col])
     if (byRow) {
         comp <- matrix(blanks, row, col)
         tcomp <- t(comp)
@@ -34,21 +35,24 @@ makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE, incDiag=FALSE)
         comp <- matrix(blanks, row, col)
         comp[upper.tri(comp)] <- entries
     }
-    if (incDiag) {
-        return(comp[, 2:ncol(comp)])
-    } else {
-        return(comp)
-    }
+    comp
 }
 
 #' @param len Vector of positive integers which specify the lengths of the
 #' individual vectors that are pooled in \code{entries}.
 #' @examples
-#' makeuppertri(1:10, 5, 5, byRow = FALSE)
-#' makeuppertri.list(1:12, c(1, 10, 1), 3, 3)
+#' ## List entries
+#' (M <- makeuppertri.list(1:12, c(1, 10, 1), 3, 3))
+#' M[1, 2]   # A list of length one.
+#' M[1, 3]   # Another list of length one.
+#' (M <- makeuppertri.list(1:3, rep(1,3), 3, 3))
+#' M[1, 2]   # Still a list of length one.
 #' @rdname makeuppertri
 #' @export
-makeuppertri.list <- function(entries, len, row, col, blanks=list(), byRow=TRUE){
+makeuppertri.list <- function(entries, len, row, col, blanks=list(), byRow=TRUE, incDiag=FALSE){
+    if (incDiag)
+        return(makeuppertri.list(entries, len, row, col+1,
+                                 blanks=blanks, byRow=byRow)[, 1+1:col])
     ## Put entries into list form.
     listentries <- NULL
     for (len_ in len) {

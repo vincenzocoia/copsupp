@@ -7,7 +7,8 @@
 \usage{
 makeuppertri(entries, row, col, blanks = 0, byRow = TRUE, incDiag = FALSE)
 
-makeuppertri.list(entries, len, row, col, blanks = list(), byRow = TRUE)
+makeuppertri.list(entries, len, row, col, blanks = list(), byRow = TRUE,
+  incDiag = FALSE)
 }
 \arguments{
 \item{entries}{Vector of entries for the upper triangular part of the matrix.}
@@ -43,7 +44,11 @@ makeuppertri(1:choose(6,2), 5, 5, incDiag = TRUE)
 ## Not square.
 makeuppertri(1:9, row = 2, col = 5, incDiag = TRUE)
 makeuppertri(1:3, row = 5, col = 3)
-makeuppertri(1:10, 5, 5, byRow = FALSE)
-makeuppertri.list(1:12, c(1, 10, 1), 3, 3)
+## List entries
+(M <- makeuppertri.list(1:12, c(1, 10, 1), 3, 3))
+M[1, 2]   # A list of length one.
+M[1, 3]   # Another list of length one.
+(M <- makeuppertri.list(1:3, rep(1,3), 3, 3))
+M[1, 2]   # Still a list of length one.
 }
 
