@@ -95,3 +95,27 @@ varray.vars <- function(A) {
     secondvars <- A[r, r+seq_len(p-r)]
     c(firstvars, secondvars)
 }
+
+#' Center a Vine Array
+#'
+#' Converts a vine array \code{A} so that the first variables (up to
+#' truncation) are not leaves. So, a slightly weaker condition than
+#' natural order.
+#'
+#' @param A Vine array, possibly truncated.
+#' @details For a \code{t}-truncated vine array \code{(t < ncol(A)-1)},
+#' the vine array is re-ordered so that the first \code{t} variables
+#' introduced in the outputted array are not leaves.
+#'
+#' If \code{t = ncol(A)-1}, then the entered vine isn't truncated, and the
+#' first \code{t-1} variables in the outputted array are not leaves (in fact,
+#' a natural order array is outputted, since it satisfies that requirement).
+#' @export
+center.varray <- function(A) {
+    ntrunc <- nrow(A) - 1
+    d <- ncol(A)
+    if (ntrunc == d-1) return(CopulaModel::varray2NO(A)$NOa)
+    ## Initiate the final array as (ntrunc+1)x(ntrunc+1) array using variables
+    ##  in A[, d], with A[d,d] going at the end.
+}
+

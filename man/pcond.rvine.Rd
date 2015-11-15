@@ -4,23 +4,22 @@
 \alias{pcond.rvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcond.rvine(dat, A, cond, copmat, cparmat, FXmarg = identity,
+pcond.rvine(dat, cond, A, copmat, cparmat, FXmarg = identity,
   FYmarg = identity)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
 
-\item{A}{Vine array matrix. Variables should be labelled to correspond to
-the order they appear in \code{dat}, not so that
-\code{diag(A)=1:ncol(dat)}.}
-
 \item{cond}{Integer; the variable you wish to condition on (i.e. the
 column number of \code{dat}).}
 
-\item{copmat}{Upper triangular \code{p x p} matrix of copula names
-(like "frk" and "gum") as strings in the D-vine array.
-So, rows correspond to tree depth in the vine; columns correspond
-to the edges in that tree (in the order of the D-vine, i.e. "left to right").}
+\item{A}{Vine array matrix, possibly truncated.
+Variables should be labelled to correspond to
+the order they appear in \code{dat}, not so that
+they match the column number.}
+
+\item{copmat}{Upper triangular matrix of copula names corresponding to
+the edges in \code{A}.}
 
 \item{cparmat}{Upper triangular matrix of copula parameters
 corresponding to the copula families in \code{copmat}.}
@@ -29,8 +28,6 @@ corresponding to the copula families in \code{copmat}.}
 each should be vectorized. Or a single function if the cdf is all the same.}
 
 \item{FYmarg}{Marginal cdf of Y, vectorized.}
-
-\item{ntrunc}{Truncation level of vine.}
 }
 \description{
 Evaluates the conditional distribution of a variable in a regular vine,

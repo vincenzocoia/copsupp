@@ -10,11 +10,12 @@ rvinesubset(A, select)
 \item{A}{vine array}
 
 \item{select}{Vector of variable indices in \code{diag(A)} to subset,
-if possible.}
+if possible. The order of the variables does not matter.}
 }
 \value{
-Returns a vine array of the subsetted variables, or \code{NULL} if
-the subset don't form a vine.
+Returns a vine array of the subsetted variables, with variables
+ordered according to their order in \code{A}; or \code{NULL} if
+the subset does not form a vine.
 }
 \description{
 Find the vine connecting a subset of variables from a bigger vine, if
@@ -34,8 +35,5 @@ doesn't hold for this distribution).
 A <- CopulaModel::Dvinearray(5)
 rvinesubset(A, c(2, 3, 4))
 rvinesubset(A, c(4, 1))
-## The numbering doesn't have to be 1,2,3,...
-A <- makeuppertri(2 + c(1,1,1,1,4, 2,2,3,1, 3,2,3, 4,2, 5), 6, 6)[1:5, 2:6]
-rvinesubset(A, 2 + c(1,3,4))
 }
 

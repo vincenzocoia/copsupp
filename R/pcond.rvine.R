@@ -4,18 +4,16 @@
 #' given values of the other variables.
 #'
 #' @param dat vector or matrix of observations (columns are variables).
-#' @param A Vine array matrix. Variables should be labelled to correspond to
-#' the order they appear in \code{dat}, not so that
-#' \code{diag(A)=1:ncol(dat)}.
 #' @param cond Integer; the variable you wish to condition on (i.e. the
 #' column number of \code{dat}).
-#' @param copmat Upper triangular \code{p x p} matrix of copula names
-#' (like "frk" and "gum") as strings in the D-vine array.
-#' So, rows correspond to tree depth in the vine; columns correspond
-#' to the edges in that tree (in the order of the D-vine, i.e. "left to right").
+#' @param A Vine array matrix, possibly truncated.
+#' Variables should be labelled to correspond to
+#' the order they appear in \code{dat}, not so that
+#' they match the column number.
+#' @param copmat Upper triangular matrix of copula names corresponding to
+#' the edges in \code{A}.
 #' @param cparmat Upper triangular matrix of copula parameters
 #' corresponding to the copula families in \code{copmat}.
-#' @param ntrunc Truncation level of vine.
 #' @param FXmarg List of (univariate) marginal cdfs of X_1, ..., X_p;
 #' each should be vectorized. Or a single function if the cdf is all the same.
 #' @param FYmarg Marginal cdf of Y, vectorized.
@@ -29,7 +27,7 @@
 #'  \code{rVineTruncCondCDF} function in the \code{copreg} package is
 #'  used to compute the conditional cdf.
 #' }
-pcond.rvine <- function(dat, A, cond, copmat, cparmat,
+pcond.rvine <- function(dat, cond, A, copmat, cparmat,
                         FXmarg = identity, FYmarg = identity) {
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     p <- ncol(A)

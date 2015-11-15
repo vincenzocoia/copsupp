@@ -5,7 +5,7 @@
 #'
 #' @param A vine array
 #' @param select Vector of variable indices in \code{diag(A)} to subset,
-#' if possible.
+#' if possible. The order of the variables does not matter.
 #' @details Just a technicality:
 #' by saying a subset "doesn't have an existing vine", I mean that
 #' a vine can't be formed using nodes and edges from
@@ -13,48 +13,51 @@
 #' joint distribution of the selected variables can't be created from a vine
 #' (so as to say, for example, that the simplifying assumption of vines
 #' doesn't hold for this distribution).
-#' @return Returns a vine array of the subsetted variables, or \code{NULL} if
-#' the subset don't form a vine.
+#' @return Returns a vine array of the subsetted variables, with variables
+#' ordered according to their order in \code{A}; or \code{NULL} if
+#' the subset does not form a vine.
 #' @examples
 #' ## Try a D-Vine
 #' A <- CopulaModel::Dvinearray(5)
 #' rvinesubset(A, c(2, 3, 4))
 #' rvinesubset(A, c(4, 1))
-#' ## The numbering doesn't have to be 1,2,3,...
-#' A <- makeuppertri(2 + c(1,1,1,1,4, 2,2,3,1, 3,2,3, 4,2, 5), 6, 6)[1:5, 2:6]
-#' rvinesubset(A, 2 + c(1,3,4))
 #' @export
 rvinesubset <- function(A, select) {
     p <- ncol(A)
+    ntrunc <- nrow(A) - 1
     k <- length(select)
     if (k == p) return(A)
     if (k == 1) return(matrix(select))
-    diagA <- diag(A)
-    notselect <- setdiff(diag(A), select)
+    if (k == 0) return(A[integer(0), integer(0)])
+    vars <- varray.vars(A)
+    notselect <- setdiff(vars, select)
     ## Indices to keep (i.e. what columns of A, or which of the
     ##   ordered variables to keep?)
-    ikeep <- sapply(select, function(s) which(diagA == s))
+    ikeep <- sapply(select, function(s) which(vars == s))
     ilose <- setdiff(1:p, ikeep)
-    ## Select entries to remove from the vine array (as TRUE entries).
-    #### Bottom-left zeroes need removal.
-    removal <- lower.tri(diag(p))
-    #### "Extraneous" area needs removal (i.e. higher-level trees
-    ####   that are impossible with this selection)
-    removal[k:p, k:p] <- removal[k:p, k:p] | upper.tri(diag(p-k+1))
-    #### Columns where our selection is not on the diagonal need removing:
-    removal[, ilose] <- TRUE
-    #### Select remaining variables that need removal.
-    removal[, ikeep] <- removal[, ikeep] |
-        apply(A[, ikeep], 1:2, function(t) t %in% notselect)
-    ## There should be (k+1) choose 2 variable indices remaining if the
-    ##  subsetted vine "exists".
-    remain <- A[!removal]  # A vector.
-    if (length(remain) == choose(k+1, 2)) {
-        subA <- makeuppertri(remain, k+1, k+1, byRow = FALSE)
-        subA <- subA[, -1]
-        subA <- subA[-(k+1), ]
-    } else {
-        subA <- NULL
+    ## Convert vine array to a "convenient" vine array, where the labels go on
+    ##  top instead of the "skewed diagonal":
+    Acon <- A[1:ntrunc, ]
+    if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = ntrunc)
+    diag(Acon) <- 0
+    Acon <- rbind(matrix(vars, nrow = 1), Acon)
+    ## Remove bottom rows if need be:
+    if (k - 1 < ntrunc) Acon <- Acon[1:k, ]
+    nrownew <- nrow(Acon)
+    ## Remove columns of non-selected variables:
+    Acon <- Acon[, ikeep]
+    ## Go column-by-column, and gather variables that are in the selection set.
+    unstrung <- integer(0)
+    for (j in 1:ncol(Acon)) for (i in 1:nrow(Acon)) {
+        if (Acon[i, j] %in% select) unstrung <- c(unstrung, Acon[i, j])
     }
-    subA
+    if (length(unstrung) != nrownew * k - choose(nrownew, 2)) return(NULL)
+    res <- makeuppertri(unstrung, row = nrownew, col = k,
+                        incDiag = TRUE, byRow = FALSE)
+    ## Convert back to standard array format:
+    varsnew <- res[1, ]
+    res <- res[c(2:nrownew, 1), ]
+    diag(res) <- varsnew[1:nrownew]
+    res[nrownew, 1:(nrownew-1)] <- 0
+    res
 }
