@@ -23,7 +23,7 @@ Identical to \code{CopulaModel::varrayperm} but allows for
 the posibility that \code{A} is not square.
 }
 \examples{
-(A <- trunc.varray(CopulaModel::Cvinearray(5), 2))
+(A <- truncvarray(CopulaModel::Cvinearray(5), 2))
 relabel.varray(A, c(3, 2, 1, 5, 4))
 }
 

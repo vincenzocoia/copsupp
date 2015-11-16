@@ -7,7 +7,7 @@
 #' the posibility that \code{A} is not square.
 #' @return A relabelled vine array matrix.
 #' @examples
-#' (A <- trunc.varray(CopulaModel::Cvinearray(5), 2))
+#' (A <- truncvarray(CopulaModel::Cvinearray(5), 2))
 #' relabel.varray(A, c(3, 2, 1, 5, 4))
 #' @export
 relabel.varray <- function(A, labs = 1:ncol(A)) {
@@ -59,11 +59,11 @@ invert.perm <- function(perm) {
 #' array, then continue along the bottom row.
 #' @examples
 #' (A <- CopulaModel::Dvinearray(6))
-#' (A <- trunc.varray(A, 3))
+#' (A <- truncvarray(A, 3))
 #' (A <- relabel.varray(A, c(6, 2, 4, 3, 1, 5)))
-#' trunc.varray(A, 2)
+#' truncvarray(A, 2)
 #' @export
-trunc.varray <- function(A, ntrunc) {
+truncvarray <- function(A, ntrunc) {
     p <- ncol(A)
     r <- nrow(A)
     if (ntrunc > r-2) return(A)
@@ -85,7 +85,7 @@ trunc.varray <- function(A, ntrunc) {
 #' A <- relabel.varray(A, c(5, 2, 4, 3, 1))
 #' varray.vars(A)
 #'
-#' A <- trunc.varray(A, 2)
+#' A <- truncvarray(A, 2)
 #' varray.vars(A)
 #' @export
 varray.vars <- function(A) {
@@ -122,9 +122,7 @@ center.varray <- function(A) {
     ovars <- varray.vars(A)  # Stands for "original variables"
     rvars <- setdiff(ovars, Bvars)  # Stands for "remaining variables".
     ## Convert A to a convenient form by moving labels to top row:
-    Acon <- A[1:ntrunc, ]
-    diag
-
+    Acon <- Atocon(A)
     ## Fill in B until there's no more variables left to fill:
     while (length(rvars) > 0) {
         ## Which of the remaining variables are in the next layer of the vine?
@@ -133,12 +131,36 @@ center.varray <- function(A) {
             tf <- rvars %in% A[, col]
             if (sum(tf) == 1) layer <- c(layer, rvars[tf])
         }
+        rvars <- setdiff(rvars, layer)
+        wchremain <- sapply(rvars, function(i) which(ovars == i))
+        Asub <- Acon[, -wchremain]
+        if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = ntrunc + 1)
         ## Add the variables in the next layer:
-        nextcol <- list()
         for (v in layer) {
+            nextcol <- matrix(nrow = ntrunc + 1)
+            nextcol[ntrunc + 1, ] <- v
+            Asubsub <- Asub
             for (t in 1:ntrunc) {
-
+                Asubsub <- Asubsub[, -1]
+                if (!is.matrix(Asubsub)) Asubsub <- matrix(Asubsub, nrow = ntrunc + 1)
+                ## Get the possible nodes for this tree
+                nodes <- Asubsub[c(1, t+1), ]
+                if (!is.matrix(nodes)) nodes <- matrix(nodes, nrow = 2)
+                ## Make sure the conditioned variables are correct:
+                keepcols <- rep(TRUE, ncol(Asubsub))
+                if (t > 1) {
+                    condn <- Asubsub[2:t, ]
+                    if (!is.matrix(condn)) condn <- matrix(condn, nrow = t-1)
+                    keepcols <- apply(Asub, 2, function(col)
+                        all(sort(col) == sort(nextcol[1:(t-1), 1])))
+                }
+                ## Find variable v and its partner.
+                wchprsnt <- (nodes == v) & matrix(keepcols, byrow = TRUE,
+                                                  ncol = ncol(Asubsub), nrow = 2)
+                nextcol[t, 1] <- nodes[wchprsnt[2:1, ]]
             }
+            ## Add the column to B:
+            B <- cbind(B, nextcol)
         }
     }
 }

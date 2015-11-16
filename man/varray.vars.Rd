@@ -21,7 +21,7 @@ A <- CopulaModel::Dvinearray(5)
 A <- relabel.varray(A, c(5, 2, 4, 3, 1))
 varray.vars(A)
 
-A <- trunc.varray(A, 2)
+A <- truncvarray(A, 2)
 varray.vars(A)
 }
 
