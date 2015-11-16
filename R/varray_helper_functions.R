@@ -115,7 +115,58 @@ center.varray <- function(A) {
     ntrunc <- nrow(A) - 1
     d <- ncol(A)
     if (ntrunc == d-1) return(CopulaModel::varray2NO(A)$NOa)
-    ## Initiate the final array as (ntrunc+1)x(ntrunc+1) array using variables
-    ##  in A[, d], with A[d,d] going at the end.
+    ## Initiate the final array as (ntrunc+1)x(ntrunc+1) array (call it B)
+    ##  using variables in A[, d], with A[d,d] going at the end.
+    Bvars <- A[, d]
+    B <- rvinesubset(A, Bvars)
+    ovars <- varray.vars(A)  # Stands for "original variables"
+    rvars <- setdiff(ovars, Bvars)  # Stands for "remaining variables".
+    ## Convert A to a convenient form by moving labels to top row:
+    Acon <- A[1:ntrunc, ]
+    diag
+
+    ## Fill in B until there's no more variables left to fill:
+    while (length(rvars) > 0) {
+        ## Which of the remaining variables are in the next layer of the vine?
+        layer <- integer(0)
+        for (col in (ntrunc+1):d) {
+            tf <- rvars %in% A[, col]
+            if (sum(tf) == 1) layer <- c(layer, rvars[tf])
+        }
+        ## Add the variables in the next layer:
+        nextcol <- list()
+        for (v in layer) {
+            for (t in 1:ntrunc) {
+
+            }
+        }
+    }
 }
 
+#' Convert Vine Array to Convenient Array
+#'
+#' (A "convenient" array is achieved by moving the variables in a vine array,
+#' possibly truncated, to the top row)
+#' @param A Vine array
+#' @param Acon A convenient vine array
+#' @rdname A_Acon_convert
+Atocon <- function(A) {
+    ntrunc <- nrow(A) - 1
+    vars <- varray.vars(A)
+    Acon <- A[1:ntrunc, ]
+    if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = ntrunc)
+    diag(Acon) <- 0
+    rbind(matrix(vars, nrow = 1), Acon)
+}
+
+#' @rdname A_Acon_convert
+contoA <- function(Acon) {
+    ntrunc <- nrow(Acon) - 1
+    d <- ncol(Acon)
+    vars <- Acon[1, ]
+    A <- Acon[-1, ]
+    if (!is.matrix(A)) A <- matrix(A, nrow = 1)
+    A <- rbind(A, matrix(c(rep(0, ntrunc), vars[(ntrunc+1):d]), nrow = 1))
+    diag(A) <- vars[1:(ntrunc+1)]
+    A
+}
