@@ -31,21 +31,38 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     p <- ncol(A)
     ntrunc <- nrow(A) - 1
+    ## Uniformize data:
+    if (length(Fmarg) == 1) {
+        udat <- Fmarg(dat)
+    } else {
+        udat <- dat
+        for (col in 1:ncol(dat)) udat[, col] <- Fmarg[[col]](dat[, col])
+    }
     ## Is cond a leaf? If so, get the vine array with it as a leaf.
     Aleaf <- releaf.varray(A, leaf = cond)
-    ## We'll need to re-arrange the copmat and cparmat too.
-    perm1 <- which
     if (is.null(Aleaf)) {
-
+        res <- apply(dat, 1, function(row) {
+            dens_ <- function(xcond){
+                x <- row
+                x[cond] <- xcond
+                dR(x, A, copmat, cparmat)
+            }
+            dens <- Vectorize(dens_)
+            integrate(dens, 0, row[cond])$value / integrate(dens, 0, 1)$value
+        })
     } else {
+        ## We'll need to re-arrange the copmat and cparmat to match Aleaf.
+        copmat <- reform.copmat(copmat, Aleaf, A)
+        cparmat <- reform.copmat(cparmat, Aleaf, A)
+        if (is.dvine(Aleaf))
         ## Re-order data so that it's in order of the vine array, and re-label
         ##  the variables in the vine.
         perm <- diag(Aleaf)
         Aleafperm <- varrayperm(Aleaf, perm)
         datperm <- dat[, perm]
         ## Use Bo's function
-
+        rVineTruncCondCDF
     }
-
+    res
 
 }

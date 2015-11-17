@@ -7,7 +7,7 @@
 is.dvine(A)
 }
 \arguments{
-\item{A}{Vine array matrix.}
+\item{A}{Vine array, possibly truncated.}
 }
 \value{
 Logical -- \code{TRUE} if \code{A} is a D-vine. \code{FALSE} if not.
@@ -18,8 +18,10 @@ it'll return \code{NULL}.
 Is a Vine Array a D-Vine?
 }
 \examples{
-is.dvine(CopulaModel::Dvinearray(5))
-is.dvine(CopulaModel::Cvinearray(6))
+A <- CopulaModel::Dvinearray(5)
+is.dvine(A)
+A <- truncvarray(CopulaModel::Cvinearray(6), 2)
+is.dvine(A)
 is.dvine("hello")
 }
 
