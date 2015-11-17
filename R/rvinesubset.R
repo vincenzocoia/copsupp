@@ -33,7 +33,7 @@ rvinesubset <- function(A, select) {
     notselect <- setdiff(vars, select)
     ## Indices to keep (i.e. what columns of A, or which of the
     ##   ordered variables to keep?)
-    ikeep <- sapply(select, function(s) which(vars == s))
+    ikeep <- sort(sapply(select, function(s) which(vars == s)))
     ilose <- setdiff(1:p, ikeep)
     ## Convert vine array to a "convenient" vine array, where the labels go on
     ##  top instead of the "skewed diagonal":

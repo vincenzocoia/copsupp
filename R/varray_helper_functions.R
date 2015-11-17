@@ -133,7 +133,7 @@ center.varray <- function(A) {
         }
         rvars <- setdiff(rvars, layer)
         wchremain <- sapply(rvars, function(i) which(ovars == i))
-        Asub <- Acon[, -wchremain]
+        if (length(wchremain) > 0) Asub <- Acon[, -wchremain] else Asub <- Acon
         if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = ntrunc + 1)
         ## Add the variables in the next layer:
         for (v in layer) {
@@ -151,7 +151,7 @@ center.varray <- function(A) {
                 if (t > 1) {
                     condn <- Asubsub[2:t, ]
                     if (!is.matrix(condn)) condn <- matrix(condn, nrow = t-1)
-                    keepcols <- apply(Asub, 2, function(col)
+                    keepcols <- apply(condn, 2, function(col)
                         all(sort(col) == sort(nextcol[1:(t-1), 1])))
                 }
                 ## Find variable v and its partner.
@@ -163,6 +163,7 @@ center.varray <- function(A) {
             B <- cbind(B, nextcol)
         }
     }
+    B
 }
 
 #' Convert Vine Array to Convenient Array
