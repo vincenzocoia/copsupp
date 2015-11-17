@@ -174,6 +174,7 @@ center.varray <- function(A) {
 #' @param A Vine array
 #' @param Acon A convenient vine array
 #' @rdname A_Acon_convert
+#' @export
 Atocon <- function(A) {
     ntrunc <- nrow(A) - 1
     vars <- varray.vars(A)
@@ -184,6 +185,7 @@ Atocon <- function(A) {
 }
 
 #' @rdname A_Acon_convert
+#' @export
 contoA <- function(Acon) {
     ntrunc <- nrow(Acon) - 1
     d <- ncol(Acon)
