@@ -4,11 +4,10 @@
 \alias{releaf.varray}
 \title{"Re-leaf" a Vine Array}
 \usage{
-releaf.varray(A, leaf = diag(A))
+releaf.varray(A, leaf = varray.vars(A))
 }
 \arguments{
-\item{A}{Vine array matrix, possibly truncated. Must be in natural order --
-if truncated, that means \code{A[, 1+0:nrow(A)]} must be in natural order.}
+\item{A}{Vine array matrix, possibly truncated.}
 
 \item{leaf}{Vector of variables that you want to
 get new vine array for, if such a vine array exists.}
@@ -23,12 +22,6 @@ in \code{leaf}.
 Convert a vine array so that a variable(s) of your choice appears last
 (bottom-right corner) of the vine array -- if possible.
 }
-\note{
-There's no functionality yet to convert a truncated vine so that it's leftern
-part is in natural order. But if you truncate a vine in natural order, it'll
-be fine. Use \code{\link{CopulaModel::varray2NO}} for converting a complete
-vine array to natural order.
-}
 \examples{
 A <- makeuppertri(c(4,4,4,4,6,5,
                     6,6,6,4,4,
@@ -36,8 +29,8 @@ A <- makeuppertri(c(4,4,4,4,6,5,
                     5,5,1,
                     2,2,
                     3), 6, 6, incDiag=T)
-releaf.varray(trunc.varray(A, 2))
-releaf.varray(trunc.varray(A, 3), leaf = 3:6)
+releaf.varray(truncvarray(A, 2))
+releaf.varray(truncvarray(A, 3), leaf = 3:6)
 releaf.varray(A, leaf = 5)
 }
 

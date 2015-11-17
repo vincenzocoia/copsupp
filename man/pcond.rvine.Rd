@@ -4,8 +4,7 @@
 \alias{pcond.rvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcond.rvine(dat, cond, A, copmat, cparmat, FXmarg = identity,
-  FYmarg = identity)
+pcond.rvine(dat, cond, A, copmat, cparmat, Fmarg = identity)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}

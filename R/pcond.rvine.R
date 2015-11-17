@@ -27,13 +27,12 @@
 #'  \code{rVineTruncCondCDF} function in the \code{copreg} package is
 #'  used to compute the conditional cdf.
 #' }
-pcond.rvine <- function(dat, cond, A, copmat, cparmat,
-                        FXmarg = identity, FYmarg = identity) {
+pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     p <- ncol(A)
     ntrunc <- nrow(A) - 1
     ## Is cond a leaf? If so, get the vine array with it as a leaf.
-    Aleaf <- releafvarray(A, ntrunc = ntrunc, leaves = cond)
+    Aleaf <- releaf.varray(A, leaf = cond)
     ## We'll need to re-arrange the copmat and cparmat too.
     perm1 <- which
     if (is.null(Aleaf)) {
