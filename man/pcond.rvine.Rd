@@ -44,4 +44,21 @@ scenario.
  used to compute the conditional cdf.
 }
 }
+\examples{
+## D-Vine example
+A <- CopulaModel::Dvinearray(5)
+A <- relabel.varray(A, c(1, 5, 4, 3, 2))
+A <- truncvarray(A, 2)
+copmat <- makeuppertri("bvncop", 2, 5)
+cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
+udat <- fvinesim(10, A, copmat, cparmat)
+pcond.rvine(udat, 5, A, copmat, cparmat)  # integrates vine density.
+pcond.rvine(udat, 2, A, copmat, cparmat)  # computes from D-vine formula
+
+## C-Vine example
+A <- CopulaModel::Cvinearray(5)
+A <- truncvarray(A, 2)
+udat <- fvinesim(10, A, copmat, cparmat)
+pcond.rvine(udat, 3, A, copmat, cparmat)  # computes from general R-vine algo
+}
 

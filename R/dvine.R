@@ -80,7 +80,7 @@ pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
 #' of \code{x}.
 #' @param x vector of covariates X_1,...,X_p; or, a matrix with different
 #' covariate values (p columns).
-#' @param copmat Upper triangular \code{p x p} matrix of
+#' @param copmat Upper triangular \code{ntrunc x p} matrix of
 #' copula names (like "frk" and "gum") as strings in the D-vine array.
 #' So, rows correspond to tree
 #' depth in the vine; columns correspond to the edges in that tree (in the order

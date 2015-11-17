@@ -27,6 +27,23 @@
 #'  \code{rVineTruncCondCDF} function in the \code{copreg} package is
 #'  used to compute the conditional cdf.
 #' }
+#' @examples
+#' ## D-Vine example
+#' A <- CopulaModel::Dvinearray(5)
+#' A <- relabel.varray(A, c(1, 5, 4, 3, 2))
+#' A <- truncvarray(A, 2)
+#' copmat <- makeuppertri("bvncop", 2, 5)
+#' cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
+#' udat <- fvinesim(10, A, copmat, cparmat)
+#' pcond.rvine(udat, 5, A, copmat, cparmat)  # integrates vine density.
+#' pcond.rvine(udat, 2, A, copmat, cparmat)  # computes from D-vine formula
+#'
+#' ## C-Vine example
+#' A <- CopulaModel::Cvinearray(5)
+#' A <- truncvarray(A, 2)
+#' udat <- fvinesim(10, A, copmat, cparmat)
+#' pcond.rvine(udat, 3, A, copmat, cparmat)  # computes from general R-vine algo
+#' @export
 pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     p <- ncol(A)
@@ -54,17 +71,39 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
         ## We'll need to re-arrange the copmat and cparmat to match Aleaf.
         copmat <- reform.copmat(copmat, Aleaf, A)
         cparmat <- reform.copmat(cparmat, Aleaf, A)
+        ## We'll need to re-arrange the data so that it's in order of the
+        ##  vine array.
+        vars <- varray.vars(Aleaf)
+        udat <- udat[, vars]
         if (is.dvine(Aleaf)) {
-
+            res <- apply(udat, 1, function(row){
+                pcondD.generic(row, p, -(p-1),
+                               copmat = copmat, cparmat = cparmat,
+                               Fmarg = rep(list(identity), p))
+            })
+        } else {
+            ## Use Bo's function
+            ## Re-label the variables in the vine so that they're 1:p, in that
+            ##  order.
+            Aleaf <- relabel.varray(Aleaf)
+            ## Fill-in vine array so it's p x p
+            Aleaf <- rbind(Aleaf, matrix(0, nrow = p - ntrunc - 1, ncol = p))
+            diag(Aleaf) <- 1:p
+            ## parvec
+            parvec <- c(t(cparmat), recursive = TRUE)
+            ## pcondmat
+            pcondmat <- apply(copmat, 1:2, function(cop) paste0("pcond", cop))
+            pcondmat[!upper.tri(pcondmat)] <- ""
+            ## np
+            if (is.list(cparmat[1,1])) {
+                np <- apply(cparmat, 1:2, function(cpar) length(cpar[[1]]))
+            } else {
+                np <- apply(cparmat, 1:2, length)
+            }
+            ## Call:
+            library(CopulaModel)
+            res <- copreg::rVineTruncCondCDF(parvec, udat, Aleaf, ntrunc, pcondmat, np)
         }
-        ## Re-order data so that it's in order of the vine array, and re-label
-        ##  the variables in the vine.
-        perm <- diag(Aleaf)
-        Aleafperm <- varrayperm(Aleaf, perm)
-        datperm <- dat[, perm]
-        ## Use Bo's function
-        rVineTruncCondCDF
     }
     res
-
 }

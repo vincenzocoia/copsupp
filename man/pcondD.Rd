@@ -17,7 +17,7 @@ of \code{x}.}
 \item{x}{vector of covariates X_1,...,X_p; or, a matrix with different
 covariate values (p columns).}
 
-\item{copmat}{Upper triangular \code{p x p} matrix of
+\item{copmat}{Upper triangular \code{ntrunc x p} matrix of
 copula names (like "frk" and "gum") as strings in the D-vine array.
 So, rows correspond to tree
 depth in the vine; columns correspond to the edges in that tree (in the order
