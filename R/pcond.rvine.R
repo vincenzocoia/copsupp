@@ -54,7 +54,9 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
         ## We'll need to re-arrange the copmat and cparmat to match Aleaf.
         copmat <- reform.copmat(copmat, Aleaf, A)
         cparmat <- reform.copmat(cparmat, Aleaf, A)
-        if (is.dvine(Aleaf))
+        if (is.dvine(Aleaf)) {
+
+        }
         ## Re-order data so that it's in order of the vine array, and re-label
         ##  the variables in the vine.
         perm <- diag(Aleaf)

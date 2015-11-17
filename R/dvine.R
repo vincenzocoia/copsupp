@@ -10,7 +10,7 @@
 #' @param num integer; number of variables directly upstream or downstream
 #' of X_i to condition on. For upstream (i+1, i+2, ...), make
 #' \code{sign(num)>0}; for downstream (i-1, i-2, ...), make \code{sign(num)<0}.
-#' @param copmat Upper triangular \code{(i+num)x(i+num)} matrix of
+#' @param copmat Upper triangular \code{(num trees)x(i+num)} matrix of
 #' copula names (like "frk" and "gum") as strings. Rows correspond to tree
 #' depth in the vine; columns correspond to the edges in that tree (in the order
 #' of the D-vine, i.e. "left to right").
@@ -31,11 +31,11 @@
 #' cparmat <- makeuppertri(1:10, 5, 5)
 #' Fmarg <- list(pnorm, pnorm, pnorm, pnorm, pnorm)
 #'
-#' ## cdf of X1|X2,...,X5 at -2|-1:2
-#' pcondD(-2:2, 1, 4, copmat, cparmat, Fmarg)
+#' ## cdf of X1|X2,...,X5 at -2|-1:2, with 2-truncation:
+#' pcondD.generic(-2:2, 1, 4, copmat[1:2, ], cparmat[1:2, ], Fmarg)
 #'
 #' ## cdf of X4|X2,X3 at 0|1,1:
-#' pcondD(c(NA, 1, 1, 0), 4, -2, copmat, cparmat, Fmarg) # X_1 value doesn't matter.
+#' pcondD.generic(c(NA, 1, 1, 0), 4, -2, copmat, cparmat, Fmarg) # X_1 value doesn't matter.
 #' @rdname dvine.generic
 #' @export
 pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
@@ -49,14 +49,19 @@ pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
         minind <- min(i, i + num)
         maxind <- max(i, i + num)
         tree <- maxind - minind
-        thispcond <- paste0("pcond", copmat[tree, maxind])
-        if (num > 0) {
-            thispcond12 <- paste0(thispcond, "12")
-            if (exists(thispcond12)) thispcond <- thispcond12
+        if (tree > nrow(copmat)) {
+            thispcond <- pcondindepcop
+            thiscpar <- integer(0)
+        } else {
+            thispcond <- paste0("pcond", copmat[tree, maxind])
+            if (num > 0) {
+                thispcond12 <- paste0(thispcond, "12")
+                if (exists(thispcond12)) thispcond <- thispcond12
+            }
+            thispcond <- get(thispcond)
+            thiscpar <- cparmat[tree, maxind]
+            if (is.list(thiscpar)) thiscpar <- thiscpar[[1]]
         }
-        thispcond <- get(thispcond)
-        thiscpar <- cparmat[tree, maxind]
-        if (is.list(thiscpar)) thiscpar <- thiscpar[[1]]
         ## Recursion formula
         thispcond(pcondD.generic(x, i,        newnum, copmat, cparmat, Fmarg),
                   pcondD.generic(x, i + num, -newnum, copmat, cparmat, Fmarg),

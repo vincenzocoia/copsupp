@@ -19,7 +19,7 @@ where the position in the vector matches the variable index (i.e. i,...,i+n).}
 of X_i to condition on. For upstream (i+1, i+2, ...), make
 \code{sign(num)>0}; for downstream (i-1, i-2, ...), make \code{sign(num)<0}.}
 
-\item{copmat}{Upper triangular \code{(i+num)x(i+num)} matrix of
+\item{copmat}{Upper triangular \code{(num trees)x(i+num)} matrix of
 copula names (like "frk" and "gum") as strings. Rows correspond to tree
 depth in the vine; columns correspond to the edges in that tree (in the order
 of the D-vine, i.e. "left to right").}
@@ -56,11 +56,11 @@ copmat <- makeuppertri("frk", 5, 5)
 cparmat <- makeuppertri(1:10, 5, 5)
 Fmarg <- list(pnorm, pnorm, pnorm, pnorm, pnorm)
 
-## cdf of X1|X2,...,X5 at -2|-1:2
-pcondD(-2:2, 1, 4, copmat, cparmat, Fmarg)
+## cdf of X1|X2,...,X5 at -2|-1:2, with 2-truncation:
+pcondD.generic(-2:2, 1, 4, copmat[1:2, ], cparmat[1:2, ], Fmarg)
 
 ## cdf of X4|X2,X3 at 0|1,1:
-pcondD(c(NA, 1, 1, 0), 4, -2, copmat, cparmat, Fmarg) # X_1 value doesn't matter.
+pcondD.generic(c(NA, 1, 1, 0), 4, -2, copmat, cparmat, Fmarg) # X_1 value doesn't matter.
 ## 0.6-quantile of X1|(X2,...,X5)=(2,2,2,2).
 qcondD(0.6, c(NA, 2, 2, 2, 2), 1, 4, copmat, cparmat, Fmarg, qnorm)
 
