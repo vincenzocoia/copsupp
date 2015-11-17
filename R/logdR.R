@@ -1,5 +1,8 @@
 #' Density of a Regular Vine
 #'
+#' Evaluates the density of a regular vine model (\code{dR}) or log density
+#' (\code{logdR}).
+#'
 #' @param dat Data matrix. Rows are observations, and columns are variables.
 #' Could be a vector if there's only one observation.
 #' @param A Vine array. Integer labels should correspond to the column number
@@ -11,9 +14,23 @@
 #' copula parameters in a list in each entry.
 #' @param Fmarg List of vectorized marginal cdfs of data, in the order listed
 #' in \code{dat}. Or a single such function if they're all the same.
+#' @details This function is a wrapper for
+#' \code{rvinellkv.trunc2} in the \code{CopulaModel} package.
+#' @examples
+#' set.seed(123)
+#' A <- truncvarray(Cvinearray(4), 2)
+#' copmat <- makeuppertri(c("gum", "gal", "bvtcop",
+#'                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
+#' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
+#'                              len = c(1,1,2,1,1), row = 2, col = 4)
+#' dat <- fvinesim(10, A, copmat, cparmat)
+#' logdR(dat, A, copmat, cparmat)
+#' dR(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
+#' @rdname d_logd_rvine
+#' @export
 logdR <- function(dat, A, copmat, cparmat, Fmarg = identity) {
     ## Get parvec:
-    parvec <- c(cparmat, recursive = TRUE)
+    parvec <- c(t(cparmat), recursive = TRUE)
     ## ntrunc:
     nrowA <- nrow(A)
     ncolA <- ncol(A)
@@ -30,7 +47,6 @@ logdR <- function(dat, A, copmat, cparmat, Fmarg = identity) {
     } else {
         np <- apply(cparmat, 1:2, length)
     }
-    rvinellkv.trunc2()
     ## Fill in A:
     vars <- varray.vars(A)
     A[nrowA, ] <- 0
@@ -46,3 +62,8 @@ logdR <- function(dat, A, copmat, cparmat, Fmarg = identity) {
                                   pcondmat = pcondmat,
                                   np = np)
 }
+
+#' @rdname d_logd_rvine
+#' @export
+dR <- function(dat, A, copmat, cparmat, Fmarg = identity)
+    exp(logdR(dat, A, copmat, cparmat, Fmarg = identity))
