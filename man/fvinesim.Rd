@@ -49,14 +49,24 @@ permutation symmetric.
 ## Vine array:
 A <- CopulaModel::Dvinearray(5)
 A <- relabel.varray(A, c(3, 5, 1, 2, 4))
+
 ## Simulate 10 observations with Frank copulas:
 set.seed(123)
 fvinesim(10, A, cops="frk", cpars=2)
+
 ## Same thing, but 2-truncated:
 A <- trunc.varray(A, 2)
 set.seed(123)
 fvinesim(10, A, cops="frk", cpars=2)
 ## Notice that variables 3,5,1 -- the first three generated --- are the same
 ##  as the complete vine, since they are only linked by 2 trees anyways.
+
+## One more with slightly more specifications:
+A <- truncvarray(Cvinearray(4), 2)
+copmat <- makeuppertri(c("gum", "gal", "bvtcop",
+                         "bvncop", "frk"), row = 2, col = 4, blanks = "")
+cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
+                             len = c(1,1,2,1,1), row = 2, col = 4)
+fvinesim(10, A, copmat, cparmat)
 }
 

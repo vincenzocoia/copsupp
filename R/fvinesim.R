@@ -35,15 +35,25 @@
 #' ## Vine array:
 #' A <- CopulaModel::Dvinearray(5)
 #' A <- relabel.varray(A, c(3, 5, 1, 2, 4))
+#'
 #' ## Simulate 10 observations with Frank copulas:
 #' set.seed(123)
 #' fvinesim(10, A, cops="frk", cpars=2)
+#'
 #' ## Same thing, but 2-truncated:
 #' A <- trunc.varray(A, 2)
 #' set.seed(123)
 #' fvinesim(10, A, cops="frk", cpars=2)
 #' ## Notice that variables 3,5,1 -- the first three generated --- are the same
 #' ##  as the complete vine, since they are only linked by 2 trees anyways.
+#'
+#' ## One more with slightly more specifications:
+#' A <- truncvarray(Cvinearray(4), 2)
+#' copmat <- makeuppertri(c("gum", "gal", "bvtcop",
+#'                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
+#' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
+#'                              len = c(1,1,2,1,1), row = 2, col = 4)
+#' fvinesim(10, A, copmat, cparmat)
 #' @import CopulaModel
 #' @export
 fvinesim <- function(n, A, cops, cpars, iprint=FALSE){
@@ -68,26 +78,33 @@ fvinesim <- function(n, A, cops, cpars, iprint=FALSE){
   #### parvec: Vector of parameters
   parvec <- c(t(cpars), recursive = T)
   if (is.vector(cpars)) parvec <- rep(parvec, numcops)
-  #### Construct vector of copulas of that length.
-  if (length(cops) == 1) {  # One copula given. Applies to whole vine.
-    cops <- rep(cops, numcops)
-  }
-  if (length(cops) == ntrunc) {
-    comp <- character(0)
-    for (tree in 1:ntrunc) {    # One copula per tree given.
-      comp <- c(comp, rep(cops[tree], d-tree))
-    }
-    cops <- comp
-  }
   #### Now make the desired matrices:
-  qmat <- makeuppertri(paste0("qcond", cops), ntrunc, d, blanks="")
-  pmat <- makeuppertri(paste0("pcond", cops), ntrunc, d, blanks="")
+  if (!is.matrix(cops)) {
+      ## Construct vector of copulas
+      if (length(cops) == 1) {  # One copula given. Applies to whole vine.
+          cops <- rep(cops, numcops)
+      }
+      if (length(cops) == ntrunc) {
+          comp <- character(0)
+          for (tree in 1:ntrunc) {    # One copula per tree given.
+              comp <- c(comp, rep(cops[tree], d-tree))
+          }
+          cops <- comp
+      }
+      qmat <- makeuppertri(paste0("qcond", cops), ntrunc, d, blanks="")
+      pmat <- makeuppertri(paste0("pcond", cops), ntrunc, d, blanks="")
+  } else {
+      qmat <- apply(cops, 1:2, function(cop) paste0("qcond", cop))
+      pmat <- apply(cops, 1:2, function(cop) paste0("pcond", cop))
+      qmat[!upper.tri(qmat)] <- ""
+      pmat[!upper.tri(pmat)] <- ""
+  }
   ## Relabel A so that the variable name is the variable order.
   labs_orig <- varray.vars(A)
   A <- relabel.varray(A)
   ## Inflate A so that it's dxd:
   if (ntrunc < d-1) {
-      A <- rbind(A, matrix(0, nrow = d-ntrunc, ncol = d))
+      A <- rbind(A, matrix(0, nrow = d-(ntrunc+1), ncol = d))
       diag(A) <- 1:d # Don't worry about removing A[ntrunc+1, (ntrunc+1):d].
   }
   ## Input arguments into CopulaModel function:

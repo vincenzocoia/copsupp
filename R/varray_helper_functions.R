@@ -69,6 +69,7 @@ truncvarray <- function(A, ntrunc) {
     if (ntrunc > r-2) return(A)
     vars <- varray.vars(A)
     A <- A[1:ntrunc, 1:p]
+    if (!is.matrix(A)) A <- matrix(A, ncol = p)
     vars[1:ntrunc] <- 0
     rbind(A, matrix(vars, nrow=1))
 }
