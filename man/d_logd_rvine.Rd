@@ -26,6 +26,10 @@ copula parameters in a list in each entry.}
 \item{Fmarg}{List of vectorized marginal cdfs of data, in the order listed
 in \code{dat}. Or a single such function if they're all the same.}
 }
+\value{
+Vector of length = number of observations in \code{dat}, representing
+the evaluated joint density of the variables in \code{A}.
+}
 \description{
 Evaluates the density of a regular vine model (\code{dR}) or log density
 (\code{logdR}).

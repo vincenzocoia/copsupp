@@ -35,6 +35,10 @@ Must contain at least those marginals i:(i+n).}
 
 \item{Qi_marg}{Marginal quantile function of X_i (univariate function)}
 }
+\value{
+A single numeric value representing the evaluated conditional
+cdf or quantile function.
+}
 \description{
 For the vine X_1--X_2--X_3--..., these functions return the joint cdf or
 quantile function of X_i given the \code{num} variables either above or
@@ -62,10 +66,10 @@ pcondD.generic(-2:2, 1, 4, copmat[1:2, ], cparmat[1:2, ], Fmarg)
 ## cdf of X4|X2,X3 at 0|1,1:
 pcondD.generic(c(NA, 1, 1, 0), 4, -2, copmat, cparmat, Fmarg) # X_1 value doesn't matter.
 ## 0.6-quantile of X1|(X2,...,X5)=(2,2,2,2).
-qcondD(0.6, c(NA, 2, 2, 2, 2), 1, 4, copmat, cparmat, Fmarg, qnorm)
+qcondD.generic(0.6, c(NA, 2, 2, 2, 2), 1, 4, copmat, cparmat, Fmarg, qnorm)
 
 ## 0.5-quantile of X2|(X3,X4)=(1,1). Notice only the 3rd and 4th positions
 ##  in the x vector matters.
-qcondD(0.5, c(NA, 2, 1, 1, 99), 2, 2, copmat, cparmat, Fmarg, qnorm)
+qcondD.generic(0.5, c(NA, 2, 1, 1, 99), 2, 2, copmat, cparmat, Fmarg, qnorm)
 }
 

@@ -23,14 +23,17 @@ the edges in \code{A}.}
 \item{cparmat}{Upper triangular matrix of copula parameters
 corresponding to the copula families in \code{copmat}.}
 
-\item{.print}{Logical; should the function output how it goes about
-finding the conditional distribution?}
-
-\item{FXmarg}{List of (univariate) marginal cdfs of X_1, ..., X_p (i.e.
-one for each column of \code{dat});
+\item{Fmarg}{List of (univariate) marginal cdfs corresponding to
+the columns in \code{dat};
 each should be vectorized. Or a single function if the cdf is all the same.}
 
-\item{FYmarg}{Marginal cdf of Y, vectorized.}
+\item{.print}{Logical; should the function output how it goes about
+finding the conditional distribution?}
+}
+\value{
+A vector of length = the number of observations in \code{dat},
+representing the evaluated conditional distribution of variable \code{cond}
+given the other variables in \code{A}.
 }
 \description{
 Evaluates the conditional distribution of a variable in a regular vine,

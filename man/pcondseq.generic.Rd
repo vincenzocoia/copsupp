@@ -7,8 +7,8 @@
 pcondseq.generic(ord, dat, fX, Fcond = NULL)
 }
 \arguments{
-\item{ord}{Integer vector; variables in the order that you'll be linking them
-up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
+\item{ord}{Integer vector; variables in the order of finding conditional cdfs
+(so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
 
 \item{dat}{\code{p}-length vector, or \code{p}-columns matrix of predictors.}
 
@@ -16,9 +16,9 @@ up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
 with each component in the space (-Inf, Inf) and return a non-negative real.}
 
 \item{Fcond}{If you already have some of the conditional distributions,
-put them here in a list to speed up algorithm (either as a
+put them here in a list to speed up the algorithm. Include them either as a
 function (see details), or a vector already
-evaluated at the data). Make a \code{NULL} entry if you don't have that cdf.
+evaluated at the data. Make a \code{NULL} entry if you don't have that cdf.
 The \code{k}th entry should correspond to the cdf of
 \code{ord[k]|ord[1:(k-1)]}.}
 }
@@ -30,12 +30,9 @@ vector of evaluated cdfs of predictors
 If \code{dat} is a matrix, returns a matrix of such evaluated cdfs.
 }
 \description{
-From a \code{p}-variate joint distribution,
-finds the conditional cdfs of variables \code{1}, \code{2|1}, ...,
-\code{p|1:(p-1)} evaluated at some data.
-This function is intended as a preliminary step before connecting a response
-to covariate \code{1}, then \code{2|1}, ...,\code{p|1:(p-1)}.
-Allows for permutations of \code{1:p} too.
+From a joint density, evaluates the sequential conditional cdfs
+of a selection of variables. For example, if you choose variables 4, 2, 6, 5
+(in that order), then it evaluates the cdfs of 4, 2|4, 6|{4,2}, and 5|{4,2,6}.
 }
 \details{
 If you include a function as an entry in \code{Fcond}, it should
@@ -45,10 +42,16 @@ accept a vector representing variables \code{ord[c(k, 1:(k-1))]}.
 If some of your covariates don't have support on (-Inf, Inf), be sure
 that the density still evaluates properly (to zero) outside of the support,
 because this function integrates from -Inf to Inf.
+
+This function is intended as a preliminary step before connecting a response
+to predictors in some order.
 }
 \examples{
 (dat <- matrix(rnorm(3*5), ncol = 3))
 pdf <- function(x) prod(dnorm(x))
 pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(pnorm, NULL))
+}
+\seealso{
+\code{\link{pcondseq.vine}}
 }
 

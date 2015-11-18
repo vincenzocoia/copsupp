@@ -70,9 +70,10 @@ invert.perm <- function(perm) {
 #'
 #' @param A A vine array, possibly truncated.
 #' @param ntrunc Integer; truncation level
-#' @details If \code{ntrunc >= nrow(A) - 1}, the original vine array is
+#' @return If \code{ntrunc >= nrow(A) - 1}, the original vine array is
 #' returned. Otherwise, a truncated vine array with \code{ntrunc + 1} rows is
-#' returned. The variables are listed along the initial diagonal of the vine
+#' returned.
+#' @note The variables are listed along the initial diagonal of the vine
 #' array, then continue along the bottom row.
 #' @examples
 #' (A <- CopulaModel::Dvinearray(6))
@@ -81,12 +82,12 @@ invert.perm <- function(perm) {
 #' truncvarray(A, 2)
 #' @export
 truncvarray <- function(A, ntrunc) {
-    p <- ncol(A)
+    d <- ncol(A)
     r <- nrow(A)
     if (ntrunc > r-2) return(A)
     vars <- varray.vars(A)
-    A <- A[1:ntrunc, 1:p]
-    if (!is.matrix(A)) A <- matrix(A, ncol = p)
+    A <- A[1:ntrunc, 1:d]
+    if (!is.matrix(A)) A <- matrix(A, ncol = d)
     vars[1:ntrunc] <- 0
     rbind(A, matrix(vars, nrow=1))
 }
@@ -128,6 +129,7 @@ varray.vars <- function(A) {
 #' If \code{t = ncol(A)-1}, then the entered vine isn't truncated, and the
 #' first \code{t-1} variables in the outputted array are not leaves (in fact,
 #' a natural order array is outputted, since it satisfies that requirement).
+#' @return A vine array with the same dimensions as \code{A}.
 #' @export
 center.varray <- function(A) {
     ntrunc <- nrow(A) - 1
@@ -184,12 +186,21 @@ center.varray <- function(A) {
     B
 }
 
-#' Convert Vine Array to Convenient Array
+#' Convert Vine Array to "Convenient" Array
 #'
-#' (A "convenient" array is achieved by moving the variables in a vine array,
-#' possibly truncated, to the top row)
+#' A "convenient" array is achieved by moving the variables in a
+#' (possibly truncated) vine array to the top row.
+#'
 #' @param A Vine array
 #' @param Acon A convenient vine array
+#' @details
+#' \code{Atocon} converts a vine array to a convenient vine array.
+#' \code{contoA} converts a convenient vine array to a vine array.
+#'
+#' These converters are intended to be used internally.
+#' @note This form of array is "convenient" because truncated vines can
+#' be respresented by truncating the bottom rows of the matrix.
+#' @return A vine array or convenient vine array
 #' @rdname A_Acon_convert
 #' @export
 Atocon <- function(A) {

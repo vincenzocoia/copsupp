@@ -9,6 +9,9 @@ center.varray(A)
 \arguments{
 \item{A}{Vine array, possibly truncated.}
 }
+\value{
+A vine array with the same dimensions as \code{A}.
+}
 \description{
 Converts a vine array \code{A} so that the first variables (up to
 truncation) are not leaves. So, a slightly weaker condition than

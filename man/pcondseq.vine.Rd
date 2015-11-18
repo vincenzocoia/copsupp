@@ -8,8 +8,8 @@ pcondseq.vine(ord, xdat, rvinefit, FX = identity, .print = FALSE,
   .print.cdfmethod = FALSE)
 }
 \arguments{
-\item{ord}{Integer vector; variables in the order that you'll be linking them
-up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
+\item{ord}{Integer vector; variables in the order of finding conditional cdfs
+(so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
 
 \item{xdat}{Vector of a single observation, or matrix of multiple observations
 of the variables (rows are observations, columns are variables whose column
@@ -28,13 +28,17 @@ Default is \code{identity} so that \code{xdat} can be uniform data if you want.}
 should the method of evaluating the cdf be output? i.e., should the
 \code{.print} argument of \code{\link{pcond.rvine}} be \code{TRUE}?}
 }
+\value{
+If \code{dat} is a vector, returns a
+vector of evaluated cdfs of predictors
+\code{ord[1]}, \code{ord[2]|ord[1]}, ..., \code{ord[p]|ord[1:(p-1)]}.
+
+If \code{dat} is a matrix, returns a matrix of such evaluated cdfs.
+}
 \description{
-From a fitted regular vine model for \code{p} variables,
-finds the conditional cdfs of variables \code{1}, \code{2|1}, ...,
-\code{p|1:(p-1)} evaluated at some data.
-This function is intended as a preliminary step before connecting a response
-to covariate \code{1}, then \code{2|1}, ...,\code{p|1:(p-1)}.
-Allows for permutations of \code{1:p} too.
+From a fitted regular vine model, evaluates the sequential conditional cdfs
+of a selection of variables. For example, if you choose variables 4, 2, 6, 5
+(in that order), then it evaluates the cdfs of 4, 2|4, 6|{4,2}, and 5|{4,2,6}.
 }
 \details{
 The argument \code{rvinefit} can either be:
@@ -54,6 +58,10 @@ The argument \code{rvinefit} can either be:
      }
 }
 }
+\note{
+This function is intended as a preliminary step before connecting a response
+to predictors in some order.
+}
 \examples{
 ## Setup: D-vine
 A <- truncvarray(CopulaModel::Dvinearray(6), 2)
@@ -71,5 +79,8 @@ pcondseq.vine(c(2, 1, 3, 4, 6, 5), dat,
 pcondseq.vine(c(4, 3, 6, 5, 1), dat,
               rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
               .print = TRUE, .print.cdfmethod = TRUE)
+}
+\seealso{
+\code{\link{pcondseq.generic}}
 }
 

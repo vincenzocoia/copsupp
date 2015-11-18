@@ -19,6 +19,8 @@
 #' @param Fmarg List of marginal distributions (univariate functions),
 #' whose position in the list corresponds to the variable index.
 #' Must contain at least those marginals i:(i+n).
+#' @return A single numeric value representing the evaluated conditional
+#' cdf or quantile function.
 #' @note You might want to load the CopulaModel package to load the
 #' copula families.
 #' @details The copulas link (downstream variable, upstream variable), not
@@ -95,6 +97,8 @@ pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
 #' @details The copulas link (downstream variable, upstream variable), not
 #' the other way around. This doesn't make a difference if the copula is "U-V"
 #' symmetric.
+#' @return Vector of numerics representing the evaluated
+#' conditional cdfs or quantile functions.
 #' @examples
 #' ## Joint distribution info
 #' library(CopulaModel)
@@ -120,11 +124,11 @@ pcondD <- function(y, x, copmat, cparmat, FXmarg = identity, FYmarg = identity) 
 #' @param Qi_marg Marginal quantile function of X_i (univariate function)
 #' @examples
 #' ## 0.6-quantile of X1|(X2,...,X5)=(2,2,2,2).
-#' qcondD(0.6, c(NA, 2, 2, 2, 2), 1, 4, copmat, cparmat, Fmarg, qnorm)
+#' qcondD.generic(0.6, c(NA, 2, 2, 2, 2), 1, 4, copmat, cparmat, Fmarg, qnorm)
 #'
 #' ## 0.5-quantile of X2|(X3,X4)=(1,1). Notice only the 3rd and 4th positions
 #' ##  in the x vector matters.
-#' qcondD(0.5, c(NA, 2, 1, 1, 99), 2, 2, copmat, cparmat, Fmarg, qnorm)
+#' qcondD.generic(0.5, c(NA, 2, 1, 1, 99), 2, 2, copmat, cparmat, Fmarg, qnorm)
 #' @rdname dvine.generic
 #' @export
 qcondD.generic <- function(tau, x, i, num, copmat, cparmat, Fmarg, Qi_marg){

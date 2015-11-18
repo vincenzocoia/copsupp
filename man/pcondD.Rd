@@ -36,6 +36,10 @@ functions}
 
 \item{QY}{Quantile function of Y, vectorized.}
 }
+\value{
+Vector of numerics representing the evaluated
+conditional cdfs or quantile functions.
+}
 \description{
 For the vine Y--X_1--...--X_p,
 these functions return the joint cdf or

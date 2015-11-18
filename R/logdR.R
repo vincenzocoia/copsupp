@@ -16,6 +16,8 @@
 #' in \code{dat}. Or a single such function if they're all the same.
 #' @details This function is a wrapper for
 #' \code{rvinellkv.trunc2} in the \code{CopulaModel} package.
+#' @return Vector of length = number of observations in \code{dat}, representing
+#' the evaluated joint density of the variables in \code{A}.
 #' @examples
 #' set.seed(123)
 #' A <- truncvarray(CopulaModel::Cvinearray(4), 2)

@@ -1,21 +1,18 @@
 #' Find sequential conditional cdfs -- From density
 #'
-#' From a \code{p}-variate joint distribution,
-#' finds the conditional cdfs of variables \code{1}, \code{2|1}, ...,
-#' \code{p|1:(p-1)} evaluated at some data.
-#' This function is intended as a preliminary step before connecting a response
-#' to covariate \code{1}, then \code{2|1}, ...,\code{p|1:(p-1)}.
-#' Allows for permutations of \code{1:p} too.
+#' From a joint density, evaluates the sequential conditional cdfs
+#' of a selection of variables. For example, if you choose variables 4, 2, 6, 5
+#' (in that order), then it evaluates the cdfs of 4, 2|4, 6|{4,2}, and 5|{4,2,6}.
 #'
-#' @param ord Integer vector; variables in the order that you'll be linking them
-#' up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).
+#' @param ord Integer vector; variables in the order of finding conditional cdfs
+#' (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).
 #' @param dat \code{p}-length vector, or \code{p}-columns matrix of predictors.
 #' @param fX Function; the density of the covariates. Should accept a vector
 #' with each component in the space (-Inf, Inf) and return a non-negative real.
 #' @param Fcond If you already have some of the conditional distributions,
-#' put them here in a list to speed up algorithm (either as a
+#' put them here in a list to speed up the algorithm. Include them either as a
 #' function (see details), or a vector already
-#' evaluated at the data). Make a \code{NULL} entry if you don't have that cdf.
+#' evaluated at the data. Make a \code{NULL} entry if you don't have that cdf.
 #' The \code{k}th entry should correspond to the cdf of
 #' \code{ord[k]|ord[1:(k-1)]}.
 #' @return If \code{dat} is a vector, returns a
@@ -26,12 +23,16 @@
 #' @note If some of your covariates don't have support on (-Inf, Inf), be sure
 #' that the density still evaluates properly (to zero) outside of the support,
 #' because this function integrates from -Inf to Inf.
+#'
+#' This function is intended as a preliminary step before connecting a response
+#' to predictors in some order.
 #' @details If you include a function as an entry in \code{Fcond}, it should
 #' accept a vector representing variables \code{ord[c(k, 1:(k-1))]}.
 #' @examples
 #' (dat <- matrix(rnorm(3*5), ncol = 3))
 #' pdf <- function(x) prod(dnorm(x))
 #' pcondseq.generic(c(3, 1), dat, fX=pdf, Fcond = list(pnorm, NULL))
+#' @seealso \code{\link{pcondseq.vine}}
 #' @export
 pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
@@ -91,15 +92,12 @@ pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
 
 #' Find sequential conditional cdfs -- From a Regular Vine
 #'
-#' From a fitted regular vine model for \code{p} variables,
-#' finds the conditional cdfs of variables \code{1}, \code{2|1}, ...,
-#' \code{p|1:(p-1)} evaluated at some data.
-#' This function is intended as a preliminary step before connecting a response
-#' to covariate \code{1}, then \code{2|1}, ...,\code{p|1:(p-1)}.
-#' Allows for permutations of \code{1:p} too.
+#' From a fitted regular vine model, evaluates the sequential conditional cdfs
+#' of a selection of variables. For example, if you choose variables 4, 2, 6, 5
+#' (in that order), then it evaluates the cdfs of 4, 2|4, 6|{4,2}, and 5|{4,2,6}.
 #'
-#' @param ord Integer vector; variables in the order that you'll be linking them
-#' up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).
+#' @param ord Integer vector; variables in the order of finding conditional cdfs
+#' (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).
 #' @param xdat Vector of a single observation, or matrix of multiple observations
 #' of the variables (rows are observations, columns are variables whose column
 #' number matches that of the vine array)
@@ -112,6 +110,12 @@ pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
 #' @param .print.cdfmethod Logical; when a subset \code{ord[1:k]} is a vine,
 #' should the method of evaluating the cdf be output? i.e., should the
 #' \code{.print} argument of \code{\link{pcond.rvine}} be \code{TRUE}?
+#' @return
+#' If \code{dat} is a vector, returns a
+#' vector of evaluated cdfs of predictors
+#' \code{ord[1]}, \code{ord[2]|ord[1]}, ..., \code{ord[p]|ord[1:(p-1)]}.
+#'
+#' If \code{dat} is a matrix, returns a matrix of such evaluated cdfs.
 #' @details The argument \code{rvinefit} can either be:
 #'
 #' \enumerate{
@@ -128,6 +132,9 @@ pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
 #'          for that copula model. See \code{\link{makeuppertri.list}} for help.
 #'      }
 #' }
+#' @note
+#' This function is intended as a preliminary step before connecting a response
+#' to predictors in some order.
 #' @examples
 #' ## Setup: D-vine
 #' A <- truncvarray(CopulaModel::Dvinearray(6), 2)
@@ -145,6 +152,7 @@ pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
 #' pcondseq.vine(c(4, 3, 6, 5, 1), dat,
 #'               rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
 #'               .print = TRUE, .print.cdfmethod = TRUE)
+#' @seealso \code{\link{pcondseq.generic}}
 #' @export
 pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity,
                           .print = FALSE, .print.cdfmethod = FALSE) {

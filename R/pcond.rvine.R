@@ -15,10 +15,9 @@
 #' the edges in \code{A}.
 #' @param cparmat Upper triangular matrix of copula parameters
 #' corresponding to the copula families in \code{copmat}.
-#' @param FXmarg List of (univariate) marginal cdfs of X_1, ..., X_p (i.e.
-#' one for each column of \code{dat});
+#' @param Fmarg List of (univariate) marginal cdfs corresponding to
+#' the columns in \code{dat};
 #' each should be vectorized. Or a single function if the cdf is all the same.
-#' @param FYmarg Marginal cdf of Y, vectorized.
 #' @param .print Logical; should the function output how it goes about
 #' finding the conditional distribution?
 #' @details This function could do one of two things, depending on the
@@ -31,6 +30,9 @@
 #'  \code{rVineTruncCondCDF} function in the \code{copreg} package is
 #'  used to compute the conditional cdf.
 #' }
+#' @return A vector of length = the number of observations in \code{dat},
+#' representing the evaluated conditional distribution of variable \code{cond}
+#' given the other variables in \code{A}.
 #' @examples
 #' ## D-Vine example
 #' A <- CopulaModel::Dvinearray(5)

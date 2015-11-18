@@ -3,7 +3,7 @@
 \name{Atocon}
 \alias{Atocon}
 \alias{contoA}
-\title{Convert Vine Array to Convenient Array}
+\title{Convert Vine Array to "Convenient" Array}
 \usage{
 Atocon(A)
 
@@ -14,8 +14,21 @@ contoA(Acon)
 
 \item{Acon}{A convenient vine array}
 }
+\value{
+A vine array or convenient vine array
+}
 \description{
-(A "convenient" array is achieved by moving the variables in a vine array,
-possibly truncated, to the top row)
+A "convenient" array is achieved by moving the variables in a
+(possibly truncated) vine array to the top row.
+}
+\details{
+\code{Atocon} converts a vine array to a convenient vine array.
+\code{contoA} converts a convenient vine array to a vine array.
+
+These converters are intended to be used internally.
+}
+\note{
+This form of array is "convenient" because truncated vines can
+be respresented by truncating the bottom rows of the matrix.
 }
 

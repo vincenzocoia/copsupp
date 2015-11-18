@@ -11,13 +11,16 @@ truncvarray(A, ntrunc)
 
 \item{ntrunc}{Integer; truncation level}
 }
+\value{
+If \code{ntrunc >= nrow(A) - 1}, the original vine array is
+returned. Otherwise, a truncated vine array with \code{ntrunc + 1} rows is
+returned.
+}
 \description{
 Truncates a vine array, collapsing the variables upwards.
 }
-\details{
-If \code{ntrunc >= nrow(A) - 1}, the original vine array is
-returned. Otherwise, a truncated vine array with \code{ntrunc + 1} rows is
-returned. The variables are listed along the initial diagonal of the vine
+\note{
+The variables are listed along the initial diagonal of the vine
 array, then continue along the bottom row.
 }
 \examples{
