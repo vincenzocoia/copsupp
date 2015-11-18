@@ -2,7 +2,7 @@
 % Please edit documentation in R/pcondseq.R
 \name{pcondseq.generic}
 \alias{pcondseq.generic}
-\title{Find sequential conditional cdfs}
+\title{Find sequential conditional cdfs -- From density}
 \usage{
 pcondseq.generic(ord, dat, fX, Fcond = NULL)
 }

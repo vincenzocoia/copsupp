@@ -1,7 +1,8 @@
 #' Conditional Distribution in a Regular Vine
 #'
 #' Evaluates the conditional distribution of a variable in a regular vine,
-#' given values of the other variables.
+#' given values of the other variables. WARNING: Algorithm for non-d-vine
+#' may not be working properly.
 #'
 #' @param dat vector or matrix of observations (columns are variables).
 #' @param cond Integer; the variable you wish to condition on (i.e. the
@@ -9,14 +10,17 @@
 #' @param A Vine array matrix, possibly truncated.
 #' Variables should be labelled to correspond to
 #' the order they appear in \code{dat}, not so that
-#' they match the column number.
+#' they match the column number of \code{A}.
 #' @param copmat Upper triangular matrix of copula names corresponding to
 #' the edges in \code{A}.
 #' @param cparmat Upper triangular matrix of copula parameters
 #' corresponding to the copula families in \code{copmat}.
-#' @param FXmarg List of (univariate) marginal cdfs of X_1, ..., X_p;
+#' @param FXmarg List of (univariate) marginal cdfs of X_1, ..., X_p (i.e.
+#' one for each column of \code{dat});
 #' each should be vectorized. Or a single function if the cdf is all the same.
 #' @param FYmarg Marginal cdf of Y, vectorized.
+#' @param .print Logical; should the function output how it goes about
+#' finding the conditional distribution?
 #' @details This function could do one of two things, depending on the
 #' scenario.
 #'
@@ -35,16 +39,31 @@
 #' copmat <- makeuppertri("bvncop", 2, 5)
 #' cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
 #' udat <- fvinesim(10, A, copmat, cparmat)
-#' pcond.rvine(udat, 5, A, copmat, cparmat)  # integrates vine density.
-#' pcond.rvine(udat, 2, A, copmat, cparmat)  # computes from D-vine formula
+#' pcond.rvine(udat, 5, A, copmat, cparmat, .print=T)  # integrates vine density.
+#' pcond.rvine(udat, 2, A, copmat, cparmat, .print=T)  # computes from D-vine formula
 #'
 #' ## C-Vine example
 #' A <- CopulaModel::Cvinearray(5)
 #' A <- truncvarray(A, 2)
 #' udat <- fvinesim(10, A, copmat, cparmat)
-#' pcond.rvine(udat, 3, A, copmat, cparmat)  # computes from general R-vine algo
+#' pcond.rvine(udat, 3, A, copmat, cparmat, .print=T)  # computes from general R-vine algo
+#'
+#' ## Array doesn't have to involve all data:
+#' A <- CopulaModel::Dvinearray(5)
+#' A <- truncvarray(A, 2)
+#' A <- rvinesubset(A, 3:5)
+#' copmat <- makeuppertri("frk", 2, 3, "")
+#' cparmat <- makeuppertri(3:1, 2, 3)
+#' pcond.rvine(1:5/10, 3, A, copmat, cparmat)
+#' pcond.rvine(1:5/10, 4, A, copmat, cparmat)
+#' ## are the same as...
+#' A <- CopulaModel::Dvinearray(3)
+#' A <- truncvarray(A, 2)
+#' pcond.rvine(3:5/10, 1, A, copmat, cparmat)
+#' pcond.rvine(3:5/10, 2, A, copmat, cparmat)
 #' @export
-pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
+pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
+                        .print = FALSE) {
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     p <- ncol(A)
     ntrunc <- nrow(A) - 1
@@ -58,6 +77,8 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
     ## Is cond a leaf? If so, get the vine array with it as a leaf.
     Aleaf <- releaf.varray(A, leaf = cond)
     if (is.null(Aleaf)) {
+        if (.print) print(paste0("cond=", cond, " is not a leaf. ",
+                                 "Obtaining conditional distribution by integration."))
         res <- apply(dat, 1, function(row) {
             dens_ <- function(xcond){
                 x <- row
@@ -75,13 +96,18 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity) {
         ##  vine array.
         vars <- varray.vars(Aleaf)
         udat <- udat[, vars]
+        if (!is.matrix(udat)) udat <- matrix(udat, ncol = length(vars))
         if (is.dvine(Aleaf)) {
+            if (.print) print(paste0("cond=", cond, " is a leaf of a D-vine. ",
+                                     "using `pcondD.generic()`."))
             res <- apply(udat, 1, function(row){
                 pcondD.generic(row, p, -(p-1),
                                copmat = copmat, cparmat = cparmat,
                                Fmarg = rep(list(identity), p))
             })
         } else {
+            if (.print) print(paste0("cond=", cond, " is a leaf, not of a D-vine. ",
+                                     "using `copreg::rVineTruncCondCDF()`."))
             ## Use Bo's function
             ## Re-label the variables in the vine so that they're 1:p, in that
             ##  order.

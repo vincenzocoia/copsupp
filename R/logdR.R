@@ -18,7 +18,7 @@
 #' \code{rvinellkv.trunc2} in the \code{CopulaModel} package.
 #' @examples
 #' set.seed(123)
-#' A <- truncvarray(Cvinearray(4), 2)
+#' A <- truncvarray(CopulaModel::Cvinearray(4), 2)
 #' copmat <- makeuppertri(c("gum", "gal", "bvtcop",
 #'                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 #' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
@@ -26,11 +26,25 @@
 #' dat <- fvinesim(10, A, copmat, cparmat)
 #' logdR(dat, A, copmat, cparmat)
 #' dR(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
+#'
+#' ## The variables in A don't need to refer to all data:
+#' A <- CopulaModel::Dvinearray(6)
+#' A <- rvinesubset(A, 3:6)
+#' copmat <- makeuppertri("frk", 4, 4, "")
+#' cparmat <- makeuppertri(6:1, 4, 4)
+#' logdR(1:6/10, A, copmat, cparmat)
+#' ## is the same as...
+#' A <- CopulaModel::Dvinearray(4)
+#' logdR(3:6/10, A, copmat, cparmat)
 #' @rdname d_logd_rvine
 #' @export
 logdR <- function(dat, A, copmat, cparmat, Fmarg = identity) {
     ## Get parvec:
-    parvec <- c(t(cparmat), recursive = TRUE)
+    if (is.list(cparmat[1,1])) {
+        parvec <- c(t(cparmat), recursive = TRUE)
+    } else {
+        parvec <- t(cparmat)[lower.tri(t(cparmat))]
+    }
     ## ntrunc:
     nrowA <- nrow(A)
     ncolA <- ncol(A)
@@ -45,17 +59,22 @@ logdR <- function(dat, A, copmat, cparmat, Fmarg = identity) {
     if (is.list(cparmat[1,1])) {
         np <- apply(cparmat, 1:2, function(t) length(t[[1]]))
     } else {
-        np <- apply(cparmat, 1:2, length)
+        np <- matrix(0, nrow = nrow(cparmat), ncol = ncol(cparmat))
+        np[upper.tri(np)] <- 1
     }
-    ## Fill in A:
-    vars <- varray.vars(A)
-    A[nrowA, ] <- 0
-    A <- rbind(A, matrix(0, nrow = ncolA - nrowA, ncol = ncolA))
-    diag(A) <- vars
     ## Get udat
     if (length(Fmarg) == 1) Fmarg <- rep(list(Fmarg), ncolA)
     if (!is.matrix(dat)) dat <- matrix(dat, nrow = 1)
     for (col in 1:ncolA) dat[, col] <- Fmarg[[col]](dat[, col])
+    ## Make array variables 1:ncol(A), and permute data to reflect that.
+    vars <- varray.vars(A)
+    A <- relabel.varray(A)
+    dat <- dat[, vars]
+    if (!is.matrix(dat)) dat <- matrix(dat, nrow = 1)
+    ## Fill in A:
+    A[nrowA, ] <- 0
+    A <- rbind(A, matrix(0, nrow = ncolA - nrowA, ncol = ncolA))
+    diag(A) <- 1:ncol(A)
     ## Use CopulaModel function
     CopulaModel::rvinellkv.trunc2(parvec, dat, A, ntrunc,
                                   logdcopmat = logdcopmat,

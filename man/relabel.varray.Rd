@@ -19,11 +19,18 @@ A relabelled vine array matrix.
 Relabel Variables in a Vine Array
 }
 \details{
-Identical to \code{CopulaModel::varrayperm} but allows for
-the posibility that \code{A} is not square.
+Similar to \code{CopulaModel::varrayperm} but allows for
+the posibility that \code{A} is not square, as well as labels outside
+of the set \code{{1:ncol(A)}}.
 }
 \examples{
 (A <- truncvarray(CopulaModel::Cvinearray(5), 2))
 relabel.varray(A, c(3, 2, 1, 5, 4))
+
+## Labels don't need to be in the set {1:ncol(A)}.
+A <- CopulaModel::Dvinearray(4)
+A <- apply(A, 1:2, function(i) if (i==0) "" else letters[i])
+relabel.varray(A, c("this", "is", "a", "demo"))
+relabel.varray(A)
 }
 

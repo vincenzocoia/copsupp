@@ -2,16 +2,17 @@
 % Please edit documentation in R/pcondseq.R
 \name{pcondseq.vine}
 \alias{pcondseq.vine}
-\title{Temp}
+\title{Find sequential conditional cdfs -- From a Regular Vine}
 \usage{
-pcondseq.vine(ord, xdat, rvinefit, FX = identity)
+pcondseq.vine(ord, xdat, rvinefit, FX = identity, .print = FALSE)
 }
 \arguments{
 \item{ord}{Integer vector; variables in the order that you'll be linking them
 up with the response (so we'll find \code{ord[1]}, \code{ord[2]|ord[1]}, etc.).}
 
 \item{xdat}{Vector of a single observation, or matrix of multiple observations
-of the variables.}
+of the variables (rows are observations, columns are variables whose column
+number matches that of the vine array)}
 
 \item{rvinefit}{The vine fit to data \code{xdat}. See details.}
 
@@ -20,7 +21,12 @@ to the columns of \code{xdat}. Or just one function if it's a common function.
 Default is \code{identity} so that \code{xdat} can be uniform data if you want.}
 }
 \description{
-Temp
+From a fitted regular vine model for \code{p} variables,
+finds the conditional cdfs of variables \code{1}, \code{2|1}, ...,
+\code{p|1:(p-1)} evaluated at some data.
+This function is intended as a preliminary step before connecting a response
+to covariate \code{1}, then \code{2|1}, ...,\code{p|1:(p-1)}.
+Allows for permutations of \code{1:p} too.
 }
 \details{
 The argument \code{rvinefit} can either be:
@@ -39,5 +45,17 @@ The argument \code{rvinefit} can either be:
          for that copula model. See \code{\link{makeuppertri.list}} for help.
      }
 }
+}
+\examples{
+## Setup: D-vine
+A <- truncvarray(CopulaModel::Dvinearray(6), 2)
+copmat <- makeuppertri("frk", 2, 6, "")
+cparmat <- makeuppertri(9:1/2, 2, 6)
+dat <- fvinesim(10, A, copmat, cparmat)
+
+## Get sequential cdfs:
+pcondseq.vine(1:6, dat, rvinefit=list(A=A, copmat=copmat, cparmat=cparmat), .print=T)
+pcondseq.vine(c(2, 1, 3, 4, 6, 5), dat,
+              rvinefit=list(A=A, copmat=copmat, cparmat=cparmat), .print=T)
 }
 

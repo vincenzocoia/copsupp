@@ -8,8 +8,11 @@
 #' @param mat Old matrix to rearrange, such as a copula matrix or copula
 #' parameter matrix. Should be upper-triangular, with nrows = truncation number,
 #' ncols = vine dimension.
-#' @param Anew The new vine array index, possibly truncated.
+#' @param Anew The new vine array index, possibly truncated. Could have
+#' less variables and more truncation than \code{Aold}.
 #' @param Aold The old vine array index, possibly truncated.
+#' @note Make sure that the variables in \code{Aold}
+#' and \code{Anew} have the same labels.
 #' @examples
 #' ## Originally...
 #' A <- truncvarray(Cvinearray(4), 2)
@@ -23,21 +26,28 @@
 #' ## Get new matrices:
 #' reform.copmat(copmat, Anew, A)
 #' reform.copmat(cparmat, Anew, A)
+#'
+#' ## Try changing the dimension of A
+#' Anew <- rvinesubset(truncvarray(A, 1), c(1,2,3))
+#' reform.copmat(copmat, Anew, A)
+#' reform.copmat(cparmat, Anew, A)
 #' @export
 reform.copmat <- function(mat, Anew, Aold) {
     ntrunc <- nrow(Anew) - 1
     d <- ncol(Anew)
+    dold <- ncol(Aold)
     ## Convert to convenient format:
     Anew <- Atocon(Anew)
     Aold <- Atocon(Aold)
     ## Start new matrix:
-    newmat <- matrix(mat[nrow(mat), 1], nrow = nrow(mat), ncol = ncol(mat))
+    entry <- mat[nrow(mat), 1]  # "" or 0?
+    newmat <- matrix(entry, nrow = ntrunc, ncol = d)
     for (i in 1+1:ntrunc) for (j in i:d) {
         ## Fill in newmat[i-1, j]. First find the variable and conditioning pair
         pair <- c(Anew[1, j], Anew[i, j])
         cond <- Anew[1+seq_len(i-2), j]
         ## Which entry was that in the old A? Collect the column number.
-        for (jold in i:d) {
+        for (jold in i:dold) {
             pairold <- c(Aold[1, jold], Aold[i, jold])
             if (i == 2) {
                 if (all(sort(pair) == sort(pairold))) break

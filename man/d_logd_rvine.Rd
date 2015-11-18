@@ -36,7 +36,7 @@ This function is a wrapper for
 }
 \examples{
 set.seed(123)
-A <- truncvarray(Cvinearray(4), 2)
+A <- truncvarray(CopulaModel::Cvinearray(4), 2)
 copmat <- makeuppertri(c("gum", "gal", "bvtcop",
                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
@@ -44,5 +44,15 @@ cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
 dat <- fvinesim(10, A, copmat, cparmat)
 logdR(dat, A, copmat, cparmat)
 dR(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
+
+## The variables in A don't need to refer to all data:
+A <- CopulaModel::Dvinearray(6)
+A <- rvinesubset(A, 3:6)
+copmat <- makeuppertri("frk", 4, 4, "")
+cparmat <- makeuppertri(6:1, 4, 4)
+logdR(1:6/10, A, copmat, cparmat)
+## is the same as...
+A <- CopulaModel::Dvinearray(4)
+logdR(3:6/10, A, copmat, cparmat)
 }
 

@@ -32,5 +32,10 @@ A <- makeuppertri(c(4,4,4,4,6,5,
 releaf.varray(truncvarray(A, 2))
 releaf.varray(truncvarray(A, 3), leaf = 3:6)
 releaf.varray(A, leaf = 5)
+
+## The function doesn't require 1:ncol(A) as variables.
+A <- truncvarray(CopulaModel::Dvinearray(5), 2)
+A <- apply(A, 1:2, function(i) if (i==0) "" else letters[i])
+releaf.varray(A)
 }
 

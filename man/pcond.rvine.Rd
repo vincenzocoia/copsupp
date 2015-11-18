@@ -4,7 +4,7 @@
 \alias{pcond.rvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcond.rvine(dat, cond, A, copmat, cparmat, Fmarg = identity)
+pcond.rvine(dat, cond, A, copmat, cparmat, Fmarg = identity, .print = FALSE)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
@@ -15,7 +15,7 @@ column number of \code{dat}).}
 \item{A}{Vine array matrix, possibly truncated.
 Variables should be labelled to correspond to
 the order they appear in \code{dat}, not so that
-they match the column number.}
+they match the column number of \code{A}.}
 
 \item{copmat}{Upper triangular matrix of copula names corresponding to
 the edges in \code{A}.}
@@ -23,14 +23,19 @@ the edges in \code{A}.}
 \item{cparmat}{Upper triangular matrix of copula parameters
 corresponding to the copula families in \code{copmat}.}
 
-\item{FXmarg}{List of (univariate) marginal cdfs of X_1, ..., X_p;
+\item{.print}{Logical; should the function output how it goes about
+finding the conditional distribution?}
+
+\item{FXmarg}{List of (univariate) marginal cdfs of X_1, ..., X_p (i.e.
+one for each column of \code{dat});
 each should be vectorized. Or a single function if the cdf is all the same.}
 
 \item{FYmarg}{Marginal cdf of Y, vectorized.}
 }
 \description{
 Evaluates the conditional distribution of a variable in a regular vine,
-given values of the other variables.
+given values of the other variables. WARNING: Algorithm for non-d-vine
+may not be working properly.
 }
 \details{
 This function could do one of two things, depending on the
@@ -52,13 +57,27 @@ A <- truncvarray(A, 2)
 copmat <- makeuppertri("bvncop", 2, 5)
 cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
 udat <- fvinesim(10, A, copmat, cparmat)
-pcond.rvine(udat, 5, A, copmat, cparmat)  # integrates vine density.
-pcond.rvine(udat, 2, A, copmat, cparmat)  # computes from D-vine formula
+pcond.rvine(udat, 5, A, copmat, cparmat, .print=T)  # integrates vine density.
+pcond.rvine(udat, 2, A, copmat, cparmat, .print=T)  # computes from D-vine formula
 
 ## C-Vine example
 A <- CopulaModel::Cvinearray(5)
 A <- truncvarray(A, 2)
 udat <- fvinesim(10, A, copmat, cparmat)
-pcond.rvine(udat, 3, A, copmat, cparmat)  # computes from general R-vine algo
+pcond.rvine(udat, 3, A, copmat, cparmat, .print=T)  # computes from general R-vine algo
+
+## Array doesn't have to involve all data:
+A <- CopulaModel::Dvinearray(5)
+A <- truncvarray(A, 2)
+A <- rvinesubset(A, 3:5)
+copmat <- makeuppertri("frk", 2, 3, "")
+cparmat <- makeuppertri(3:1, 2, 3)
+pcond.rvine(1:5/10, 3, A, copmat, cparmat)
+pcond.rvine(1:5/10, 4, A, copmat, cparmat)
+## are the same as...
+A <- CopulaModel::Dvinearray(3)
+A <- truncvarray(A, 2)
+pcond.rvine(3:5/10, 1, A, copmat, cparmat)
+pcond.rvine(3:5/10, 2, A, copmat, cparmat)
 }
 

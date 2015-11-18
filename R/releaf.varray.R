@@ -20,6 +20,11 @@
 #' releaf.varray(truncvarray(A, 2))
 #' releaf.varray(truncvarray(A, 3), leaf = 3:6)
 #' releaf.varray(A, leaf = 5)
+#'
+#' ## The function doesn't require 1:ncol(A) as variables.
+#' A <- truncvarray(CopulaModel::Dvinearray(5), 2)
+#' A <- apply(A, 1:2, function(i) if (i==0) "" else letters[i])
+#' releaf.varray(A)
 #' @export
 releaf.varray <- function(A, leaf=varray.vars(A)) {
     if (!is.matrix(A)) return(NULL)
@@ -27,7 +32,19 @@ releaf.varray <- function(A, leaf=varray.vars(A)) {
     if (ncol(A) == 0) return(NULL) # Only after checking length(leaf) > 0.
     d <- ncol(A)
     ntrunc <- nrow(A) - 1
-    vars <- varray.vars(A)
+    varsset <- varray.vars(A)
+    ## Case when d=2
+    if (d == 2) {
+        res <- lapply(leaf, function(l) {
+            if (A[2,2] == l) {
+                A
+            } else {
+                matrix(c(l, 0, l, A[2,2]), ncol = 2)
+            }
+        })
+        if (length(res) == 1) res <- res[[1]]
+        return(res)
+    }
     ## It's easiest to work with arrays truncated < d-1. So make d-2 the max.
     ##  After all, it's easy to go from d-2 back to the full d-1, which
     ##  we'll do later.
@@ -43,10 +60,12 @@ releaf.varray <- function(A, leaf=varray.vars(A)) {
     if (!is.matrix(leftAc)) leftAc <- matrix(leftAc, ncol = ntrunc)
     ## Identify truncated region to the right of column ntrunc. They're
     ##  candidate columns/variables.
+    vars <- varray.vars(Ac)
     candvars <- vars[(ntrunc+1):d]
     candbranches <- Ac[1:ntrunc, (ntrunc+1):d]
     candcols <- Ac[1:(ntrunc+1), (ntrunc+1):d]
-    if (!is.matrix(candbranches)) candbranches <- matrix(candbranches, ncol = ntrunc)
+    if (!is.matrix(candbranches))
+        candbranches <- matrix(candbranches, ncol = ntrunc)
     ncols <- ncol(candcols)
     ## Variables that won't work as leaves:
     bad <- unique(as.vector(candbranches))
@@ -62,7 +81,7 @@ releaf.varray <- function(A, leaf=varray.vars(A)) {
             if (putback) {
                 res[[i]] <- rbind(res[[i]], matrix(0, ncol = d))
                 res[[i]][d,d] <- res[[i]][d-1, d]
-                res[[i]][d-1,d] <- setdiff(vars, res[[i]][, d])
+                res[[i]][d-1,d] <- setdiff(varsset, res[[i]][, d])
             }
         } else {
             ## Leaf is invalid.

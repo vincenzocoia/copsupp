@@ -11,7 +11,8 @@ reform.copmat(mat, Anew, Aold)
 parameter matrix. Should be upper-triangular, with nrows = truncation number,
 ncols = vine dimension.}
 
-\item{Anew}{The new vine array index, possibly truncated.}
+\item{Anew}{The new vine array index, possibly truncated. Could have
+less variables and more truncation than \code{Aold}.}
 
 \item{Aold}{The old vine array index, possibly truncated.}
 }
@@ -20,6 +21,10 @@ If you changed the order of your vine array, this function will
 convert other matrices associated with the original vine array
 (such as copula matrix or copula parameter matrix)
 into new matrices associated with the new vine array.
+}
+\note{
+Make sure that the variables in \code{Aold}
+and \code{Anew} have the same labels.
 }
 \examples{
 ## Originally...
@@ -32,6 +37,11 @@ cparmat <- makeuppertri.list(c(2, 3, 0.9, 4, 0.1, 0.5),
 ## Obtain new vine array by some means:
 Anew <- center.varray(A)
 ## Get new matrices:
+reform.copmat(copmat, Anew, A)
+reform.copmat(cparmat, Anew, A)
+
+## Try changing the dimension of A
+Anew <- rvinesubset(truncvarray(A, 1), c(1,2,3))
 reform.copmat(copmat, Anew, A)
 reform.copmat(cparmat, Anew, A)
 }

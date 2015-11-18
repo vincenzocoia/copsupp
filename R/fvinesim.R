@@ -70,13 +70,15 @@ fvinesim <- function(n, A, cops, cpars, iprint=FALSE){
           np <- apply(cpars, 1:2, function(t) length(t[[1]]))
       } else {
           np <- apply(cpars, 1:2, length)
+          np[!upper.tri(np)] <- 0
       }
   }
   ## qcondmat, pcondmat, parvec:
   #### How many copulas should there be?
   numcops <- choose(d, 2) - choose(d - ntrunc, 2)
   #### parvec: Vector of parameters
-  parvec <- c(t(cpars), recursive = T)
+  parvec <- t(cpars)[lower.tri(t(cpars))]#c(t(cpars), recursive = T)
+  if (is.list(parvec)) parvec <- c(parvec, recursive = T)
   if (is.vector(cpars)) parvec <- rep(parvec, numcops)
   #### Now make the desired matrices:
   if (!is.matrix(cops)) {
