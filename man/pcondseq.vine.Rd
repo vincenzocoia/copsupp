@@ -4,7 +4,8 @@
 \alias{pcondseq.vine}
 \title{Find sequential conditional cdfs -- From a Regular Vine}
 \usage{
-pcondseq.vine(ord, xdat, rvinefit, FX = identity, .print = FALSE)
+pcondseq.vine(ord, xdat, rvinefit, FX = identity, .print = FALSE,
+  .print.cdfmethod = FALSE)
 }
 \arguments{
 \item{ord}{Integer vector; variables in the order that you'll be linking them
@@ -19,6 +20,13 @@ number matches that of the vine array)}
 \item{FX}{List of vectorized functions that are the marginals corresponding
 to the columns of \code{xdat}. Or just one function if it's a common function.
 Default is \code{identity} so that \code{xdat} can be uniform data if you want.}
+
+\item{.print}{Logical; should the subsetted vines containing variables
+\code{ord[1]}, \code{ord[1:2]}, ..., \code{ord} be printed?}
+
+\item{.print.cdfmethod}{Logical; when a subset \code{ord[1:k]} is a vine,
+should the method of evaluating the cdf be output? i.e., should the
+\code{.print} argument of \code{\link{pcond.rvine}} be \code{TRUE}?}
 }
 \description{
 From a fitted regular vine model for \code{p} variables,
@@ -54,8 +62,14 @@ cparmat <- makeuppertri(9:1/2, 2, 6)
 dat <- fvinesim(10, A, copmat, cparmat)
 
 ## Get sequential cdfs:
-pcondseq.vine(1:6, dat, rvinefit=list(A=A, copmat=copmat, cparmat=cparmat), .print=T)
+pcondseq.vine(1:3, dat,
+              rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
+              .print = TRUE, .print.cdfmethod = TRUE)
 pcondseq.vine(c(2, 1, 3, 4, 6, 5), dat,
-              rvinefit=list(A=A, copmat=copmat, cparmat=cparmat), .print=T)
+              rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
+              .print = TRUE, .print.cdfmethod = TRUE)
+pcondseq.vine(c(4, 3, 6, 5, 1), dat,
+              rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
+              .print = TRUE, .print.cdfmethod = TRUE)
 }
 

@@ -107,6 +107,11 @@ pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
 #' @param FX List of vectorized functions that are the marginals corresponding
 #' to the columns of \code{xdat}. Or just one function if it's a common function.
 #' Default is \code{identity} so that \code{xdat} can be uniform data if you want.
+#' @param .print Logical; should the subsetted vines containing variables
+#' \code{ord[1]}, \code{ord[1:2]}, ..., \code{ord} be printed?
+#' @param .print.cdfmethod Logical; when a subset \code{ord[1:k]} is a vine,
+#' should the method of evaluating the cdf be output? i.e., should the
+#' \code{.print} argument of \code{\link{pcond.rvine}} be \code{TRUE}?
 #' @details The argument \code{rvinefit} can either be:
 #'
 #' \enumerate{
@@ -131,11 +136,18 @@ pcondseq.generic <- function(ord, dat, fX, Fcond = NULL){
 #' dat <- fvinesim(10, A, copmat, cparmat)
 #'
 #' ## Get sequential cdfs:
-#' pcondseq.vine(1:6, dat, rvinefit=list(A=A, copmat=copmat, cparmat=cparmat), .print=T)
+#' pcondseq.vine(1:3, dat,
+#'               rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
+#'               .print = TRUE, .print.cdfmethod = TRUE)
 #' pcondseq.vine(c(2, 1, 3, 4, 6, 5), dat,
-#'               rvinefit=list(A=A, copmat=copmat, cparmat=cparmat), .print=T)
+#'               rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
+#'               .print = TRUE, .print.cdfmethod = TRUE)
+#' pcondseq.vine(c(4, 3, 6, 5, 1), dat,
+#'               rvinefit=list(A=A, copmat=copmat, cparmat=cparmat),
+#'               .print = TRUE, .print.cdfmethod = TRUE)
 #' @export
-pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity, .print = FALSE) {
+pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity,
+                          .print = FALSE, .print.cdfmethod = FALSE) {
     ## Standardize input
     if (is.vector(xdat)) xdat <- matrix(xdat, ncol = length(xdat))
     if (nrow(xdat) == 0) if (ncol(xdat) == 0) return(numeric(0)) else return(xdat)
@@ -196,7 +208,7 @@ pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity, .print = FALSE) {
     ## Get sub-vine arrays for ord[1:k], for k=1:p, if they exist.
     subA <- list()
     for (k in 1:p) {
-        subA[[k]] <- rvinesubset(A, ord[1:k])
+        subA <- c(subA, list(rvinesubset(A, ord[1:k])))
     }
     if (.print) print(subA)
     ## Find conditional cdfs (I'll have to construct the list backwards first):
@@ -210,28 +222,35 @@ pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity, .print = FALSE) {
         if (is.null(subAk)) {
             ## Need to integrate the density.
             ## How many integrals do I need to get to the density of 1:k?
-            numtoint <- ncol(mostrecentAk) - ncol(subAk)
+            extravars <- setdiff(varray.vars(mostrecentAk), ord[1:k])
+            numtoint <- length(extravars) #ncol(mostrecentAk) - k
             ## Find the density of variables ord[1:k]
-            fX <- function(uk, ulower) {
-                biggerdens <- function(uupper) {
-                    uvec <- c(ulower, uk, uupper)
-                    dR(uvec, mostrecentAk, mostrecentcopmat, mostrecentcparmat)
+            fX <- function(uvec) {
+                biggerdens <- function(uextra) {
+                    newvec <- uvec
+                    newvec[extravars] <- uextra
+                    dR(newvec, mostrecentAk, mostrecentcopmat, mostrecentcparmat)
                 }
                 integrate.mv(biggerdens, rep(0, numtoint), rep(1, numtoint))
             }
             Fcondlist[[p-k+1]] <- apply(udat, 1, function(row) {
                 ## Get the integrand needed to compute Fk|1:(k-1)
-                integrand <- function(uk) fX(uk, row[1:(k-1)])
+                integrand <- function(uordk) {
+                    uvec <- row
+                    uvec[ord[k]] <- uordk
+                }
+                # integrand <- function(uk) fX(uk, row[1:(k-1)])
                 ## integrate
-                integrate.mv(integrand, 0, row[k]) / integrate.mv(integrand, 0, 1)
+                integrate.mv(integrand, 0, row[ord[k]]) / integrate.mv(integrand, 0, 1)
             })
         } else {
             mostrecentAk <- subA[[k]]
             mostrecentcopmat <- reform.copmat(copmat, mostrecentAk, A)
             mostrecentcparmat <- reform.copmat(cparmat, mostrecentAk, A)
-            Fcondlist[[p-k+1]] <- pcond.rvine(udat, k, mostrecentAk,
+            Fcondlist[[p-k+1]] <- pcond.rvine(udat, ord[k], mostrecentAk,
                                               copmat = mostrecentcopmat,
-                                              cparmat = mostrecentcparmat)
+                                              cparmat = mostrecentcparmat,
+                                              .print = .print.cdfmethod)
         }
     }
     ## And finally, for k == 1,
