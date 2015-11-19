@@ -38,7 +38,7 @@ If \code{dat} is a matrix, returns a matrix of such evaluated cdfs.
 \description{
 From a fitted regular vine model, evaluates the sequential conditional cdfs
 of a selection of variables. For example, if you choose variables 4, 2, 6, 5
-(in that order), then it evaluates the cdfs of 4, 2|4, 6|{4,2}, and 5|{4,2,6}.
+(in that order), then it evaluates the cdfs of 4, 2|4, 6|(4,2), and 5|(4,2,6).
 }
 \details{
 The argument \code{rvinefit} can either be:

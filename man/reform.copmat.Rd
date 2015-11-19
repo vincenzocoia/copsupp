@@ -16,6 +16,9 @@ less variables and more truncation than \code{Aold}.}
 
 \item{Aold}{The old vine array index, possibly truncated.}
 }
+\value{
+A matrix that's possibly subsetted and/or rearranged from \code{mat}.
+}
 \description{
 If you changed the order of your vine array, this function will
 convert other matrices associated with the original vine array

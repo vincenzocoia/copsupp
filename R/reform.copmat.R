@@ -13,6 +13,8 @@
 #' @param Aold The old vine array index, possibly truncated.
 #' @note Make sure that the variables in \code{Aold}
 #' and \code{Anew} have the same labels.
+#' @return
+#' A matrix that's possibly subsetted and/or rearranged from \code{mat}.
 #' @examples
 #' ## Originally...
 #' A <- truncvarray(Cvinearray(4), 2)
