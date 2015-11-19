@@ -99,13 +99,16 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
         vars <- varray.vars(Aleaf)
         udat <- udat[, vars]
         if (!is.matrix(udat)) udat <- matrix(udat, ncol = length(vars))
-        if (is.dvine(Aleaf)) {
-            if (.print) print(paste0("cond=", cond, " is a leaf of a D-vine. ",
-                                     "using `pcondD.generic()`."))
+        if (ncol(udat) <= 2) {
+            ## NOTE: The pcondD (and qcondD) functionality requires the copmat
+            ##  and cparmat to be in natural order. I won't bother with it,
+            ##  but since rVineTruncCondCDF() won't accept a vine with 2
+            ##  variables, and pcondD will, I'll use pcondD for that case.
+            if (.print) print(paste0("using `pcondD.generic()`. because there",
+                                     " are two variables left."))
             res <- apply(udat, 1, function(row){
                 pcondD.generic(row, p, -(p-1),
-                               copmat = copmat, cparmat = cparmat,
-                               Fmarg = rep(list(identity), p))
+                               copmat = copmat, cparmat = cparmat)
             })
         } else {
             if (.print) print(paste0("cond=", cond, " is a leaf, not of a D-vine. ",
@@ -118,7 +121,8 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
             Aleaf <- rbind(Aleaf, matrix(0, nrow = p - ntrunc - 1, ncol = p))
             diag(Aleaf) <- 1:p
             ## parvec
-            parvec <- c(t(cparmat), recursive = TRUE)
+            # parvec <- c(t(cparmat), recursive = TRUE)
+            parvec <- t(cparmat)[lower.tri(t(cparmat))]
             ## pcondmat
             pcondmat <- apply(copmat, 1:2, function(cop) paste0("pcond", cop))
             pcondmat[!upper.tri(pcondmat)] <- ""
@@ -126,12 +130,17 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
             if (is.list(cparmat[1,1])) {
                 np <- apply(cparmat, 1:2, function(cpar) length(cpar[[1]]))
             } else {
-                np <- apply(cparmat, 1:2, length)
+                np <- makeuppertri(1, nrow = nrow(cparmat), ncol = ncol(cparmat))
             }
             ## Call:
             library(CopulaModel)
-            res <- copreg::rVineTruncCondCDF(parvec, udat, Aleaf, ntrunc, pcondmat, np)
-        }
+            res <- copreg::rVineTruncCondCDF(parvec = parvec,
+                                             udat = udat,
+                                             A = Aleaf,
+                                             ntrunc = ntrunc,
+                                             pcondmat = pcondmat,
+                                             np = np)
+       }
     }
     res
 }

@@ -5,7 +5,7 @@
 \alias{qcondD.generic}
 \title{Conditional D-Vine Distribution: Generic variables}
 \usage{
-pcondD.generic(x, i, num, copmat, cparmat, Fmarg)
+pcondD.generic(x, i, num, copmat, cparmat, Fmarg = identity)
 
 qcondD.generic(tau, x, i, num, copmat, cparmat, Fmarg, Qi_marg)
 }
@@ -20,16 +20,16 @@ of X_i to condition on. For upstream (i+1, i+2, ...), make
 \code{sign(num)>0}; for downstream (i-1, i-2, ...), make \code{sign(num)<0}.}
 
 \item{copmat}{Upper triangular \code{(num trees)x(i+num)} matrix of
-copula names (like "frk" and "gum") as strings. Rows correspond to tree
-depth in the vine; columns correspond to the edges in that tree (in the order
-of the D-vine, i.e. "left to right").}
+copula names (like "frk" and "gum") as strings. Must be listed in "reading
+order" (for example, natural order won't work).}
 
 \item{cparmat}{Upper triangular matrix of copula parameters corresponding
 to the copula families in \code{copmat}.}
 
 \item{Fmarg}{List of marginal distributions (univariate functions),
 whose position in the list corresponds to the variable index.
-Must contain at least those marginals i:(i+n).}
+Must contain at least those marginals i:(i+n). Could be a single such function
+if it's the same for all data.}
 
 \item{tau}{The quantile index}
 

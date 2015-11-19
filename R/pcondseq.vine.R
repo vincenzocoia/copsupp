@@ -45,6 +45,7 @@
 #' to predictors in some order.
 #' @examples
 #' ## Setup: D-vine
+#' set.seed(123)
 #' A <- truncvarray(CopulaModel::Dvinearray(6), 2)
 #' copmat <- makeuppertri("frk", 2, 6, "")
 #' cparmat <- makeuppertri(9:1/2, 2, 6)

@@ -11,14 +11,14 @@
 #' of X_i to condition on. For upstream (i+1, i+2, ...), make
 #' \code{sign(num)>0}; for downstream (i-1, i-2, ...), make \code{sign(num)<0}.
 #' @param copmat Upper triangular \code{(num trees)x(i+num)} matrix of
-#' copula names (like "frk" and "gum") as strings. Rows correspond to tree
-#' depth in the vine; columns correspond to the edges in that tree (in the order
-#' of the D-vine, i.e. "left to right").
+#' copula names (like "frk" and "gum") as strings. Must be listed in "reading
+#' order" (for example, natural order won't work).
 #' @param cparmat Upper triangular matrix of copula parameters corresponding
 #' to the copula families in \code{copmat}.
 #' @param Fmarg List of marginal distributions (univariate functions),
 #' whose position in the list corresponds to the variable index.
-#' Must contain at least those marginals i:(i+n).
+#' Must contain at least those marginals i:(i+n). Could be a single such function
+#' if it's the same for all data.
 #' @return A single numeric value representing the evaluated conditional
 #' cdf or quantile function.
 #' @note You might want to load the CopulaModel package to load the
@@ -40,7 +40,8 @@
 #' pcondD.generic(c(NA, 1, 1, 0), 4, -2, copmat, cparmat, Fmarg) # X_1 value doesn't matter.
 #' @rdname dvine.generic
 #' @export
-pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
+pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg = identity){
+    if (length(Fmarg) == 1) Fmarg <- rep(list(Fmarg), max(i, i+num))
     if (num == 0) {
         ## There's no conditioned variable, so just call on the marginal.
         Fmarg[[i]](x[i])
@@ -84,9 +85,8 @@ pcondD.generic <- function(x, i, num, copmat, cparmat, Fmarg){
 #' covariate values (p columns).
 #' @param copmat Upper triangular \code{ntrunc x p} matrix of
 #' copula names (like "frk" and "gum") as strings in the D-vine array.
-#' So, rows correspond to tree
-#' depth in the vine; columns correspond to the edges in that tree (in the order
-#' of the D-vine, i.e. "left to right").
+#' Must be listed in "reading
+#' order" (for example, natural order won't work).
 #' @param cparmat Upper triangular matrix of copula parameters corresponding
 #' to the copula families in \code{copmat}.
 #' @param FXmarg List of (univariate) marginal cdfs of X_1, ..., X_p;
