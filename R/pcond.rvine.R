@@ -111,8 +111,8 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
                                copmat = copmat, cparmat = cparmat)
             })
         } else {
-            if (.print) print(paste0("cond=", cond, " is a leaf, not of a D-vine. ",
-                                     "using `copreg::rVineTruncCondCDF()`."))
+            if (.print) print(paste0("cond=", cond, " is a leaf. ",
+                                     "Using `copreg::rVineTruncCondCDF()`."))
             ## Use Bo's function
             ## Re-label the variables in the vine so that they're 1:p, in that
             ##  order.
@@ -130,7 +130,7 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
             if (is.list(cparmat[1,1])) {
                 np <- apply(cparmat, 1:2, function(cpar) length(cpar[[1]]))
             } else {
-                np <- makeuppertri(1, nrow = nrow(cparmat), ncol = ncol(cparmat))
+                np <- makeuppertri(1, nrow(cparmat), ncol(cparmat))
             }
             ## Call:
             library(CopulaModel)
