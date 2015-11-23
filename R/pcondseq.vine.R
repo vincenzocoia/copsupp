@@ -93,7 +93,7 @@ pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity,
         ntrunc <- max(which(apply(parmat1, 1, function(row) sum(abs(row)) != 0)))
         parvec <- numeric(0)
         len <- integer(0)
-        for (i in 1:ntrunc) for (j in 2:d) {
+        for (i in 1:ntrunc) for (j in (i+1):d) {
             if (parmat1[i, j] == 0) {
                 len <- c(len, 0)
             } else {

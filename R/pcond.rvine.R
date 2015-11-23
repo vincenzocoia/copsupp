@@ -122,7 +122,11 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
             diag(Aleaf) <- 1:p
             ## parvec
             # parvec <- c(t(cparmat), recursive = TRUE)
-            parvec <- t(cparmat)[lower.tri(t(cparmat))]
+            if (is.list(cparmat[1,1])) {
+                parvec <- c(t(cparmat), recursive = TRUE)
+            } else {
+                parvec <- t(cparmat)[lower.tri(t(cparmat))]
+            }
             ## pcondmat
             pcondmat <- apply(copmat, 1:2, function(cop) paste0("pcond", cop))
             pcondmat[!upper.tri(pcondmat)] <- ""
