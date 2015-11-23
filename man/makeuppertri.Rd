@@ -5,10 +5,11 @@
 \alias{makeuppertri.list}
 \title{Make an upper triangular matrix}
 \usage{
-makeuppertri(entries, row, col, blanks = 0, byRow = TRUE, incDiag = FALSE)
+makeuppertri(entries, row, col, blanks = 0, byRow = TRUE, incDiag = FALSE,
+  nrow = NULL, ncol = NULL)
 
 makeuppertri.list(entries, len, row, col, blanks = list(), byRow = TRUE,
-  incDiag = FALSE)
+  incDiag = FALSE, nrow = NULL, ncol = NULL)
 }
 \arguments{
 \item{entries}{Vector of entries for the upper triangular part of the matrix.}
@@ -24,6 +25,10 @@ makeuppertri.list(entries, len, row, col, blanks = list(), byRow = TRUE,
 
 \item{incDiag}{Should the entries go on the diagonal too? \code{TRUE} if
 so, \code{FALSE} if not.}
+
+\item{nrow,ncol}{When I first made this function, I used \code{row} and
+\code{col}, but I should have called them \code{nrow} and \code{ncol}.
+Hence this addition.}
 
 \item{len}{Vector of positive integers which specify the lengths of the
 individual vectors that are pooled in \code{entries}.}

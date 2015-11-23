@@ -10,6 +10,9 @@
 #' (TRUE), or read in vertically (FALSE).
 #' @param incDiag Should the entries go on the diagonal too? \code{TRUE} if
 #' so, \code{FALSE} if not.
+#' @param nrow,ncol When I first made this function, I used \code{row} and
+#' \code{col}, but I should have called them \code{nrow} and \code{ncol}.
+#' Hence this addition.
 #' @note Use \code{makeuppertri} to make a matrix. If you want entries to be
 #' vectors (which would have to be an array with list entries), use
 #' \code{makeuppertri.list}.
@@ -23,7 +26,10 @@
 #' makeuppertri(1:9, row = 2, col = 5, incDiag = TRUE)
 #' makeuppertri(1:3, row = 5, col = 3)
 #' @export
-makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE, incDiag=FALSE){
+makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE, incDiag=FALSE,
+                         nrow = NULL, ncol = NULL){
+    if (!is.null(nrow)) row <- nrow
+    if (!is.null(ncol)) col <- ncol
     if (incDiag)
         return(makeuppertri(entries, row, col+1, blanks=blanks, byRow=byRow)[, 1+1:col])
     if (byRow) {
@@ -49,7 +55,10 @@ makeuppertri <- function(entries, row, col, blanks=0, byRow=TRUE, incDiag=FALSE)
 #' M[1, 2]   # Still a list of length one.
 #' @rdname makeuppertri
 #' @export
-makeuppertri.list <- function(entries, len, row, col, blanks=list(), byRow=TRUE, incDiag=FALSE){
+makeuppertri.list <- function(entries, len, row, col, blanks=list(), byRow=TRUE,
+                              incDiag=FALSE, nrow = NULL, ncol = NULL){
+    if (!is.null(nrow)) row <- nrow
+    if (!is.null(ncol)) col <- ncol
     if (incDiag)
         return(makeuppertri.list(entries, len, row, col+1,
                                  blanks=blanks, byRow=byRow)[, 1+1:col])
