@@ -110,9 +110,9 @@ pcondseq.vine <- function(ord, xdat, rvinefit, FX = identity,
         ## Now truncate the array
         A <- truncvarray(A, ntrunc)
         ## copmat:
-        copmatind <- rvinefit$family[d:1, (d:1)[1:ntrunc]]
+        copmatind <- rvinefit$family[(d:1)[1:ntrunc], d:1]
         if (!is.matrix(copmatind)) copmatind <- matrix(copmatind, ncol = d)
-        copmat <- apply(copmatind, 1:2, copreg::CopulaNumberToName)
+        copmat <- apply(copmatind, 1:2, copnum2name)
     } else {
         ## Vine model was specified in the form I'm using in this case.
         A <- rvinefit$A
