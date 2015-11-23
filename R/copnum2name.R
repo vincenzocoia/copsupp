@@ -4,15 +4,15 @@
 #' the CopulaModel package uses a naming convention. This function converts
 #' the integer code to the copula family name.
 #'
-#' @param num Integer code.
+#' @param num Integer code, or vector of integer codes.
 #' @return A string of the name of the copula family.
 #' @seealso See the help page for \code{\link{RVineCopSelect}}
 #' in the \code{VineCopula} package for the mapping from code to copula family.
 #' @export
 copnum2name <- function(num) {
-    x <- num
-    if (x == 0) return("indepcop")
-    fams <- c("bvncop",
+    x <- num + 1
+    fams <- c("indepcop",
+              "bvncop",
               "bvtcop",
               "mtcj",
               "gum",
@@ -43,7 +43,5 @@ copnum2name <- function(num) {
               "bb6v",
               "bb7v",
               "bb8v")
-    if (x > 40)
-        stop("Are you asking for a Tawn copula family? There's no functionality for it yet.")
     fams[x]
 }
