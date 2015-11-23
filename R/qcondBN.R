@@ -1,118 +1,79 @@
 #' Conditional Distribution: Bayesian Network Method
 #'
-#' Finds the quantile function of a response \code{Y} given predictors
-#' \code{X_1,...,X_p} through a Bayesian Network. The bivariate distributions
-#' \code{(X_i, Y)|X_1,...,X_{i-1}} are
-#' modelled using bivariate copula
-#' models. The distribution of the response is assumed known/fitted, along
-#' with the joint distribution of the predictors.
+#' Finds the quantiles of the distribution of a response given predictors,
+#' when the response is linked to the predictors via a
+#' Bayesian Network (see details), and the joint distribution of the
+#' predictors is specified.
 #'
 #' @param tau Vector of quantile indices to evaluate at.
-#' @param x Vector of predictor values \code{X_1, ..., X_p}. Length should
-#' equal the number of variables conditioning on.
-#' @param p Integer; number of variables \code{X_1,...,X_p} to condition on.
-#' @param cop Vector of copula names (like "frk"), whose \code{i}th entry
-#' links \code{(X_i, Y)|X_1,...,X_{i-1}}.
+#' @param cop Vector of copula family names that link the response with the
+#' predictors. Entry \code{i} links \code{(Y, X[i])|X[1:(i-1)]}.
 #' @param cpar List of copula parameters corresponding to \code{cop}. Or,
 #' vector of parameters if each copula family in \code{cop} has one parameter.
-#' @param fX Function that accepts a vector argument; the
-#' density of \code{(X_1,...,X_p)}.
-#' @param Fcond If you have the conditional cdf
-#' \code{X_i|X_1,...,X_{i-1}} for some \code{i}'s, insert them here
-#' in a list (in their respective components). Put \code{NULL}
-#' for entries that you don't have the form for. You could also already
-#' evaluate this function at \code{x} if you'd like.
-#' @param QY Quantile function for the response.
-#' @details If \code{Fcond} is not missing any cdf's, then there's no
-#' need to specify \code{fX}.
-#' @return Vector of conditional quantile functions evaluated at the quantile
-#' indices \code{tau}.
-#' @rdname qcondBN
+#' @param Fcond Matrix of the evaluated conditional cdfs of the predictors,
+#' or a vector if there's only one observation.
+#' Rows correspond to observations, and column \code{i} should contain evaluated
+#' cdfs of \code{X[i]|X[1:(i-1)]}.
+#' @param QY Marginal quantile function for the response.
+#' @return Matrix of conditional quantiles of the response given the
+#' predictors, or a vector if there's only one observation in \code{Fcond}.
+#' Columns correspond to quantile indices \code{tau}.
+#' @details
+#' The conditional distribution of response \code{Y} conditional on \code{p}
+#' predictors \code{X} is built by specifying the pairwise distributions of
+#' \code{Y} with the responses:
+#'
+#' \enumerate{
+#'      \item \code{(Y,X1)}
+#'      \item \code{(Y,X2)|(X1)}
+#'      \item \code{(Y,X3)|(X1,X2)}
+#'      \item \code{(Y,X4)|(X1,X2,X3)}
+#' }
+#'
+#' For each, a copula should describe the dependence.
+#'
+#' @examples
+#' ## Setup predictor distribution: D-vine
+#' set.seed(123)
+#' A <- truncvarray(CopulaModel::Dvinearray(4), 2)
+#' copmat <- makeuppertri("frk", 2, 4, "")
+#' cparmat <- makeuppertri(5:1, 2, 4)
+#' dat <- fvinesim(10, A, copmat, cparmat)
+#'
+#' ## Link Y with X1,...,X4 in this order:
+#' ord <- c(3, 4, 2, 1)
+#' Fcond <- pcondseq.vine(ord, dat,
+#'                        rvinefit=list(A=A, copmat=copmat, cparmat=cparmat))
+#'
+#' ## ...and with these copulas:
+#' Ycop <- c("frk", "gum", "mtcj", "bvncop")
+#' Ypar <- c(4, 2, 2, 0.7)
+#'
+#' ## Find 0.9-, 0.95-, and 0.99-quantiles of Y|X at the data, with Y~Exp(1):
+#' qcondBN(c(0.9, 0.95, 0.99), cop=Ycop, cpar=Ypar, Fcond=Fcond, QY=qexp)
+#'
+#' ## Try one quantile index:
+#' qcondBN(0.9, cop=Ycop, cpar=Ypar, Fcond=Fcond, QY=qexp)
+#'
+#' ## Try one observation:
+#' qcondBN(c(0.9, 0.95, 0.99), cop=Ycop, cpar=Ypar, Fcond=Fcond[1, ], QY=qexp)
+#' @seealso See \code{\link{pcondseq.vine}} and \code{\link{pcondseq.generic}}
+#' for computing \code{Fcond}.
 #' @export
-qcondBN <- function(tau, x, p, cop, cpar, fX, Fcond = NULL, QY) {
-    if (p == 0) return(QY(tau))
-    ## Get conditional cdf of the predictors, evaluated.
-    if (is.null(Fcond[[p]])) {
-        fp <- function(x_) {
-            xvar <- x[1:p]
-            xvar[p] <- x_
-            fX(xvar)
-        }
-        fp <- Vectorize(fp)
-        integ <- integrate(fp, -Inf, x[p])
-        area <- integrate(fp, -Inf, Inf)
-        if (integ$message != "OK")
-            stop (paste0("Integrate error, variable ", p, ": ", integ$message))
-        thisFcond <- integ$value / area$value
-    } else {
-        if (is.function(Fcond[[p]])) {
-            if (p == 1) {
-                thisFcond <- Fcond[[p]](x[p])
-            } else {
-                thisFcond <- Fcond[[p]](x[p], x[-p])
-            }
-        } else {
-            thisFcond <- Fcond[[p]]
-        }
-
-    }
-    ## Remove end variable from fX.
-    fXold <- fX
-    fX <- function(xlessp) {
-        g <- function(t) fXold(c(xlessp, t))
-        g <- Vectorize(g)
-        integrate(g, -Inf, Inf)$value
-    }
-    ## Recursive form of conditional qf of response:
-    thiscop <- get(paste0("qcond", cop[p]))
-    if (is.list(cpar)) {
-        thiscpar <- cpar[[p]]
-    } else {
-        thiscpar <- cpar[p]
-    }
-    thiscopfit <- function(arg1, arg2) thiscop(arg1, arg2, thiscpar)
-    newtau <- thiscopfit(tau, thisFcond)
-    return(qcondBN(newtau, x, p-1, cop, cpar, fX, Fcond, QY))
+qcondBN <- function(tau, cop, cpar, Fcond, QY = identity) {
+    if (!is.matrix(Fcond)) return(qcondBN.oneobs(tau, cop, cpar, Fcond, QY))
+    p <- ncol(Fcond)
+    n <- nrow(Fcond)
+    K <- length(tau)
+    if (p == 0) return(matrix(QY(tau), ncol = K, nrow = n, byrow = TRUE))
+    res <- apply(Fcond, 1, function(row) qcondBN.oneobs(tau, cop, cpar, row, QY))
+    if (K == 1) return(matrix(res, ncol = 1)) else return(t(res))
 }
 
-#' @rdname qcondBN
-#' @export
-qcondBNu <- function(tau, u, p, cop, cpar, fU, Fcond = NULL, QY) {
+qcondBN.oneobs <- function(tau, cop, cpar, Fcondvec, QY = identity) {
+    p <- length(Fcondvec)
+    K <- length(tau)
     if (p == 0) return(QY(tau))
-    ## Get conditional cdf of the predictors, evaluated.
-    if (is.null(Fcond[[p]])) {
-        fp <- function(x_) {
-            xvar <- u[1:p]
-            xvar[p] <- x_
-            fU(xvar)
-        }
-        fp <- Vectorize(fp)
-        integ <- integrate(fp, 0, u[p])
-        area <- integrate(fp, 0, 1)
-        if (integ$message != "OK")
-            stop (paste0("Integrate error, variable ", p, ": ", integ$message))
-        thisFcond <- integ$value / area$value
-    } else {
-        if (is.function(Fcond[[p]])) {
-            if (p == 1) {
-                thisFcond <- Fcond[[p]](u[p])
-            } else {
-                thisFcond <- Fcond[[p]](u[p], u[-p])
-            }
-        } else {
-            thisFcond <- Fcond[[p]]
-        }
-
-    }
-    ## Remove end variable from fU.
-    if (any(sapply(Fcond, is.null))) {
-        fXold <- fU
-        fU <- function(xlessp) {
-            g <- function(t) fXold(c(xlessp, t))
-            g <- Vectorize(g)
-            integrate(g, 0, 1)$value
-        }
-    }
     ## Recursive form of conditional qf of response:
     thiscop <- get(paste0("qcond", cop[p]))
     if (is.list(cpar)) {
@@ -120,7 +81,6 @@ qcondBNu <- function(tau, u, p, cop, cpar, fU, Fcond = NULL, QY) {
     } else {
         thiscpar <- cpar[p]
     }
-    thiscopfit <- function(arg1, arg2) thiscop(arg1, arg2, thiscpar)
-    newtau <- thiscopfit(tau, thisFcond)
-    return(qcondBNu(newtau, u, p-1, cop, cpar, fU, Fcond, QY))
+    newtau <- thiscop(tau, Fcondvec[p], thiscpar)
+    qcondBN.oneobs(newtau, cop, cpar, Fcondvec[-p], QY = QY)
 }

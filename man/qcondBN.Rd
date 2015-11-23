@@ -2,52 +2,79 @@
 % Please edit documentation in R/qcondBN.R
 \name{qcondBN}
 \alias{qcondBN}
-\alias{qcondBNu}
 \title{Conditional Distribution: Bayesian Network Method}
 \usage{
-qcondBN(tau, x, p, cop, cpar, fX, Fcond = NULL, QY)
-
-qcondBNu(tau, u, p, cop, cpar, fU, Fcond = NULL, QY)
+qcondBN(tau, cop, cpar, Fcond, QY = identity)
 }
 \arguments{
 \item{tau}{Vector of quantile indices to evaluate at.}
 
-\item{x}{Vector of predictor values \code{X_1, ..., X_p}. Length should
-equal the number of variables conditioning on.}
-
-\item{p}{Integer; number of variables \code{X_1,...,X_p} to condition on.}
-
-\item{cop}{Vector of copula names (like "frk"), whose \code{i}th entry
-links \code{(X_i, Y)|X_1,...,X_{i-1}}.}
+\item{cop}{Vector of copula family names that link the response with the
+predictors. Entry \code{i} links \code{(Y, X[i])|X[1:(i-1)]}.}
 
 \item{cpar}{List of copula parameters corresponding to \code{cop}. Or,
 vector of parameters if each copula family in \code{cop} has one parameter.}
 
-\item{fX}{Function that accepts a vector argument; the
-density of \code{(X_1,...,X_p)}.}
+\item{Fcond}{Matrix of the evaluated conditional cdfs of the predictors,
+or a vector if there's only one observation.
+Rows correspond to observations, and column \code{i} should contain evaluated
+cdfs of \code{X[i]|X[1:(i-1)]}.}
 
-\item{Fcond}{If you have the conditional cdf
-\code{X_i|X_1,...,X_{i-1}} for some \code{i}'s, insert them here
-in a list (in their respective components). Put \code{NULL}
-for entries that you don't have the form for. You could also already
-evaluate this function at \code{x} if you'd like.}
-
-\item{QY}{Quantile function for the response.}
+\item{QY}{Marginal quantile function for the response.}
 }
 \value{
-Vector of conditional quantile functions evaluated at the quantile
-indices \code{tau}.
+Matrix of conditional quantiles of the response given the
+predictors, or a vector if there's only one observation in \code{Fcond}.
+Columns correspond to quantile indices \code{tau}.
 }
 \description{
-Finds the quantile function of a response \code{Y} given predictors
-\code{X_1,...,X_p} through a Bayesian Network. The bivariate distributions
-\code{(X_i, Y)|X_1,...,X_{i-1}} are
-modelled using bivariate copula
-models. The distribution of the response is assumed known/fitted, along
-with the joint distribution of the predictors.
+Finds the quantiles of the distribution of a response given predictors,
+when the response is linked to the predictors via a
+Bayesian Network (see details), and the joint distribution of the
+predictors is specified.
 }
 \details{
-If \code{Fcond} is not missing any cdf's, then there's no
-need to specify \code{fX}.
+The conditional distribution of response \code{Y} conditional on \code{p}
+predictors \code{X} is built by specifying the pairwise distributions of
+\code{Y} with the responses:
+
+\enumerate{
+     \item \code{(Y,X1)}
+     \item \code{(Y,X2)|(X1)}
+     \item \code{(Y,X3)|(X1,X2)}
+     \item \code{(Y,X4)|(X1,X2,X3)}
+}
+
+For each, a copula should describe the dependence.
+}
+\examples{
+## Setup predictor distribution: D-vine
+set.seed(123)
+A <- truncvarray(CopulaModel::Dvinearray(4), 2)
+copmat <- makeuppertri("frk", 2, 4, "")
+cparmat <- makeuppertri(5:1, 2, 4)
+dat <- fvinesim(10, A, copmat, cparmat)
+
+## Link Y with X1,...,X4 in this order:
+ord <- c(3, 4, 2, 1)
+Fcond <- pcondseq.vine(ord, dat,
+                       rvinefit=list(A=A, copmat=copmat, cparmat=cparmat))
+
+## ...and with these copulas:
+Ycop <- c("frk", "gum", "mtcj", "bvncop")
+Ypar <- c(4, 2, 2, 0.7)
+
+## Find 0.9-, 0.95-, and 0.99-quantiles of Y|X at the data, with Y~Exp(1):
+qcondBN(c(0.9, 0.95, 0.99), cop=Ycop, cpar=Ypar, Fcond=Fcond, QY=qexp)
+
+## Try one quantile index:
+qcondBN(0.9, cop=Ycop, cpar=Ypar, Fcond=Fcond, QY=qexp)
+
+## Try one observation:
+qcondBN(c(0.9, 0.95, 0.99), cop=Ycop, cpar=Ypar, Fcond=Fcond[1, ], QY=qexp)
+}
+\seealso{
+See \code{\link{pcondseq.vine}} and \code{\link{pcondseq.generic}}
+for computing \code{Fcond}.
 }
 
