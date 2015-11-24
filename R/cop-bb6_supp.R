@@ -25,7 +25,7 @@ pbb6r <- function(u, v, cpar) u + v - 1 + CopulaModel::pbb6(1-u, 1-v, cpar)
 dbb6r <- function(u, v, cpar) CopulaModel::dbb6(1-u, 1-v, cpar)
 #' @rdname bb6_supp
 #' @export
-logdbb6r <- function(u, v, cpar) CopulaModel::logdbb6(1-u, 1-v, cpar)
+logdbb6r <- function(u, v, cpar) logdbb6(1-u, 1-v, cpar)
 
 ## Random number generator
 
@@ -57,7 +57,7 @@ pbb6u <- function(u, v, cpar) v - CopulaModel::pbb6(1-u, v, cpar)
 dbb6u <- function(u, v, cpar) CopulaModel::dbb6(1-u, v, cpar)
 #' @rdname bb6_supp
 #' @export
-logdbb6u <- function(u, v, cpar) CopulaModel::logdbb6(1-u, v, cpar)
+logdbb6u <- function(u, v, cpar) logdbb6(1-u, v, cpar)
 
 ## Random number generator
 
@@ -93,7 +93,7 @@ pbb6v <- function(u, v, cpar) u - CopulaModel::pbb6(u, 1-v, cpar)
 dbb6v <- function(u, v, cpar) CopulaModel::dbb6(u, 1-v, cpar)
 #' @rdname bb6_supp
 #' @export
-logdbb6v <- function(u, v, cpar) CopulaModel::logdbb6(u, 1-v, cpar)
+logdbb6v <- function(u, v, cpar) logdbb6(u, 1-v, cpar)
 
 ## Random number generator
 

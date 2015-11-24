@@ -23,7 +23,7 @@ pbb8r <- function(u, v, cpar) u + v - 1 + CopulaModel::pbb8(1-u, 1-v, cpar)
 dbb8r <- function(u, v, cpar) CopulaModel::dbb8(1-u, 1-v, cpar)
 #' @rdname bb8_supp
 #' @export
-logdbb8r <- function(u, v, cpar) CopulaModel::logdbb8(1-u, 1-v, cpar)
+logdbb8r <- function(u, v, cpar) logdbb8(1-u, 1-v, cpar)
 
 ## Random number generator
 
@@ -55,7 +55,7 @@ pbb8u <- function(u, v, cpar) v - CopulaModel::pbb8(1-u, v, cpar)
 dbb8u <- function(u, v, cpar) CopulaModel::dbb8(1-u, v, cpar)
 #' @rdname bb8_supp
 #' @export
-logdbb8u <- function(u, v, cpar) CopulaModel::logdbb8(1-u, v, cpar)
+logdbb8u <- function(u, v, cpar) logdbb8(1-u, v, cpar)
 
 ## Random number generator
 
@@ -91,7 +91,7 @@ pbb8v <- function(u, v, cpar) u - CopulaModel::pbb8(u, 1-v, cpar)
 dbb8v <- function(u, v, cpar) CopulaModel::dbb8(u, 1-v, cpar)
 #' @rdname bb8_supp
 #' @export
-logdbb8v <- function(u, v, cpar) CopulaModel::logdbb8(u, 1-v, cpar)
+logdbb8v <- function(u, v, cpar) logdbb8(u, 1-v, cpar)
 
 ## Random number generator
 
