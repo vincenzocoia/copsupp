@@ -67,9 +67,9 @@ p <- 4
 A0 <- truncvarray(CopulaModel::Dvinearray(p), ntrunc)
 copmat0 <- makeuppertri("frk", ntrunc, p, "")
 cparmat0 <- makeuppertri(3, ntrunc, p)
-dat <- fvinesim(500, A0, copmat0, cparmat0)
+dat <- fvinesim(100, A0, copmat0, cparmat0)
 
 ## Fit a model to the data:
-fitX(dat)
+fitX(dat, ntrunc)
 }
 
