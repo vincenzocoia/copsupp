@@ -1,0 +1,42 @@
+---
+title: "WorstCase"
+author: "Vincenzo Coia"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{WorstCase}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This function assists in making and assessing "worst-case scenario" forecasts (or extreme forecasts in the more general sense). 
+
+The main objects that are worked with are vectors of outcomes (i.e. the observed response), as well as the corresponding prediction matrix. It's up to you to deal with the quantile function models and the resulting forecaster.
+
+## Modelling
+
+To fit univariate models, use the `marginal()` function. You can fit empirical distributions, parametric distributions via MLE, or a mix of both.
+
+Maybe a direct-GPD model too.
+
+## Exploratory Analysis
+
+It's useful to do some sort of exploratory analysis before fitting a model. 
+
+(Future: xihat.hill, xihat.pickands, "spotlight", plot3dsurface(), plot3dslices()?, and a 2D quantile moving-window estimate)
+
+## Estimation
+
+cnqrobj() for making cnqr objective function.
+
+rnlm() for a little assistance in case nlm() puts up a fuss.
+
+space_taus() for obtaining spaced quantile indices.
+
+## Assessment
+
+SplitData() for splitting data.
+
+scoreq() for scoring predictions using proper scoring rule.
+
+A calibration() and informativeness() function.

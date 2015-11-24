@@ -7,7 +7,7 @@
 copnum2name(num)
 }
 \arguments{
-\item{num}{Integer code.}
+\item{num}{Integer code, or vector of integer codes.}
 }
 \value{
 A string of the name of the copula family.

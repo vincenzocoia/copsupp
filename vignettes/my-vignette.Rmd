@@ -9,11 +9,22 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The copsupp package contains copula-related functions as an extension to the CopulaModel package.
+```{r}
+library(copsupp)
+library(CopulaModel)
+```
 
-## New Copula
+The copsupp package contains copula-related functions as an extension to the CopulaModel package, as well as functionality to perform nonlinear quantile regression with CNQR.
 
-The functions for the new copula follow the convention of CopulaModel, and are:
+# Feature 1: Extension to `CopulaModel`
+
+## Additional Copula Functions
+
+More copula functions are available than what is available in `CopulaModel`. Here's an overview of what's new.
+
+### New Copula
+
+The "new" copula family that has a varying "copula conditional extreme value index" (CCEVI) is coded as follows:
 
 * `pnew()`
 * `logdnew()`
@@ -24,13 +35,151 @@ The functions for the new copula follow the convention of CopulaModel, and are:
 * `pcondnew21()`
 * `pcondnew12()`
 
-## Independence copula
+### Independence copula
 
 I included a fuller suite of functions for the independence copula just so that, when modelling, one can choose the independence copula for an edge in the vine, and the corresponding function calls will exist.
 
 * `pcondindepcop()`
 * `qcondindepcop()`
 * `qcondindep()`
+
+### Extensions of Existing Families
+
+I include horizontally reflected copula families ("U-flipped" copulas) by appending the letter "u" to the copula name, such as `"joeu"` and `"bb1u"`.
+
+I include vertically reflected copula families ("V-flipped" copulas) by appending the letter "v" to the copula name, such as `"joev"` and `"bb1v"`.
+
+I include reflected/survival copula families by appending the letter "r" to the copula name. This was already done for some copula families, such as `"mtcj"`, but I extended it to others such as `"joer"` and `"bb1r"`.
+
+# Feature 2: Non-linear Quantile Regression
+
+To demonstrate this feature, we'll create a forecaster of some outcome conditional on four predictors. First we'll simulate the data, then we'll build the forecaster, then we'll assess it. The forecaster will forecast the conditional quantile function for the following quantile indices:
+
+```{r}
+tau <- 1:9/10
+```
+
+## Simulate Data
+
+We'll build the data set using a vine on the response (variable 1) and all four predictors (variables 2:5). 
+
+First, specify the model. In doing so, we'll demonstrate the "make upper triangular matrices" feature of the package.
+
+```{r}
+## Vine array
+(A0 <- makeuppertri(c(1, 1, 3, 4, 4,  
+                         3, 1, 3, 3,
+                            4, 5, 2), nrow = 3, ncol = 5, incDiag = TRUE))
+## Copula Models:
+(copmat0 <- makeuppertri(c("bvtcop", "gum", "bvncop", "gum",
+                           "frk", "frk", "bvncop"), 2, 5, blanks=""))
+## Copula Parameters
+(cparmat0 <- makeuppertri.list(c(0.7, 3, 2, 0.5, 1.5,
+                                 2, 1.5, 0.3), len=c(2,1,1,1,1,1,1), 
+                               nrow=2, ncol=5))
+```
+
+Now we'll generate the data using a "friendly vine simulator" function:
+
+```{r}
+n <- 1000
+set.seed(123)
+udat <- fvinesim(n, A=A0, cops=copmat0, cpars=cparmat0)
+head(udat)
+```
+
+Let's make the response follow an Exp(1) distribution.
+
+```{r}
+dat <- udat
+dat[, 1] <- qexp(dat[, 1])
+```
+
+Now, we'll pretend that we only have the data (and we know about the univariate marginals).
+
+## Building a Forecaster
+
+To build a forecaster, we'll first build the distribution of the predictors.
+
+We'll find an appropriate vine array first using `CopulaModel::gausstrvine.mst()`, then fit the copula models using `VineCopula::RVineCopSelect()`.
+
+```{r}
+library(igraph0)
+## Get correlation matrix
+datx <- dat[, -1]
+xcor <- cor(qnorm(datx))
+## Find an appropriate vine array
+Afit <- gausstrvine.mst(xcor, 3)
+A <- Afit$RVM$VineA
+## Need to add 1 because the variables are 2:5, not 1:4
+A[!lower.tri(A)] <- A[!lower.tri(A)] + 1 
+A
+```
+
+Compare this array with the "true" array of the predictors, using the `rvinesubset()` function:
+
+```{r}
+rvinesubset(A0, 2:5)
+```
+
+So variables 3 and 4 seemingly have changed position, but we'll press on.
+
+Now fit the copula models using `VineCopula::RVineCopSelect()`
+
+```{r}
+familyset <- c(1:10,13,14,16:20,23,24,26:30,33,34,36:40)
+xfit <- VineCopula::RVineCopSelect(datx, 
+                                   familyset=familyset, 
+                                   Matrix=Afit$RVM$VineA)
+```
+
+Take a look at the copula models that were fit, using the "copula family integer code" to "copula family name" converter.
+
+```{r}
+(copmat <- xfit$family[4:1, 4:1])  # Coded copula families
+copmat <- apply(copmat, 1:2, copnum2name)
+copmat[!upper.tri(copmat)] <- ""
+copmat
+```
+
+Different families are used, but we'll stick to it.
+
+Next, we'll link up the response to the predictors according to the "proper" order. We'll choose the copula models, and fit them to get starting points:
+
+```{r}
+ord <- c(3,4,5,2)
+yfit <- lapply(ord, function(o) 
+    VineCopula::BiCopSelect(udat[, 1], udat[, o], familyset=familyset))
+ycops <- sapply(yfit, function(fit) copnum2name(fit$family))
+len <- sapply(yfit, function(fit){
+    if (fit$par == 0) return(0)
+    if (fit$par2 == 0) return(1)
+    2
+})
+cparstart <- c(sapply(yfit, function(fit){
+    if (fit$par == 0) return(numeric(0))
+    if (fit$par2 == 0) return(fit$par)
+    c(fit$par, fit$par2)
+}), recursive = TRUE)
+```
+
+Now we'll build a family of forecasters, i.e. a model for the quantile function of the response conditional on the predictors. We'll first need to get the sequential conditional distributions, then plug those in to get the forecaster family.
+
+```{r}
+## Sequential cdfs. We'll have to subtract 1 from the orders, since `xfit` 
+##  thinks the variables are 1:4
+Fcond <- pcondseq.vine(ord-1, xdat=datx, rvinefit=xfit)
+## Make predictions on the data we have:
+yhat <- function(theta){
+    cpar <- list()
+    cumsumlen <- c(0,cumsum(len))
+    for (i in 1:length(len)) {
+        cpar[[i]] <- theta[cumsumlen[i]:cumsumlen]
+    }
+} qcondBN(tau, cop=ycops, cpar=)
+```
+
+
 
 ## Vines
 
