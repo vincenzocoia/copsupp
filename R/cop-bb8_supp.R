@@ -1,6 +1,4 @@
-## ----- Reflected -----
-
-## Distribution
+## ----- Original ------
 
 #' BB8 copula: supplemental functions
 #'
@@ -8,6 +6,12 @@
 #' Appended "v" means a vertical flip (i.e. switching v to 1-v).
 #' Appended "r" means reflection/survival copula
 #'
+#' @rdname bb8_supp
+#' @export
+logdbb8 <- function(u, v, cpar) log(CopulaModel::dbb8(u, v, cpar))
+
+## ----- Reflected -----
+
 #' @rdname bb8_supp
 #' @export
 pbb8r <- function(u, v, cpar) u + v - 1 + CopulaModel::pbb8(1-u, 1-v, cpar)
