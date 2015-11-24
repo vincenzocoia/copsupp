@@ -5,7 +5,7 @@
 \title{Fit a Non-linear Model using CNQR}
 \usage{
 cnqr(y, xdat, tau = space_taus(10), xmargs = NULL, FY = NULL, QY = NULL,
-  ntruncX = NULL, show_nlm = FALSE, familyset = c(1:10, 13, 14, 16:20, 23,
+  ntruncX = NULL, verbose = FALSE, familyset = c(1:10, 13, 14, 16:20, 23,
   24, 26:30, 33, 34, 36:40))
 }
 \arguments{
@@ -30,12 +30,12 @@ you want to use the empirical distribution.}
 what truncation level should be used (integer from 1 to \code{ncol(xdat)-1}).
 Leave \code{NULL} for maximum truncation.}
 
-\item{show_nlm}{After the cnqr optimization, should the \code{\link{nlm}}
-results be displayed? \code{TRUE} if so.}
-
 \item{familyset}{When choosing bivariate copula models to build the
 distributions, what families should be used? Should be a vector of integer
 codes used in \code{VineCopula::RVineCopSelect}.}
+
+\item{show_nlm}{After the cnqr optimization, should the \code{\link{nlm}}
+results be displayed? \code{TRUE} if so.}
 }
 \value{
 A function that accepts the following arguments:
@@ -43,7 +43,7 @@ A function that accepts the following arguments:
 \itemize{
      \item \code{$x}: A matrix of new observations, as in \code{xdat}. Could
      be a vector if only one observation.
-     \item \code{$tau}: A vector of quantile indices to evaluate the
+     \item \code{$taunew}: A vector of quantile indices to evaluate the
      forecast quantile function at.
 }
 
@@ -77,12 +77,6 @@ Here is how the function works.
 }
 }
 \note{
-Because of some conflict between the deprecated package \code{igraph0}
-(used by package \code{CopulaModel})
-and the newer package \code{igraph} (used by package \code{VineCopula}),
-this function can only be run a maximum of one time.
-Run it more and you'll get an error.
-
 Sorry about the matrix that gets printed whenever the function is run.
 I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
 }
@@ -90,17 +84,24 @@ I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
 ## Get some simulated data:
 library(CopulaModel)
 set.seed(73646)
+
 p <- 5
 ntrunc <- p-1
+n <- 50
+
 A0 <- truncvarray(Dvinearray(p), ntrunc)
 copmat0 <- makeuppertri("frk", ntrunc, p, "")
 cparmat0 <- makeuppertri(3, ntrunc, p)
-dat <- fvinesim(100, A0, copmat0, cparmat0)
+
+dat <- fvinesim(50, A0, copmat0, cparmat0)
 dat <- qexp(dat)
+y <- dat[, 1]
+xdat <- dat[, -1]
 
 ## Get forecaster:
-Qhat <- cnqr(dat[, 1], dat[, -1])
-Qhat(c(0.5, 1.3, 0.3, 1.9))
-Qhat(head(dat[, -1]), tau = c(0.9, 0.95, 0.99))
+tau <- space_taus(10, tau_c = 0)
+Qhat <- cnqr(y, xdat, tau = tau, verbose = TRUE)
+Qhat(xdat[1, ])
+Qhat(head(xdat), tau = c(0.9, 0.95, 0.99))
 }
 

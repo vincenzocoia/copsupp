@@ -24,20 +24,14 @@
 #' @param familyset When choosing bivariate copula models to build the
 #' distributions, what families should be used? Should be a vector of integer
 #' codes used in \code{VineCopula::RVineCopSelect}.
-#' @note Because of some conflict between the deprecated package \code{igraph0}
-#' (used by package \code{CopulaModel})
-#' and the newer package \code{igraph} (used by package \code{VineCopula}),
-#' this function can only be run a maximum of one time.
-#' Run it more and you'll get an error.
-#'
-#' Sorry about the matrix that gets printed whenever the function is run.
+#' @note Sorry about the matrix that gets printed whenever the function is run.
 #' I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
 #' @return A function that accepts the following arguments:
 #'
 #' \itemize{
 #'      \item \code{$x}: A matrix of new observations, as in \code{xdat}. Could
 #'      be a vector if only one observation.
-#'      \item \code{$tau}: A vector of quantile indices to evaluate the
+#'      \item \code{$taunew}: A vector of quantile indices to evaluate the
 #'      forecast quantile function at.
 #' }
 #'
@@ -65,21 +59,28 @@
 #' ## Get some simulated data:
 #' library(CopulaModel)
 #' set.seed(73646)
+#'
 #' p <- 5
 #' ntrunc <- p-1
+#' n <- 50
+#'
 #' A0 <- truncvarray(Dvinearray(p), ntrunc)
 #' copmat0 <- makeuppertri("frk", ntrunc, p, "")
 #' cparmat0 <- makeuppertri(3, ntrunc, p)
-#' dat <- fvinesim(100, A0, copmat0, cparmat0)
+#'
+#' dat <- fvinesim(50, A0, copmat0, cparmat0)
 #' dat <- qexp(dat)
+#' y <- dat[, 1]
+#' xdat <- dat[, -1]
 #'
 #' ## Get forecaster:
-#' Qhat <- cnqr(dat[, 1], dat[, -1])
-#' Qhat(c(0.5, 1.3, 0.3, 1.9))
-#' Qhat(head(dat[, -1]), tau = c(0.9, 0.95, 0.99))
+#' tau <- space_taus(10, tau_c = 0)
+#' Qhat <- cnqr(y, xdat, tau = tau, verbose = TRUE)
+#' Qhat(xdat[1, ])
+#' Qhat(head(xdat), tau = c(0.9, 0.95, 0.99))
 #' @export
 cnqr <- function(y, xdat, tau = space_taus(10),
-                 xmargs = NULL, FY = NULL, QY = NULL, ntruncX = NULL, show_nlm = FALSE,
+                 xmargs = NULL, FY = NULL, QY = NULL, ntruncX = NULL, verbose = FALSE,
                  familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33, 34, 36:40)) {
     if (is.vector(xdat)) xdat <- matrix(xdat, ncol = 1)
     p <- ncol(xdat)
@@ -97,24 +98,37 @@ cnqr <- function(y, xdat, tau = space_taus(10),
     ## Get truncation if need be.
     if (is.null(ntruncX)) ntruncX <- p-1
     ## Fit a model for predictors:
+    if (verbose) cat("Fitting a model to the predictors...\n")
     yu <- FY(y)
     xdatu <- xdat
     for (col in 1:p) xdatu[, col] <- xmargs[[col]](xdat[, col])
     fitX. <- fitX(xdatu, ntrunc = ntruncX, familyset = familyset)
+    if (verbose) cat("Done.\n")
     ## Fit a model for the Bayesian Network:
+    if (verbose) cat("Fitting a model for the Bayesian Network...\n")
     fitBN. <- fitBN(yu, xdatu, familyset=familyset)
+    if (verbose) cat("Done.\n")
     ## Get sequences of conditional distributions.
-    Fcond <- pcondseq.vine(fitBN.$xord, xdatu, rvinefit=fitX.)
+    if (verbose) cat("Evaluating the sequential conditional predictor cdfs...\n")
+    Fcond <- pcondseq.vine(fitBN.$xord, xdatu, rvinefit=fitX.,
+                           .print = verbose, .print.cdfmethod = verbose)
+    if (verbose) {
+        cat("Done.\n")
+        cat("Optimizing forecaster...\n")
+    }
     yhat <- function(cpar) qcondBN(tau, fitBN.$cops, cpar, Fcond, QY=QY)
     obj <- cnqrobj(y, yhat, tau)
     res <- nlm(obj, fitBN.$cparstart)
     cparfit <- res$estimate
-    if (show_nlm) print(res)
+    if (verbose){
+        print(res)
+        cat("Done.\n")
+    }
     ## Now make a forecaster given new data
-    function(x, tau=tau) {
+    function(x, taunew=tau) {
         if (is.vector(x)) x <- matrix(x, nrow = 1)
         if (ncol(x) != p) stop(paste("x should have", p, "variables."))
         Fcond <- pcondseq.vine(fitBN.$xord, x, rvinefit=fitX., FX = xmargs)
-        qcondBN(tau, fitBN.$cops, cparfit, Fcond, QY=QY)
+        qcondBN(taunew, fitBN.$cops, cparfit, Fcond, QY=QY)
     }
 }
