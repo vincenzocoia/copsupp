@@ -1,8 +1,85 @@
 #' Fit a Non-linear Model using CNQR
 #'
-#' Regress a response against some predictors. A non-linear model is found
+#' Regress a response against some predictors, using CNQR (composite
+#' nonlinear quantile regression).
+#' A non-linear model is found
 #' using vine copulas -- see details.
-cnqr <- function(y, xdat, xmargs = NULL, FY = NULL, QY = NULL, ntruncX = NULL,
+#'
+#' @param y Response vector.
+#' @param xdat Matrix of predictor data. Variables are columns, observations
+#' are in rows (which correspond to \code{y}).
+#' @param tau Vector of quantile indices to regress on.
+#' @param xmargs List of vectorized functions of marginal cdf's of the
+#' predictor variables. Or, a single such function if they're all the same.
+#' Or, leave \code{NULL} if you want to use the empirical distribution.
+#' @param FY Vectorized function of the response cdf. Leave \code{NULL} if
+#' you want to use the empirical distribution.
+#' @param QY Vectorized function of the response quantile function. Leave \code{NULL} if
+#' you want to use the empirical distribution.
+#' @param ntruncX When a joint distribution of the response is sought using a vine,
+#' what truncation level should be used (integer from 1 to \code{ncol(xdat)-1}).
+#' Leave \code{NULL} for maximum truncation.
+#' @param show_nlm After the cnqr optimization, should the \code{\link{nlm}}
+#' results be displayed? \code{TRUE} if so.
+#' @param familyset When choosing bivariate copula models to build the
+#' distributions, what families should be used? Should be a vector of integer
+#' codes used in \code{VineCopula::RVineCopSelect}.
+#' @note Because of some conflict between the deprecated package \code{igraph0}
+#' (used by package \code{CopulaModel})
+#' and the newer package \code{igraph} (used by package \code{VineCopula}),
+#' this function can only be run a maximum of one time.
+#' Run it more and you'll get an error.
+#'
+#' Sorry about the matrix that gets printed whenever the function is run.
+#' I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
+#' @return A function that accepts the following arguments:
+#'
+#' \itemize{
+#'      \item \code{$x}: A matrix of new observations, as in \code{xdat}. Could
+#'      be a vector if only one observation.
+#'      \item \code{$tau}: A vector of quantile indices to evaluate the
+#'      forecast quantile function at.
+#' }
+#'
+#' It returns a matrix of the conditional quantiles, where columns correspond
+#' to the quantile indices in \code{$tau}. Could be a vector if there's only
+#' one observation in \code{x}.
+#' @details Here is how the function works.
+#'
+#' \enumerate{
+#'      \item If needed, univariate marginals are found using \code{\link{marginal}}.
+#'      \item A model for the joint distribution of the predictors is fit
+#'      using \code{\link{fitX}}.
+#'      \item A model for the Bayesian Network linking the response to the
+#'      predictors is found using \code{\link{fitBN}}.
+#'      \item A family of forecasts are made for the
+#'      data using \code{\link{pcondseq.vine}} and \code{\link{qcondBN}}.
+#'      \item The optimal forecast is selected using \code{\link{nlm}}
+#'      on an objective function found by \code{\link{cnqrobj}}. Starting values
+#'      are obtained from the bivariate fits in the function previously used,
+#'      \code{\link{fitBN}}.
+#'      \item The optimal forecaster is extended to any new data, again using
+#'      the functions \code{\link{pcondseq.vine}} and \code{\link{qcondBN}}.
+#' }
+#' @examples
+#' ## Get some simulated data:
+#' library(CopulaModel)
+#' set.seed(73646)
+#' p <- 5
+#' ntrunc <- p-1
+#' A0 <- truncvarray(Dvinearray(p), ntrunc)
+#' copmat0 <- makeuppertri("frk", ntrunc, p, "")
+#' cparmat0 <- makeuppertri(3, ntrunc, p)
+#' dat <- fvinesim(100, A0, copmat0, cparmat0)
+#' dat <- qexp(dat)
+#'
+#' ## Get forecaster:
+#' Qhat <- cnqr(dat[, 1], dat[, -1])
+#' Qhat(c(0.5, 1.3, 0.3, 1.9))
+#' Qhat(head(dat[, -1]), tau = c(0.9, 0.95, 0.99))
+#' @export
+cnqr <- function(y, xdat, tau = space_taus(10),
+                 xmargs = NULL, FY = NULL, QY = NULL, ntruncX = NULL, show_nlm = FALSE,
                  familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33, 34, 36:40)) {
     if (is.vector(xdat)) xdat <- matrix(xdat, ncol = 1)
     p <- ncol(xdat)
@@ -23,6 +100,21 @@ cnqr <- function(y, xdat, xmargs = NULL, FY = NULL, QY = NULL, ntruncX = NULL,
     yu <- FY(y)
     xdatu <- xdat
     for (col in 1:p) xdatu[, col] <- xmargs[[col]](xdat[, col])
-    fitX(xdat, ntrunc = ntruncX)
-
+    fitX. <- fitX(xdatu, ntrunc = ntruncX, familyset = familyset)
+    ## Fit a model for the Bayesian Network:
+    fitBN. <- fitBN(yu, xdatu, familyset=familyset)
+    ## Get sequences of conditional distributions.
+    Fcond <- pcondseq.vine(fitBN.$xord, xdatu, rvinefit=fitX.)
+    yhat <- function(cpar) qcondBN(tau, fitBN.$cops, cpar, Fcond, QY=QY)
+    obj <- cnqrobj(y, yhat, tau)
+    res <- nlm(obj, fitBN.$cparstart)
+    cparfit <- res$estimate
+    if (show_nlm) print(res)
+    ## Now make a forecaster given new data
+    function(x, tau=tau) {
+        if (is.vector(x)) x <- matrix(x, nrow = 1)
+        if (ncol(x) != p) stop(paste("x should have", p, "variables."))
+        Fcond <- pcondseq.vine(fitBN.$xord, x, rvinefit=fitX., FX = xmargs)
+        qcondBN(tau, fitBN.$cops, cparfit, Fcond, QY=QY)
+    }
 }

@@ -3,6 +3,7 @@
 export(Atocon)
 export(calibration)
 export(center.varray)
+export(cnqr)
 export(cnqrobj)
 export(contoA)
 export(copnum2name)
