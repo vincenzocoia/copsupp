@@ -54,6 +54,9 @@
 #' @export
 fitX <- function(xdat, ntrunc = ncol(xdat)-1, margs = identity,
                  familyset = c(1:10,13,14,16:20,23,24,26:30,33,34,36:40), ...) {
+    if (is.vector(xdat) | ncol(xdat) == 1){
+        list(A=matrix(1), copmat=matrix(""), cparmat=matrix(0))
+    }
     p <- ncol(xdat)
     n <- nrow(xdat)
     if (length(margs) == 1) margs <- rep(list(margs), p)
