@@ -30,6 +30,7 @@
 	* Solution: trick `CopulaModel` by substituting the independence copula with a copula family with a parameter such that it equals the independence copula.
 
 7. After writing the vignette, it's clear that the main objective of `copsupp` is to mirror the suite of functions that exists for a copula family like `"frk"`, except for a regular vine. Perhaps the package name should be modified to reflect that.
+	* Or, is the purpose a bit broader than that?
 
 8. The vignette needs to be improved:
 	* It contains too much extraneous information that would only be useful for developers.
