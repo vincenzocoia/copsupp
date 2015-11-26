@@ -34,3 +34,5 @@
 8. The vignette needs to be improved:
 	* It contains too much extraneous information that would only be useful for developers.
 	* (This might follow from the previous downfall) it reads more like a pile of information, as opposed to a meaningful "story" that communicates what a user would want to use the package for. 
+
+9. Get the vignette working so that, upon typing `vignette('copsupp')` in R, the vignette appears.
