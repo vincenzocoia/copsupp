@@ -1,6 +1,6 @@
 ## ----- Reflected -----
 
-## Distribution
+## Density
 
 #' BB7 copula: supplemental functions
 #'
@@ -10,15 +10,6 @@
 #'
 #' @rdname bb7_supp
 #' @export
-pbb7r <- function(u, v, cpar) u + v - 1 + CopulaModel::pbb7(1-u, 1-v, cpar)
-
-## Density
-
-#' @rdname bb7_supp
-#' @export
-dbb7r <- function(u, v, cpar) CopulaModel::dbb7(1-u, 1-v, cpar)
-#' @rdname bb7_supp
-#' @export
 logdbb7r <- function(u, v, cpar) CopulaModel::logdbb7(1-u, 1-v, cpar)
 
 ## Random number generator
@@ -26,15 +17,6 @@ logdbb7r <- function(u, v, cpar) CopulaModel::logdbb7(1-u, 1-v, cpar)
 #' @rdname bb7_supp
 #' @export
 rbb7r <- function(n, cpar) 1 - CopulaModel::rbb7(n, cpar)
-
-## Conditional distribution
-
-#' @rdname bb7_supp
-#' @export
-pcondbb7r <- function(v, u, cpar) 1 - CopulaModel::pcondbb7(1-v, 1-u, cpar)
-#' @rdname bb7_supp
-#' @export
-qcondbb7r <- function(p, u, cpar) 1 - CopulaModel::qcondbb7(1-p, 1-u, cpar)
 
 ## ----- U-Flipped / V-axis reflection / Horizontal reflection -----
 

@@ -24,7 +24,11 @@
 #' @param familyset When choosing bivariate copula models to build the
 #' distributions, what families should be used? Should be a vector of integer
 #' codes used in \code{VineCopula::RVineCopSelect}.
-#' @note Sorry about the matrix that gets printed whenever the function is run.
+#' @note Since this function is intended to be a "quick" regression,
+#' you might encounter an error on the optimization portion through
+#' \code{\link{nlm}}, especially when the gumbel copula is involved.
+#'
+#' Sorry about the matrix that gets printed whenever the function is run.
 #' I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
 #' @return A function that accepts the following arguments:
 #'
@@ -90,6 +94,7 @@ cnqr <- function(y, xdat, tau = space_taus(10),
     if (is.null(xmargs)) {
         xmargs <- apply(xdat, 2, function(col) marginal(col)$cdf)
     }
+    if (length(xmargs) == 1) xmargs <- rep(list(xmargs), p)
     if (is.null(FY) | is.null(QY)) {
         ymarg <- marginal(y)
         if (is.null(FY)) FY <- ymarg$cdf
@@ -103,11 +108,19 @@ cnqr <- function(y, xdat, tau = space_taus(10),
     xdatu <- xdat
     for (col in 1:p) xdatu[, col] <- xmargs[[col]](xdat[, col])
     fitX. <- fitX(xdatu, ntrunc = ntruncX, familyset = familyset)
-    if (verbose) cat("Done.\n")
+    if (verbose){
+        print(fitX.)
+        cat("Done.\n")
+    }
     ## Fit a model for the Bayesian Network:
     if (verbose) cat("Fitting a model for the Bayesian Network...\n")
     fitBN. <- fitBN(yu, xdatu, familyset=familyset)
-    if (verbose) cat("Done.\n")
+    #### Get lengths of parameter vectors
+    len <- sapply(fitBN.$cparstart, length)
+    if (verbose){
+        print(fitBN.)
+        cat("Done.\n")
+    }
     ## Get sequences of conditional distributions.
     if (verbose) cat("Evaluating the sequential conditional predictor cdfs...\n")
     Fcond <- pcondseq.vine(fitBN.$xord, xdatu, rvinefit=fitX.,
@@ -116,9 +129,25 @@ cnqr <- function(y, xdat, tau = space_taus(10),
         cat("Done.\n")
         cat("Optimizing forecaster...\n")
     }
-    yhat <- function(cpar) qcondBN(tau, fitBN.$cops, cpar, Fcond, QY=QY)
+    ## Make predictions on the data. To speed up computation, if each parameter
+    ##  is of length 1, there's no need to construct a list of parameters.
+    if (all(len == 1)) {
+        yhat <- function(cparvec) qcondBN(tau, fitBN.$cops, cparvec, Fcond, QY=QY)
+    } else {
+        yhat <- function(cparvec){
+            cpar <- list()
+            parnum <- 0
+            for (i in 1:length(len)) {
+                np <- len[i]
+                cpar[[i]] <- cparvec[parnum + seq_len(np)]
+                parnum <- parnum + np
+            }
+            qcondBN(tau, fitBN.$cops, cpar, Fcond, QY=QY)
+        }
+    }
     obj <- cnqrobj(y, yhat, tau)
-    res <- nlm(obj, fitBN.$cparstart)
+    startval <- c(fitBN.$cparstart, recursive = TRUE)
+    res <- nlm(obj, startval)
     cparfit <- res$estimate
     if (verbose){
         print(res)

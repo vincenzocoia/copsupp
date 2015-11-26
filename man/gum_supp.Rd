@@ -3,6 +3,7 @@
 \name{pgumu}
 \alias{dgumu}
 \alias{dgumv}
+\alias{logdgumr}
 \alias{logdgumu}
 \alias{logdgumv}
 \alias{pcondgumu}
@@ -38,6 +39,8 @@ rgumv(n, cpar)
 pcondgumv(v, u, cpar)
 
 qcondgumv(p, u, cpar)
+
+logdgumr(u, v, cpar)
 }
 \description{
 Appended "u" means a horizontal flip (i.e. switching u to 1-u).

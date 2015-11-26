@@ -76,3 +76,8 @@ pcondgumv <- function(v, u, cpar) 1 - CopulaModel::pcondgum(1-v, u, cpar)
 #' @export
 qcondgumv <- function(p, u, cpar) 1 - CopulaModel::qcondgum(1-p, u, cpar)
 
+## ----- Reflection/Survival -----
+
+#' @rdname gum_supp
+#' @export
+logdgumr <- function(u, v, cpar) log(CopulaModel::dgumr(u, v, cpar))

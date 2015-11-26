@@ -77,6 +77,10 @@ Here is how the function works.
 }
 }
 \note{
+Since this function is intended to be a "quick" regression,
+you might encounter an error on the optimization portion through
+\code{\link{nlm}}, especially when the gumbel copula is involved.
+
 Sorry about the matrix that gets printed whenever the function is run.
 I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
 }

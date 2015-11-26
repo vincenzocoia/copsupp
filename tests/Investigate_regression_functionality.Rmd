@@ -1,0 +1,114 @@
+---
+title: "Investigate Regression Functionality"
+output: html_document
+---
+
+```{r}
+library(copsupp)
+library(CopulaModel)
+set.seed(61377)
+## Seed 61375, 61377 produces an error when calling `qt()` when 
+##   forecasting on observed data (call Q1(xdat)).
+## Seed 61376 throws an error at nlm (too many gumbel copulas I suppose.)
+```
+
+We'll investigate two aspects of the functions in the `copsupp`, using simulated data:
+
+1. Whether the functions in the `copsupp` package, under the correct model, gives "correct" output.
+2. How good the model-fitting features of the package are.
+
+Regression will be over the entire range of quantiles:
+
+```{r}
+tau <- space_taus(10, tau_c=0)
+```
+
+## Generating Distribution, and Sample
+
+First, we'll specify the joint distribution of `p` predictors and a response. We'll do so through a vine.
+
+```{r}
+p <- 4
+## Marginals -- we'll keep predictors as Unif(0,1)
+FY <- pexp
+QY <- qexp
+## Vine specification (append "0" to mean truth): 
+#### Vine array (put Y at end of array so that we know the order
+####  that it links up with predictors)
+A0 <- Dvinearray(p+1)
+#### Copula families and parameters
+copmat0 <- makeuppertri(c("mtcj", "bvtcop", "gum", "bvtcop",
+                          "bvncop", "frk", "gum",
+                          "indepcop", "joe",
+                          "frk"), 4, 5, "")
+cparmat0 <- makeuppertri.list(c(2.5, 0.7, 3, 2, 0.5, 2,
+                                0.4, 3, 2,
+                                2, 
+                                2), len = c(1,2,1,2,1,1,1,0,1,1), nrow=4, ncol=5)
+```
+
+That's all we need to specify the joint distribution. It'll be helpful later, though, to extract the vine connecting the predictors, as well as the Bayesian Network connecting the response to the predictors.
+
+```{r}
+## Extract joint distribution of predictors:
+AX0 <- rvinesubset(A0, 1:p)
+copmatX0 <- reform.copmat(copmat0, AX0, A0)
+cparmatX0 <- reform.copmat(cparmat0, AX0, A0)
+## Extract Bayesian Network info:
+xord0 <- A0[1:p, p+1]
+ycops0 <- copmat0[, p+1]
+ycpars0 <- cparmat0[, p+1]
+```
+
+Now, simulate the data.
+
+```{r}
+n <- 1000
+dat <- fvinesim(n, A = A0, cops = copmat0, cpars = cparmat0)
+y <- QY(dat[, p+1])
+xdat <- dat[, 1:p]
+```
+
+## Forecaster 1: No knowledge of DGP
+
+We'll use `cnqr()` to fit a forecaster without knowledge of the dependence of the predictors and response (we know the marginals though).
+
+```{r}
+# (Commented out because `cnqr()` can only be run once. Load workspace.)
+Q1 <- cnqr(y, xdat, xmargs=identity, FY=FY, QY=QY, tau=tau, verbose=TRUE,
+           familyset = c(1,3,4,5,6,13,16,23,26,33,36))
+```
+
+Assess it via calibration plot:
+
+```{r, echo=FALSE}
+calibration(y, Q1(xdat), tau = tau)
+```
+
+
+## Forecaster 2: Add Knowledge of predictor distribution and Y|X model
+
+Now we'll add knowledge of the predictor distribution.
+
+```{r}
+#load(file = "tests/Investigate_regression_functionality.RData")
+Fcond <- pcondseq.vine(xord0, xdat, 
+                       rvinefit=list(A=truncvarray(AX0, 2), 
+                                     copmat=copmatX0[-3, ], 
+                                     cparmat=cparmatX0[-3, ]))
+yhat <- function(cparvec){
+    cpar <- list(cparvec[1:2], cparvec[3], cparvec[4], cparvec[5])
+    qcondBN(tau = tau, cop = ycops0, cpar = cpar, QY=QY, Fcond = Fcond)
+} 
+obj <- cnqrobj(y, yhat, tau)
+res <- nlm(obj, c(ycpars0, recursive=T))
+```
+
+calibration:
+
+```{r}
+calibration(y, yhat(c(ycpars0, recursive=T)), tau)
+```
+
+
+

@@ -1,6 +1,6 @@
 ## ----- Reflected -----
 
-## Distribution
+## Random number generator
 
 #' BB1 copula: supplemental functions
 #'
@@ -10,31 +10,9 @@
 #'
 #' @rdname bb1_supp
 #' @export
-pbb1r <- function(u, v, cpar) u + v - 1 + CopulaModel::pbb1(1-u, 1-v, cpar)
-
-## Density
-
-#' @rdname bb1_supp
-#' @export
-dbb1r <- function(u, v, cpar) CopulaModel::dbb1(1-u, 1-v, cpar)
-#' @rdname bb1_supp
-#' @export
-logdbb1r <- function(u, v, cpar) CopulaModel::logdbb1(1-u, 1-v, cpar)
-
-## Random number generator
-
-#' @rdname bb1_supp
-#' @export
 rbb1r <- function(n, cpar) 1 - CopulaModel::rbb1(n, cpar)
 
-## Conditional distribution
 
-#' @rdname bb1_supp
-#' @export
-pcondbb1r <- function(v, u, cpar) 1 - CopulaModel::pcondbb1(1-v, 1-u, cpar)
-#' @rdname bb1_supp
-#' @export
-qcondbb1r <- function(p, u, cpar) 1 - CopulaModel::qcondbb1(1-p, 1-u, cpar)
 
 ## ----- U-Flipped / V-axis reflection / Horizontal reflection -----
 
