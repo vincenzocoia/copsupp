@@ -50,9 +50,9 @@
 #' dat <- fvinesim(100, A0, copmat0, cparmat0)
 #'
 #' ## Fit a model to the data:
-#' fitX(dat, ntrunc)
+#' fit.rvine(dat, ntrunc)
 #' @export
-fitX <- function(xdat, ntrunc = ncol(xdat)-1, margs = identity,
+fit.rvine <- function(xdat, ntrunc = ncol(xdat)-1, margs = identity,
                  familyset = c(1:10,13,14,16:20,23,24,26:30,33,34,36:40), ...) {
     if (is.vector(xdat) | ncol(xdat) == 1){
         list(A=matrix(1), copmat=matrix(""), cparmat=matrix(0))
