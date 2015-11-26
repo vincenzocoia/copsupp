@@ -13,7 +13,7 @@
 	* In addition to the 4 possible reflections, there's also the `U-V` flip for those -- meaning that there's 8 copula families in total. Are the latter 4 really needed?
 	* Involves being careful about what variable comes first when specifying a vine edge, and getting the copula right when the vine array is moved around (such as re-leafing).
 
-4. As more functionality is developed, it might be useful to work with "vine objects", which would contain the vine array, copula model matrix, and copula parameter matrix instead of working with each separately. They should be specified in that order, with the possibility that "upstream" features (like the copula parameter matrix, or both copula and parameter matrices) are unspecified and therefore unknown.
+4. As more functionality is developed, it might be useful to work with "vine objects", which would contain the vine array, copula model matrix, and copula parameter matrix instead of working with each separately (and it should also contain the marginals too). They should be specified in that order, with the possibility that "upstream" features (like the copula parameter matrix, or both copula and parameter matrices) are unspecified and therefore unknown.
 	* `reform.copmat()` would not be needed anymore.
 
 5. It might be useful to change the format of the copula families so that **number of parameters** and **parameter space** can be extracted (so that the user doesn't have to look it up all the time). Here are some ideas:
@@ -28,3 +28,9 @@
 
 6. `fvinesim()` does not work when an independence copula is in the mix.
 	* Solution: trick `CopulaModel` by substituting the independence copula with a copula family with a parameter such that it equals the independence copula.
+
+7. After writing the vignette, it's clear that the main objective of `copsupp` is to mirror the suite of functions that exists for a copula family like `"frk"`, except for a regular vine. Perhaps the package name should be modified to reflect that.
+
+8. The vignette needs to be improved:
+	* It contains too much extraneous information that would only be useful for developers.
+	* (This might follow from the previous downfall) it reads more like a pile of information, as opposed to a meaningful "story" that communicates what a user would want to use the package for. 

@@ -14,7 +14,9 @@ library(copsupp)
 library(CopulaModel)
 ```
 
-The `copsupp` package contains functions meant as an extension to the `CopulaModel` package, largely to make working with vines easier. User-friendliness is key: the user should not have to deal with many objects, and the functions should not be picky about what they accept. This way, the user can focus on the big picture without worrying about extraneous objects and making "work-arounds" on the objects.
+The `copsupp` package contains functions meant as an extension to the `CopulaModel` package, largely to make working with vines easier.
+
+User-friendliness is the aim: the user should not have to deal with many objects, and the functions should not be picky about what they accept. This way, the user can focus on the big picture without worrying about extraneous objects and making "work-arounds" on the objects.
 
 The goal of this vignette is to familiarize the user with package **functions** and the **objects** recognized by those functions, while introducing the **terminology** used.
 
@@ -61,7 +63,7 @@ We can extract the variable labels in the order that they're introduced in the v
 varray.vars(A)
 ```
 
-This is useful because, with truncated vine arrays, the variable labels no longer strictly lie on the diagonal if the vine array, so it no longer suffices to use `diag(A)` to extract the variables.
+This is useful because, with truncated vine arrays, the variable labels no longer strictly lie on the diagonal of the vine array, so it no longer suffices to use `diag(A)` to extract the variables.
 
 Although they don't have to be, there are two ways to label the variables in a vine array:
 
@@ -77,8 +79,6 @@ relabel.varray(A, c(3, 4, 20, 1, 6, 7, 50))
 ```
 
 This function is more powerful than `varrayperm()` in `CopulaModel`, because `varrayperm()` will not accept truncated vine arrays nor vine arrays with labels outside of the set `{1:ncol(A)}`.
-
-(not the case if we remove a variable). In this case, the relabelling may not actually be a permutation of the variable names.
 
 Note that `varrayperm()` uses the terminology **permute**, as in a permutation of the variable names, but this can be easily confused with a permutation of *the order of the vine array*. Plus, if there are labels outside of the set `{1:ncol(A)}`, a relabelling may not actually be a permutation of the labels. Really, the "permute" terminology here is an allusion that you'll probably have to permute your data matrix after the relabelling. 
 
@@ -96,7 +96,7 @@ Now variable 1 is a leaf. How about we try variable 4?
 releaf.varray(A, 4)
 ```
 
-Variable 4 is not a leaf in the vine, so it `releaf.varray()` returns `NULL`.
+Variable 4 is not a leaf in the vine, so `releaf.varray()` returns `NULL`.
 
 What if we want the vine array to be in natural order? Well, natural order doesn't exist when a vine is truncated, but there's a weaker version that can be useful, and that's to re-write the vine array so that the first `ntrunc` variables (where `ntrunc = min(nrow(A)-1, ncol(A)-2)` is the truncation level) are not leaves in the vine. I call this **centering** the vine array:
 
@@ -226,7 +226,7 @@ When you re-order, truncate, and/or subset a vine array, the corresponding copul
 
 # Vine Distributions
 
-Now that we have a vine distribution fully specified by three objects (the vine array, copula matrix, and copula parameter matrix), `copsupp` has functions that specify different distributional quantities -- just like the suite of functions that go along with a copula family like `"frk"` or "`gum`". But the suite of functions for a vine distribution is not as extensive.
+Now that we have a vine distribution fully specified by three objects (the vine array, copula matrix, and copula parameter matrix), `copsupp` has functions that specify different distributional quantities -- just like the suite of functions that go along with a copula family like `"frk"` or "`gum`". (So far, the suite of functions for a vine distribution is not as extensive.)
 
 Simulate data:
 
@@ -234,23 +234,99 @@ Simulate data:
 (dat <- fvinesim(10, A = A, cops = copmat, cpars = cparmat))
 ```
 
+The next functions call on other functions that do not accept independence copulas in the vine array. Until this is fixed, let's just demonstrate the functions by truncating the third tree:
+
+```{r}
+At <- truncvarray(A, 2)
+copmatt <- reform.copmat(copmat, At, A)
+cparmatt <- reform.copmat(cparmat, At, A)
+```
+
 Evaluate the density at these data:
 
 ```{r}
-drvine(dat, A = A, copmat = copmat, cparmat = cparmat)
-logdrvine(dat, A = A, copmat = copmat, cparmat = cparmat)
+drvine(dat, A = At, copmat = copmatt, cparmat = cparmatt)
+logdrvine(dat, A = At, copmat = copmatt, cparmat = cparmatt)
 ```
 
-Evaluate the conditional density 
+Evaluate the conditional cdf of a variable given the others. How about variable 5 given the others? 5 is a valid leaf, so there's an algorithm for that:
 
+```{r}
+pcondrvine(dat, 5, A = At, copmat = copmatt, cparmat = cparmatt, .print = TRUE)
+```
 
-I made functions to compute the conditional distribution of a variable given variables "upstream or downstream". Also the quantile function.
+How about 3 given the others? 3 is not a valid leaf, so it doesn't use the algorithm -- it integrates the vine density:
 
-* `pcondD()`
-* `qcondD()`
+```{r}
+pcondrvine(dat, 3, A = At, copmat = copmatt, cparmat = cparmatt, .print = TRUE)
+```
 
-I also made a function to simulate from a vine, which uses the "vinesim" family of functions in CopulaModel:
+There are some older functions that may become obsolete. They find the conditional cdf and quantile functions in the case that the vine is a D-vine. They are less friendly to use though -- they are `pcondD(), pcondD.generic(), qcondD(), qcondD.generic()`. 
 
-* `fvinesim()`
+# Other Functions
+
+Here are some other functions that are included, but may migrate somewhere else in the future because they don't seem to fit the theme of `copsupp`.
 
 ## Marginal distributions
+
+So far, only Uniform data were considered, and a vine distribution was specified by the vine array and the copula and parameter matrices. But we should really include the univariate marginals too. The functions `logdrvine(), drvine(), pcondrvine()` all accept different marginals than Uniform.
+
+`copsupp` also comes with a function to fit marginal distributions to univariate data. Since `copsupp`'s theme isn't really model-fitting, this function is sort of out-of-place and may migrate somewhere else in the future. But here's a demo anyway.
+
+Let's get a univariate sample, any univariate sample (continuous):
+
+```{r}
+x <- rnorm(100)
+```
+
+Let's fit an empirical distribution to it:
+
+```{r}
+(empmarg <- marginal(x))
+```
+
+Notice that it provides the cdf, quantile function, and density. Its cdf is "softened" so that it never evaluates to 0 or 1:
+
+```{r}
+empmarg$cdf(max(x) + 1)
+```
+
+Let's fit a Normal distribution:
+
+```{r}
+marginal(x, "norm")
+```
+
+How about a t distribution? Notice that we need to specify a starting value in the estimation. `marginal()` isn't actually smart with choosing starting values -- it uses the default for the distribution, if it exists. But there's no default for Student-t, so we'll need to specify it.
+
+```{r}
+marginal(x, "t", init.val = 30)
+```
+
+Want to fit a model to the tail (like Exponential), and put the empirical distribution below it? You can do that -- check out the cdf too:
+
+```{r}
+(tmarg <- marginal(x, "exp", ecdf.split = 0))
+tcdf <- tmarg$cdf
+curve(tcdf, -3, 3, n = 1000)
+```
+
+## Optimization
+
+Do you hate it when `"nlm()"` tries to evaluate outside of your parameter space and it throws an error? You can use the "restricted" nlm function, `"rnlm()"`, to make your objective function evaluate at a very large number outside of the parameter space.
+
+## Convert Copula Number to Name
+
+In the `VineCopula` package, copula families are given index codes. Use `copnum2name()` to convert the code to the copula name:
+
+```{r}
+copnum2name(c(1, 5, 9, 39))
+```
+
+## Fit a vine or a Bayesian Network
+
+Fit a vine to data using `fit.rvine()`. Fit a Bayesian Network (i.e. linking a variable sequentially with other variables) to data using `fit.BN()`. 
+
+## Multivariate Integration
+
+Integrate more than one variable with `integrate.mv()`.
