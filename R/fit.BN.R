@@ -50,9 +50,9 @@
 #' xdat <- dat[, -1]
 #'
 #' ## Fit the model:
-#' fitBN(y, xdat)
+#' fit.BN(y, xdat)
 #' @export
-fitBN <- function(y, xdat, ymarg = identity, xmargs = identity, xord = NULL,
+fit.BN <- function(y, xdat, ymarg = identity, xmargs = identity, xord = NULL,
                    familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33, 34, 36:40), ...) {
     if (is.vector(xdat)) xdat <- matrix(xdat, ncol = 1)
     p <- ncol(xdat)
