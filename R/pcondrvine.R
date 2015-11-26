@@ -41,14 +41,14 @@
 #' copmat <- makeuppertri("bvncop", 2, 5)
 #' cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
 #' udat <- fvinesim(10, A, copmat, cparmat)
-#' pcond.rvine(udat, 5, A, copmat, cparmat, .print=T)  # integrates vine density.
-#' pcond.rvine(udat, 2, A, copmat, cparmat, .print=T)  # computes from D-vine formula
+#' pcondrvine(udat, 5, A, copmat, cparmat, .print=T)  # integrates vine density.
+#' pcondrvine(udat, 2, A, copmat, cparmat, .print=T)  # computes from D-vine formula
 #'
 #' ## C-Vine example
 #' A <- CopulaModel::Cvinearray(5)
 #' A <- truncvarray(A, 2)
 #' udat <- fvinesim(10, A, copmat, cparmat)
-#' pcond.rvine(udat, 3, A, copmat, cparmat, .print=T)  # computes from general R-vine algo
+#' pcondrvine(udat, 3, A, copmat, cparmat, .print=T)  # computes from general R-vine algo
 #'
 #' ## Array doesn't have to involve all data:
 #' A <- CopulaModel::Dvinearray(5)
@@ -56,15 +56,15 @@
 #' A <- rvinesubset(A, 3:5)
 #' copmat <- makeuppertri("frk", 2, 3, "")
 #' cparmat <- makeuppertri(3:1, 2, 3)
-#' pcond.rvine(1:5/10, 3, A, copmat, cparmat)
-#' pcond.rvine(1:5/10, 4, A, copmat, cparmat)
+#' pcondrvine(1:5/10, 3, A, copmat, cparmat)
+#' pcondrvine(1:5/10, 4, A, copmat, cparmat)
 #' ## are the same as...
 #' A <- CopulaModel::Dvinearray(3)
 #' A <- truncvarray(A, 2)
-#' pcond.rvine(3:5/10, 1, A, copmat, cparmat)
-#' pcond.rvine(3:5/10, 2, A, copmat, cparmat)
+#' pcondrvine(3:5/10, 1, A, copmat, cparmat)
+#' pcondrvine(3:5/10, 2, A, copmat, cparmat)
 #' @export
-pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
+pcondrvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
                         .print = FALSE) {
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     p <- ncol(A)
@@ -85,7 +85,7 @@ pcond.rvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
             dens_ <- function(xcond){
                 x <- row
                 x[cond] <- xcond
-                dR(x, A, copmat, cparmat)
+                drvine(x, A, copmat, cparmat)
             }
             dens <- Vectorize(dens_)
             integrate(dens, 0, row[cond])$value / integrate(dens, 0, 1)$value

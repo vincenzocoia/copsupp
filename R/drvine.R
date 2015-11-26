@@ -1,7 +1,7 @@
 #' Density of a Regular Vine
 #'
-#' Evaluates the density of a regular vine model (\code{dR}) or log density
-#' (\code{logdR}).
+#' Evaluates the density of a regular vine model (\code{drvine}) or log density
+#' (\code{logdrvine}).
 #'
 #' @param dat Data matrix. Rows are observations, and columns are variables.
 #' Could be a vector if there's only one observation.
@@ -26,21 +26,21 @@
 #' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
 #'                              len = c(1,1,2,1,1), row = 2, col = 4)
 #' dat <- fvinesim(10, A, copmat, cparmat)
-#' logdR(dat, A, copmat, cparmat)
-#' dR(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
+#' logdrvine(dat, A, copmat, cparmat)
+#' drvine(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
 #'
 #' ## The variables in A don't need to refer to all data:
 #' A <- CopulaModel::Dvinearray(6)
 #' A <- rvinesubset(A, 3:6)
 #' copmat <- makeuppertri("frk", 4, 4, "")
 #' cparmat <- makeuppertri(6:1, 4, 4)
-#' logdR(1:6/10, A, copmat, cparmat)
+#' logdrvine(1:6/10, A, copmat, cparmat)
 #' ## is the same as...
 #' A <- CopulaModel::Dvinearray(4)
-#' logdR(3:6/10, A, copmat, cparmat)
+#' logdrvine(3:6/10, A, copmat, cparmat)
 #' @rdname d_logd_rvine
 #' @export
-logdR <- function(dat, A, copmat, cparmat, Fmarg = identity) {
+logdrvine <- function(dat, A, copmat, cparmat, Fmarg = identity) {
     ## Get parvec:
     if (is.list(cparmat[1,1])) {
         parvec <- c(t(cparmat), recursive = TRUE)
@@ -86,5 +86,5 @@ logdR <- function(dat, A, copmat, cparmat, Fmarg = identity) {
 
 #' @rdname d_logd_rvine
 #' @export
-dR <- function(dat, A, copmat, cparmat, Fmarg = identity)
-    exp(logdR(dat, A, copmat, cparmat, Fmarg = identity))
+drvine <- function(dat, A, copmat, cparmat, Fmarg = identity)
+    exp(logdrvine(dat, A, copmat, cparmat, Fmarg = identity))

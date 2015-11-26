@@ -14,174 +14,226 @@ library(copsupp)
 library(CopulaModel)
 ```
 
-The copsupp package contains copula-related functions as an extension to the CopulaModel package, as well as functionality to perform nonlinear quantile regression with CNQR.
+The `copsupp` package contains functions meant as an extension to the `CopulaModel` package, largely to make working with vines easier. User-friendliness is key: the user should not have to deal with many objects, and the functions should not be picky about what they accept. This way, the user can focus on the big picture without worrying about extraneous objects and making "work-arounds" on the objects.
 
-# Feature 1: Extension to `CopulaModel`
+The goal of this vignette is to familiarize the user with package **functions** and the **objects** recognized by those functions, while introducing the **terminology** used.
 
-## Additional Copula Functions
+# Objects Summary
 
-More copula functions are available than what is available in `CopulaModel`. Here's an overview of what's new.
+Here are the objects that `copsupp` functions recognize:
 
-### New Copula
+* Vine arrays
+* Copula matrix
+* Copula parameter matrix
+* A data matrix
 
-The "new" copula family that has a varying "copula conditional extreme value index" (CCEVI) is coded as follows:
+# Vine Arrays
 
-* `pnew()`
-* `logdnew()`
-* `dnew()`
-* `rnew()`
-* `qcondnew()`
-* `pcondnew()`
-* `pcondnew21()`
-* `pcondnew12()`
+Like the `CopulaModel` package, the vine arrays that `copsupp` functions recognize are matrices with the variable **labels** on the diagonal, and the row number corresponds to tree depth in the vine. What differs is that these vine arrays can also be truncated: an `ntrunc`-truncated vine array removes rows in the vine array after row `ntrunc`, *except* for the variable labels, which get shifted upwards.
 
-### Independence copula
+Allowing for the vine arrays themselves to be truncated has some advantages:
 
-I included a fuller suite of functions for the independence copula just so that, when modelling, one can choose the independence copula for an edge in the vine, and the corresponding function calls will exist.
+* The array contains the truncation information (no need to keep track of the truncation level `ntrunc`).
+* There's no need to worry about filling-in the truncated part of the vine.
+
+There are several functions to work with vine arrays. To demonstrate, let's first build a vine array using `makeuppertri`.
+
+```{r}
+(A <- makeuppertri(c(1, 1, 2, 3, 3, 3, 2,
+                     2, 1, 2, 4, 4, 3,
+                     3, 1, 2, 6, 4,
+                     4, 6, 5, 7), nrow = 4, ncol = 7, incDiag = TRUE))
+```
+
+## Truncating a Vine Array
+
+Since it's not so simple to truncate a vine array, there's a function for that:
+
+```{r}
+truncvarray(A, 2)
+```
+
+## Variable Labels
+
+We can extract the variable labels in the order that they're introduced in the vine array:
+
+```{r}
+varray.vars(A)
+```
+
+This is useful because, with truncated vine arrays, the variable labels no longer strictly lie on the diagonal if the vine array, so it no longer suffices to use `diag(A)` to extract the variables.
+
+Although they don't have to be, there are two ways to label the variables in a vine array:
+
+1. So that the labels are also the **column number** of the data, and/or
+2. So that the labels are also the **order** that the variables are introduced in the vine array (i.e. so that the labels are exactly `1:ncol(A)`).
+
+`CopulaModel` often insists that both interpretations of the labels hold -- which means you often need to relabel your vine arrays and subsequently permute your data to reflect the changes. `copsupp` only insists on the first interpretation (if at all), so that you don't have to bother permuting your data. It can do this because indicating order is redundant: it can be obtained by looking at the column number in the vine array. This opens up the possibility for the labels to be outside of the set `{1:ncol(A)}`, which is useful when we're looking at a vine of a subset of variables (which `CopulaModel` can't always handle).
+
+If you're in a situation where you need to **relabel** your vine array, you can use `relabel.varray()`:
+
+```{r}
+relabel.varray(A, c(3, 4, 20, 1, 6, 7, 50))
+```
+
+This function is more powerful than `varrayperm()` in `CopulaModel`, because `varrayperm()` will not accept truncated vine arrays nor vine arrays with labels outside of the set `{1:ncol(A)}`.
+
+(not the case if we remove a variable). In this case, the relabelling may not actually be a permutation of the variable names.
+
+Note that `varrayperm()` uses the terminology **permute**, as in a permutation of the variable names, but this can be easily confused with a permutation of *the order of the vine array*. Plus, if there are labels outside of the set `{1:ncol(A)}`, a relabelling may not actually be a permutation of the labels. Really, the "permute" terminology here is an allusion that you'll probably have to permute your data matrix after the relabelling. 
+
+## Re-Ordering a Vine Array
+
+Suppose you would like to convert a vine array so that a certain variable appears at the end of the vine array (bottom-right corner) -- in other words, **re-leaf** a vine array (I call the last variable in the vine array a **leaf**, so the **leaves of a vine** are all variables that can be written as a leaf in a vine array). If this conversion is possible, `releaf.varray()` can help you out:
+
+```{r}
+releaf.varray(A, 1)
+```
+
+Now variable 1 is a leaf. How about we try variable 4?
+
+```{r}
+releaf.varray(A, 4)
+```
+
+Variable 4 is not a leaf in the vine, so it `releaf.varray()` returns `NULL`.
+
+What if we want the vine array to be in natural order? Well, natural order doesn't exist when a vine is truncated, but there's a weaker version that can be useful, and that's to re-write the vine array so that the first `ntrunc` variables (where `ntrunc = min(nrow(A)-1, ncol(A)-2)` is the truncation level) are not leaves in the vine. I call this **centering** the vine array:
+
+```{r}
+center.varray(A)
+```
+
+It's useful when re-leafing a vine array, which now only involves permuting the `(ntrunc+1):ncol(A)` columns.
+
+## Subsetting a Vine
+
+If you want to obtain a vine array of a subset of variables, it may not always be possible, but if it is, `rvinesubset()` can help you. Let's subset variables 7, 2, 3, 4:
+
+```{r}
+rvinesubset(A, c(7, 2, 3, 4))
+```
+
+The subsetted vine exists (note that it doesn't put the variables in the order specified). How about a vine array for 2, 3, 5?
+
+```{r}
+rvinesubset(A, c(2, 3, 5))
+```
+
+It doesn't exist.
+
+(Technicality: "not existing" doesn't mean that a vine can't be written for these variables -- it really means that the subset of the specified vine array doesn't exist.)
+
+## Another Type of Vine Array?
+
+When we start allowing vine arrays to be truncated, the format gets somewhat clumsy because the variable labels are "bent". Instead, it's easier to move the variable labels to a new row on top of the vine array. In this form, 
+
+* it's easy to extract the variables (it's just row 1), and
+* it's easy to truncate a vine array (literally just truncate the bottom rows).
+
+Because it's so much easier to work with, I call it a **convenient vine array**. However, the front-end of `copsupp` doesn't deal with convenient vine arrays to try and stay in line with `CopulaModel`. But some functions are easier to code when the arrays are in this form. Here are functions to convert between the two types of vine arrays:
+
+```{r}
+(Acon <- Atocon(A))  # Convenient Vine Array
+contoA(Acon)  # Back to regular Vine Array
+```
+
+I `@export`ed them because they might come in handy.
+
+# Copula Matrix and Copula Parameter Matrix
+
+To specify a vine distribution further, `copsupp` understands a **copula matrix** that goes along with a vine array, and a **copula parameter matrix** that goes along with a copula matrix.
+
+A copula matrix should be upper-triangular with number of rows equal the truncation level, and number of columns equal the number of variables (=`ncol(A)`). The entries should be characters of the copula family names for the corresponding edge in the vine array. Let's build one for our array `A`:
+
+```{r}
+(copmat <- makeuppertri(c(rep("gum", 6), 
+                          "frk", "bvtcop", "joeu", "bvncop", "mtcjv",
+                          "mtcjr", "indepcop", "indepcop", "indepcop"), 3, 7, blanks = ""))
+```
+
+Now let's indicate the parameter for each family in `copmat` as a copula parameter matrix whose entries correspond to the same entries in `copmat`. Notice that some families accept a different number of parameters than 1. We can put that information in the copula parameter matrix by allowing each entry to have any number of parameters, with the help of `makeuppertri.list()`:
+
+```{r}
+(cparmat <- makeuppertri.list(c(3:8/2,
+                                3, 0.5, 4, 2, 0.7, 1.7,
+                                1.3), 
+                              len = c(1,1,1,1,1,1,1,2,1,1,1,1,0,0,0), 
+                              nrow = 3, ncol = 7))
+```
+
+Each entry is a list of length 1 containing a vector. So we can extract: 
+
+* the bivariate t copula parameters:
+
+```{r}
+cparmat[2, 4][[1]]
+```
+
+* the "parameters" for the independence copula between (4,7)|(2,3):
+
+```{r}
+cparmat[3, 7][[1]]
+```
+
+* the parameter for the first gumbel copula:
+
+```{r}
+cparmat[1, 2][[1]]
+```
+
+If all copula families have exactly 1 parameter, feel free to specify a simpler matrix using, for example,  `makeuppertri()` instead -- `copsupp` functions will recognize both types of matrices. 
+
+`CopulaModel` typically uses a vector of parameters, along with a vector indicating the lengths of each copula parameter. But storing the copula parameters in a matrix like the one above makes it easier to extract the proper copula parameters, has less "moving parts" because it contains all the information, and is just easier to read.
+
+You'll notice that `copsupp` also embraces the independence copula as an option in the vine. This is not always true with `CopulaModel`, which expects at least one parameter to be associated with each copula family.
+
+## Supplemental Copula Functions
+
+The `CopulaModel` package comes with a suite of functions for different copula families. A family has a unique name, such as `"frk"` for the Frank copula, or `"gum"` for the Gumbel copula (as seen in the `copmat` matrix), and functions associated with the copula family. For a copula model named `"cop"`, the functions available are:
+
+* `"pcop"` for the cdf;
+* `"dcop"` and `"logdcop"` for the density and log density
+* `"pcondcop"` and `"qcondcop"` for the conditional cdf and quantile function of the 2nd copula parameter conditional on the first.
+* `"rcop"` for generating from that copula family.
+
+Sometimes, if the upper and lower tails of the copula are asymmetric, there will be a reflected version of the copula family (the survival copula), whose family is indicated by appending an `"r"` to the name (such as `"gumr"`). 
+
+However, there are two incompletions in the `CopulaModel` package.
+
+1. Some copula families are missing functions.
+2. Copula families should also be reflected horizontally and vertically to allow for negative dependence.
+
+`copsupp` adds the above missing functions, and labels the **horizontally-reflected** (or "U-flipped") copula as `"copu"`, and the **vertically-reflected** (or "V-flipped") copula as `"copv"`, for the following copulas:
+
+```"bb1", "bb6", "bb7", "bb8", "gum", "joe", "mtcj"```.
+
+Some functions for the independence copula are also completed -- but of course not reflected:
 
 * `pcondindepcop()`
 * `qcondindepcop()`
 * `qcondindep()`
 
-### Extensions of Existing Families
+## Reshaping Copula and Parameter Matrices
 
-I include horizontally reflected copula families ("U-flipped" copulas) by appending the letter "u" to the copula name, such as `"joeu"` and `"bb1u"`.
-
-I include vertically reflected copula families ("V-flipped" copulas) by appending the letter "v" to the copula name, such as `"joev"` and `"bb1v"`.
-
-I include reflected/survival copula families by appending the letter "r" to the copula name. This was already done for some copula families, such as `"mtcj"`, but I extended it to others such as `"joer"` and `"bb1r"`.
-
-# Feature 2: Non-linear Quantile Regression
-
-To demonstrate this feature, we'll create a forecaster of some outcome conditional on four predictors. First we'll simulate the data, then we'll build the forecaster, then we'll assess it. The forecaster will forecast the conditional quantile function for the following quantile indices:
+When you re-order, truncate, and/or subset a vine array, the corresponding copula matrix and copula parameter matrix needs changing too. Use `reform.copmat()` to help.
 
 ```{r}
-tau <- 1:9/10
+(Anew <- truncvarray(rvinesubset(A, 2:6), 2))
+(copmatnew <- reform.copmat(copmat, Anew, A))
+(cparmatnew <- reform.copmat(cparmat, Anew, A))
 ```
 
-## Simulate Data
+# Vine Distributions
 
-We'll build the data set using a vine on the response (variable 1) and all four predictors (variables 2:5). 
+Now that we have a vine distribution fully specified by three objects (the vine array, copula matrix, and copula parameter matrix), `copsupp` has functions that specify different distributional quantities -- just like the suite of functions that go along with a copula family like `"frk"` or "`gum`". But the suite of functions for a vine distribution is not as extensive.
 
-First, specify the model. In doing so, we'll demonstrate the "make upper triangular matrices" feature of the package.
+Evaluate the density:
 
 ```{r}
-## Vine array
-(A0 <- makeuppertri(c(1, 1, 3, 4, 4,  
-                         3, 1, 3, 3,
-                            4, 5, 2), nrow = 3, ncol = 5, incDiag = TRUE))
-## Copula Models:
-(copmat0 <- makeuppertri(c("bvtcop", "gum", "bvncop", "gum",
-                           "frk", "frk", "bvncop"), 2, 5, blanks=""))
-## Copula Parameters
-(cparmat0 <- makeuppertri.list(c(0.7, 3, 2, 0.5, 1.5,
-                                 2, 1.5, 0.3), len=c(2,1,1,1,1,1,1), 
-                               nrow=2, ncol=5))
+
 ```
 
-Now we'll generate the data using a "friendly vine simulator" function:
-
-```{r}
-n <- 1000
-set.seed(123)
-udat <- fvinesim(n, A=A0, cops=copmat0, cpars=cparmat0)
-head(udat)
-```
-
-Let's make the response follow an Exp(1) distribution.
-
-```{r}
-dat <- udat
-dat[, 1] <- qexp(dat[, 1])
-```
-
-Now, we'll pretend that we only have the data (and we know about the univariate marginals).
-
-## Building a Forecaster
-
-To build a forecaster, we'll first build the distribution of the predictors.
-
-We'll find an appropriate vine array first using `CopulaModel::gausstrvine.mst()`, then fit the copula models using `VineCopula::RVineCopSelect()`.
-
-```{r}
-library(igraph0)
-## Get correlation matrix
-datx <- dat[, -1]
-xcor <- cor(qnorm(datx))
-## Find an appropriate vine array
-Afit <- gausstrvine.mst(xcor, 3)
-A <- Afit$RVM$VineA
-## Need to add 1 because the variables are 2:5, not 1:4
-A[!lower.tri(A)] <- A[!lower.tri(A)] + 1 
-A
-```
-
-Compare this array with the "true" array of the predictors, using the `rvinesubset()` function:
-
-```{r}
-rvinesubset(A0, 2:5)
-```
-
-So variables 3 and 4 seemingly have changed position, but we'll press on.
-
-Now fit the copula models using `VineCopula::RVineCopSelect()`
-
-```{r}
-familyset <- c(1:10,13,14,16:20,23,24,26:30,33,34,36:40)
-xfit <- VineCopula::RVineCopSelect(datx, 
-                                   familyset=familyset, 
-                                   Matrix=Afit$RVM$VineA)
-```
-
-Take a look at the copula models that were fit, using the "copula family integer code" to "copula family name" converter.
-
-```{r}
-(copmat <- xfit$family[4:1, 4:1])  # Coded copula families
-copmat <- apply(copmat, 1:2, copnum2name)
-copmat[!upper.tri(copmat)] <- ""
-copmat
-```
-
-Different families are used, but we'll stick to it.
-
-Next, we'll link up the response to the predictors according to the "proper" order. We'll choose the copula models, and fit them to get starting points:
-
-```{r}
-ord <- c(3,4,5,2)
-yfit <- lapply(ord, function(o) 
-    VineCopula::BiCopSelect(udat[, 1], udat[, o], familyset=familyset))
-ycops <- sapply(yfit, function(fit) copnum2name(fit$family))
-len <- sapply(yfit, function(fit){
-    if (fit$par == 0) return(0)
-    if (fit$par2 == 0) return(1)
-    2
-})
-cparstart <- c(sapply(yfit, function(fit){
-    if (fit$par == 0) return(numeric(0))
-    if (fit$par2 == 0) return(fit$par)
-    c(fit$par, fit$par2)
-}), recursive = TRUE)
-```
-
-Now we'll build a family of forecasters, i.e. a model for the quantile function of the response conditional on the predictors. We'll first need to get the sequential conditional distributions, then plug those in to get the forecaster family.
-
-```{r}
-## Sequential cdfs. We'll have to subtract 1 from the orders, since `xfit` 
-##  thinks the variables are 1:4
-Fcond <- pcondseq.vine(ord-1, xdat=datx, rvinefit=xfit)
-## Make predictions on the data we have:
-yhat <- function(theta){
-    cpar <- list()
-    cumsumlen <- c(0,cumsum(len))
-    for (i in 1:length(len)) {
-        cpar[[i]] <- theta[cumsumlen[i]:cumsumlen]
-    }
-} qcondBN(tau, cop=ycops, cpar=)
-```
-
-
-
-## Vines
 
 I made functions to compute the conditional distribution of a variable given variables "upstream or downstream". Also the quantile function.
 
@@ -191,3 +243,5 @@ I made functions to compute the conditional distribution of a variable given var
 I also made a function to simulate from a vine, which uses the "vinesim" family of functions in CopulaModel:
 
 * `fvinesim()`
+
+## Marginal distributions
