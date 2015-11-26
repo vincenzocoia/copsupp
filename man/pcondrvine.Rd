@@ -83,4 +83,8 @@ A <- truncvarray(A, 2)
 pcondrvine(3:5/10, 1, A, copmat, cparmat)
 pcondrvine(3:5/10, 2, A, copmat, cparmat)
 }
+\author{
+Bo Chang wrote the function \code{rVineTruncCondCDF()} that this
+function heavily relies on.
+}
 

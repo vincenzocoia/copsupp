@@ -20,6 +20,8 @@
 #' each should be vectorized. Or a single function if the cdf is all the same.
 #' @param .print Logical; should the function output how it goes about
 #' finding the conditional distribution?
+#' @author Bo Chang wrote the function \code{rVineTruncCondCDF()} that this
+#' function heavily relies on.
 #' @details This function could do one of two things, depending on the
 #' scenario.
 #'

@@ -228,11 +228,20 @@ When you re-order, truncate, and/or subset a vine array, the corresponding copul
 
 Now that we have a vine distribution fully specified by three objects (the vine array, copula matrix, and copula parameter matrix), `copsupp` has functions that specify different distributional quantities -- just like the suite of functions that go along with a copula family like `"frk"` or "`gum`". But the suite of functions for a vine distribution is not as extensive.
 
-Evaluate the density:
+Simulate data:
 
 ```{r}
-
+(dat <- fvinesim(10, A = A, cops = copmat, cpars = cparmat))
 ```
+
+Evaluate the density at these data:
+
+```{r}
+drvine(dat, A = A, copmat = copmat, cparmat = cparmat)
+logdrvine(dat, A = A, copmat = copmat, cparmat = cparmat)
+```
+
+Evaluate the conditional density 
 
 
 I made functions to compute the conditional distribution of a variable given variables "upstream or downstream". Also the quantile function.
