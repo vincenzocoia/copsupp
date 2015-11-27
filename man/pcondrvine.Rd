@@ -4,7 +4,7 @@
 \alias{pcondrvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcondrvine(dat, cond, A, copmat, cparmat, Fmarg = identity, .print = FALSE)
+pcondrvine(dat, cond, A, copmat, cparmat, Fmarg = identity, verbose = FALSE)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
@@ -27,7 +27,7 @@ corresponding to the copula families in \code{copmat}.}
 the columns in \code{dat};
 each should be vectorized. Or a single function if the cdf is all the same.}
 
-\item{.print}{Logical; should the function output how it goes about
+\item{verbose}{Logical; should the function output how it goes about
 finding the conditional distribution?}
 }
 \value{
@@ -37,8 +37,7 @@ given the other variables in \code{A}.
 }
 \description{
 Evaluates the conditional distribution of a variable in a regular vine,
-given values of the other variables. WARNING: Algorithm for non-d-vine
-may not be working properly.
+given values of the other variables in that vine.
 }
 \details{
 This function could do one of two things, depending on the
@@ -60,14 +59,14 @@ A <- truncvarray(A, 2)
 copmat <- makeuppertri("bvncop", 2, 5)
 cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
 udat <- fvinesim(10, A, copmat, cparmat)
-pcondrvine(udat, 5, A, copmat, cparmat, .print=T)  # integrates vine density.
-pcondrvine(udat, 2, A, copmat, cparmat, .print=T)  # computes from D-vine formula
+pcondrvine(udat, 5, A, copmat, cparmat, verbose=T)  # integrates vine density.
+pcondrvine(udat, 2, A, copmat, cparmat, verbose=T)  # computes from D-vine formula
 
 ## C-Vine example
 A <- CopulaModel::Cvinearray(5)
 A <- truncvarray(A, 2)
 udat <- fvinesim(10, A, copmat, cparmat)
-pcondrvine(udat, 3, A, copmat, cparmat, .print=T)  # computes from general R-vine algo
+pcondrvine(udat, 3, A, copmat, cparmat, verbose=T)  # computes from general R-vine algo
 
 ## Array doesn't have to involve all data:
 A <- CopulaModel::Dvinearray(5)
@@ -82,9 +81,5 @@ A <- CopulaModel::Dvinearray(3)
 A <- truncvarray(A, 2)
 pcondrvine(3:5/10, 1, A, copmat, cparmat)
 pcondrvine(3:5/10, 2, A, copmat, cparmat)
-}
-\author{
-Bo Chang wrote the function \code{rVineTruncCondCDF()} that this
-function heavily relies on.
 }
 
