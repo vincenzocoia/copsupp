@@ -39,7 +39,7 @@ releaf.varray <- function(A, leaf=varray.vars(A)) {
             if (A[2,2] == l) {
                 A
             } else {
-                matrix(c(l, 0, l, A[2,2]), ncol = 2)
+                matrix(c(A[2,2], 0, A[2,2], l), ncol = 2)
             }
         })
         if (length(res) == 1) res <- res[[1]]

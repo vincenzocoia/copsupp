@@ -105,8 +105,9 @@ pcondrvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
         if (ncol(udat) <= 2) {
             ## NOTE: This special case is needed because
             ##  rVineTruncCondCDF() won't accept a vine with 2 variables.
-            if (verbose) print(paste0("using `pcondcop()` because there are",
-                                     " only two variables."))
+            if (verbose) print(paste0("cond=", cond, " is one of a pair. ",
+                                      "Using `pcondcop()`."))
+            library(CopulaModel)
             pcondcop <- get(paste0("pcond", copmat[1, 2]))
             cpar <- cparmat[1, 2]
             if (is.list(cpar)) cpar <- cpar[[1]]
