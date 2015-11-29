@@ -34,9 +34,6 @@ A list with three entries:
      less parameters than 1, each entry is a list of length one containing
      the vector of copula parameters for that copula family.
 }
-
-Sorry about the matrix that gets printed whenever the function is run.
-I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
 }
 \description{
 Fits a joint distribution for the data using a vine copula. The vine array

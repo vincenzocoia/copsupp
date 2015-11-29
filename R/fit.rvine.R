@@ -32,9 +32,6 @@
 #'      less parameters than 1, each entry is a list of length one containing
 #'      the vector of copula parameters for that copula family.
 #' }
-#'
-#' Sorry about the matrix that gets printed whenever the function is run.
-#' I can't seem to keep \code{VineCopula::RVineCopSelect} quiet.
 #' @details For the \code{familyset} argument, the default is almost all of
 #' the families available. It just doesn't include the Tawn copula families.
 #'
@@ -65,15 +62,16 @@ fit.rvine <- function(xdat, ntrunc = ncol(xdat)-1, margs = identity,
     ## Get correlation matrix
     cormat <- cor(qnorm(xdat))
     ## Choose vine array
-    library(igraph0)
+    # library(igraph0)
+    library(igraph)
     arrayfit <- CopulaModel::gausstrvine.mst(cormat, ntrunc)
     A1 <- arrayfit$RVM$VineA
     ## Now get and fit copulas
-    invisible(vinefit <- VineCopula::RVineCopSelect(xdat,
-                                                    familyset = familyset,
-                                                    Matrix = A1,
-                                                    trunclevel = ntrunc,
-                                                    ...))
+    capture.output(vinefit <- VineCopula::RVineCopSelect(xdat,
+                                                         familyset = familyset,
+                                                         Matrix = A1,
+                                                         trunclevel = ntrunc,
+                                                         ...))
     ## Extract things.
     #### Vine array -- it should be the same as A1. Truncate it if need be.
     A <- vinefit$Matrix[p:1, p:1]
