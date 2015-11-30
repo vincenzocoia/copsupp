@@ -5,6 +5,8 @@
 #' @param f Function that takes a vector and returns a numeric.
 #' @param lower, upper Vector of the limits of integration for
 #' each variable entered into \code{f}. Can be infinite.
+#' @param stop.on.error Logical (an argument of \code{\link{integrate}}) --
+#' should function be stopped if an "error" occurs?
 #' @param ... Other arguments to pass into \code{\link{integrate}}.
 #' @details This function recursively integrates the arguments in \code{f}
 #' using the \code{\link{integrate}} function.
@@ -26,24 +28,28 @@
 #' This function could probably be improved if some of the support is finite,
 #' in which case somehow \code{\link{cubature::adaptIntegrate}} could be
 #' leveraged somehow.
+#'
+#' The \code{stop.on.error} argument is defaulted to \code{FALSE}
+#' instead of \code{\link{integrate}}'s \code{TRUE} because sometimes
+#' it'll think the integral is divergent when it's really not.
 #' @examples
 #' pdf <- function(x) prod(dnorm(x))
 #' integrate.mv(pdf, -Inf, Inf)
 #' integrate.mv(pdf, c(-Inf, -Inf), c(Inf, Inf))
 #' @export
-integrate.mv <- function(f, lower, upper, ...) {
+integrate.mv <- function(f, lower, upper, stop.on.error = FALSE, ...) {
     p <- length(lower)
     if (p != length(upper)) stop("Lower and upper endpoints of unequal length.")
     if (p == 0) return(f())
     if (p == 1) {
         integrand <- Vectorize(f)
-        return(integrate(integrand, lower, upper, ...)$value)
+        return(integrate(integrand, lower, upper, stop.on.error = stop.on.error, ...)$value)
     } else {
         nextf <- function(firstargs) {
             integrand_ <- function(xp) f(c(firstargs, xp))
             integrand <- Vectorize(integrand_)
-            integrate(integrand, lower[p], upper[p], ...)$value
+            integrate(integrand, lower[p], upper[p], stop.on.error = stop.on.error, ...)$value
         }
-        return(integrate.mv(nextf, lower[-p], upper[-p], ...))
+        return(integrate.mv(nextf, lower[-p], upper[-p], stop.on.error = stop.on.error, ...))
     }
 }

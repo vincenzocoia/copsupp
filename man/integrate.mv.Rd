@@ -4,13 +4,16 @@
 \alias{integrate.mv}
 \title{Multivariate Integration}
 \usage{
-integrate.mv(f, lower, upper, ...)
+integrate.mv(f, lower, upper, stop.on.error = FALSE, ...)
 }
 \arguments{
 \item{f}{Function that takes a vector and returns a numeric.}
 
 \item{lower,}{upper Vector of the limits of integration for
 each variable entered into \code{f}. Can be infinite.}
+
+\item{stop.on.error}{Logical (an argument of \code{\link{integrate}}) --
+should function be stopped if an "error" occurs?}
 
 \item{...}{Other arguments to pass into \code{\link{integrate}}.}
 }
@@ -42,6 +45,10 @@ Only a rectangular support is allowed.
 This function could probably be improved if some of the support is finite,
 in which case somehow \code{\link{cubature::adaptIntegrate}} could be
 leveraged somehow.
+
+The \code{stop.on.error} argument is defaulted to \code{FALSE}
+instead of \code{\link{integrate}}'s \code{TRUE} because sometimes
+it'll think the integral is divergent when it's really not.
 }
 \examples{
 pdf <- function(x) prod(dnorm(x))
