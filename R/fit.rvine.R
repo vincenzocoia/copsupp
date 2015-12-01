@@ -8,6 +8,8 @@
 #' \code{VineCopula} package.
 #'
 #' @param xdat Matrix of data; columns represent variables, and rows observations.
+#' @param vars Vector of integers specifying the column numbers of \code{xdat}
+#' to fit a model to. Default is all variables.
 #' @param ntrunc Integer, either \code{1, 2, ...,ncol(xdat)-1},
 #' of the truncation level of the vine to be fit.
 #' @param margs List of vectorized functions of the univariate marginal cdf's of
@@ -47,18 +49,21 @@
 #' dat <- fvinesim(100, A0, copmat0, cparmat0)
 #'
 #' ## Fit a model to the data:
-#' fit.rvine(dat, ntrunc)
+#' fit.rvine(dat, ntrunc=ntrunc)
+#' fit.rvine(dat, c(4, 2, 3))
 #' @export
-fit.rvine <- function(xdat, ntrunc = ncol(xdat)-1, margs = identity,
+fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1, margs = identity,
                  familyset = c(1:10,13,14,16:20,23,24,26:30,33,34,36:40), ...) {
     if (is.vector(xdat) | ncol(xdat) == 1){
         list(A=matrix(1), copmat=matrix(""), cparmat=matrix(0))
     }
-    p <- ncol(xdat)
+    p_all <- ncol(xdat)
     n <- nrow(xdat)
-    if (length(margs) == 1) margs <- rep(list(margs), p)
-    ## Uniformize data
-    for (col in 1:p) xdat[, col] <- margs[[col]](xdat[, col])
+    if (length(margs) == 1) margs <- rep(list(margs), p_all)
+    ## Uniformize and subset data
+    for (col in vars) xdat[, col] <- margs[[col]](xdat[, col])
+    xdat <- xdat[, vars]
+    p <- length(vars)
     ## Get correlation matrix
     cormat <- cor(qnorm(xdat))
     ## Choose vine array
@@ -109,5 +114,6 @@ fit.rvine <- function(xdat, ntrunc = ncol(xdat)-1, margs = identity,
         cparmat <- makeuppertri.list(parvec, len, nrow = ntrunc, ncol = p)
     }
     ## Output results
-    list(A=A, copmat=copmat, cparmat=cparmat)
+    Avars <- varray.vars(A)
+    list(A=relabel.varray(A, vars[Avars]), copmat=copmat, cparmat=cparmat)
 }

@@ -4,11 +4,15 @@
 \alias{fit.rvine}
 \title{Fit a Vine Model}
 \usage{
-fit.rvine(xdat, ntrunc = ncol(xdat) - 1, margs = identity,
-  familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33, 34, 36:40), ...)
+fit.rvine(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat) - 1,
+  margs = identity, familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33,
+  34, 36:40), ...)
 }
 \arguments{
 \item{xdat}{Matrix of data; columns represent variables, and rows observations.}
+
+\item{vars}{Vector of integers specifying the column numbers of \code{xdat}
+to fit a model to. Default is all variables.}
 
 \item{ntrunc}{Integer, either \code{1, 2, ...,ncol(xdat)-1},
 of the truncation level of the vine to be fit.}
@@ -67,6 +71,7 @@ cparmat0 <- makeuppertri(3, ntrunc, p)
 dat <- fvinesim(100, A0, copmat0, cparmat0)
 
 ## Fit a model to the data:
-fit.rvine(dat, ntrunc)
+fit.rvine(dat, ntrunc=ntrunc)
+fit.rvine(dat, c(4, 2, 3))
 }
 
