@@ -64,13 +64,17 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1, margs = 
     for (col in vars) xdat[, col] <- margs[[col]](xdat[, col])
     xdat <- xdat[, vars]
     p <- length(vars)
-    ## Get correlation matrix
-    cormat <- cor(qnorm(xdat))
-    ## Choose vine array
-    # library(igraph0)
-    library(igraph)
-    arrayfit <- CopulaModel::gausstrvine.mst(cormat, ntrunc)
-    A1 <- arrayfit$RVM$VineA
+    if (p == 2) {
+        A1 <- matrix(c(1,0,1,2), ncol = 2)
+    } else {
+        ## Get correlation matrix
+        cormat <- cor(qnorm(xdat))
+        ## Choose vine array
+        # library(igraph0)
+        library(igraph)
+        arrayfit <- CopulaModel::gausstrvine.mst(cormat, ntrunc)
+        A1 <- arrayfit$RVM$VineA
+    }
     ## Now get and fit copulas
     capture.output(vinefit <- VineCopula::RVineCopSelect(xdat,
                                                          familyset = familyset,
@@ -93,6 +97,8 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1, margs = 
     #### cparmat
     parmat1 <- vinefit$par[(p:1)[1:ntrunc], p:1]
     parmat2 <- vinefit$par2[(p:1)[1:ntrunc], p:1]
+    if (!is.matrix(parmat1)) parmat1 <- matrix(parmat1, ncol = p)
+    if (!is.matrix(parmat2)) parmat2 <- matrix(parmat2, ncol = p)
     parvec <- numeric(0)
     len <- integer(0)
     for (i in 1:ntrunc) for (j in (i+1):p) {
