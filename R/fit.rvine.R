@@ -41,9 +41,9 @@
 #'      less parameters than 1, each entry is a list of length one containing
 #'      the vector of copula parameters for that copula family.
 #' }
-#' 
+#'
 #' Note that the \code{$cdf} output is listed so that the position of the cdf
-#' in the list corresponds to the integer labels in \code{$A}. 
+#' in the list corresponds to the integer labels in \code{$A}.
 #' This might change in the future if it's more convenient or sensible
 #' to only listing the cdfs for variables in \code{$A}.
 #' @details For the \code{familyset} argument, the default is almost all of
@@ -64,7 +64,7 @@
 #' fit.rvine(dat, ntrunc=ntrunc)
 #' fit.rvine(dat, c(4, 2, 3))
 #' @export
-fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1, 
+fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
                       margs = identity, A = NULL,
                       families = c("bvncop","bvtcop","mtcj","gum","frk","joe","bb1","bb7","bb8"), ...) {
     familyset = sort(unique(c(copname2num(families), recursive = TRUE)))
@@ -84,7 +84,17 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
     ## Get vine array to input to RVineCopSelect. Call it `A1` instead of `A`
     ##  because I'll use the output matrix of RVineCopSelect (which *should*
     ##  always be the same anyway).
-    if (is.null(A)) {
+    if (!is.null(A)) {
+        ntruncspec <- nrow(A) - 1
+        d <- ncol(A)
+        if (ntruncspec < d-1) {
+            warning("No functionality for pre-specifying a truncated vine array yet.")
+            A1 <- NULL
+        } else {
+            A1 <- A
+        }
+    }
+    if (is.null(A1)) {
         if (p == 2) {
             A1 <- matrix(c(1,0,1,2), ncol = 2) # Needs to have labels = 1:2.
         } else {
@@ -95,10 +105,8 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
             arrayfit <- CopulaModel::gausstrvine.mst(cormat, ntrunc)
             A1 <- arrayfit$RVM$VineA
         }
-    } else {
-        A1 <- A
     }
-    
+
     ## Now get and fit copulas
     capture.output(vinefit <- VineCopula::RVineCopSelect(xdat,
                                                          familyset = familyset,
@@ -167,7 +175,7 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
     ## Output results
     Avars <- varray.vars(A)
     list(cdf=margs,
-         A=relabel.varray(A, vars[Avars]), 
-         copmat=copmat, 
+         A=relabel.varray(A, vars[Avars]),
+         copmat=copmat,
          cparmat=cparmat)
 }

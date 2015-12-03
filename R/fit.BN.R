@@ -97,9 +97,9 @@ fit.BN <- function(y, xdat, ymarg = identity, xmargs = identity, xord = NULL,
             thisfamilyset <- familyset
         } else {
             thisfamilyset <- copname2num(cops[i])[[1]]
-        }  
+        }
         thisfit <- VineCopula::BiCopSelect(y, xdat[, vbl], familyset=thisfamilyset, ...)
-        cops <- c(cops, copnum2name(thisfit$family))
+        cops[i] <- copnum2name(thisfit$family)
         thiscpar <- numeric(0)
         if (thisfit$par != 0) thiscpar <- c(thiscpar, thisfit$par)
         if (thisfit$par2 != 0) thiscpar <- c(thiscpar, thisfit$par2)
