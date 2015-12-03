@@ -93,6 +93,8 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
         } else {
             A1 <- A
         }
+    } else {
+        A1 <- A
     }
     if (is.null(A1)) {
         if (p == 2) {
