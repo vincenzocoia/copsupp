@@ -5,7 +5,8 @@
 \title{Fit a Bayesian Network model}
 \usage{
 fit.BN(y, xdat, ymarg = identity, xmargs = identity, xord = NULL,
-  familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33, 34, 36:40), ...)
+  cops = NULL, families = c("bvncop", "bvtcop", "mtcj", "gum", "frk", "joe",
+  "bb1", "bb7", "bb8"), ...)
 }
 \arguments{
 \item{y}{Vector of response observations.}
@@ -22,8 +23,14 @@ if they're all the same.}
 \item{xord}{If you already know what order you want to pair the response
 and the predictors, put that order here as a vector of "column numbers".}
 
-\item{familyset}{A vector of integer codes of the copula families to try
-fitting. See \code{VineCopula::BiCopSelect} for a full list.}
+\item{cops}{If you already know some of the copula models that you'd like
+to use corresponding to the variables in \code{xord}, put them here.
+Entries with \code{NA} will have a copula model chosen.}
+
+\item{families}{A vector of copula family names to try
+fitting (will also consider their rotations/reflections). Limited to
+those families available in \code{VineCopula} package, listed in
+\code{\link{BiCopSelect}}.}
 
 \item{...}{Other arguments to pass to \code{VineCopula::BiCopSelect}.}
 }

@@ -12,8 +12,13 @@
 #' if they're all the same.
 #' @param xord If you already know what order you want to pair the response
 #' and the predictors, put that order here as a vector of "column numbers".
-#' @param familyset A vector of integer codes of the copula families to try
-#' fitting. See \code{VineCopula::BiCopSelect} for a full list.
+#' @param cops If you already know some of the copula models that you'd like
+#' to use corresponding to the variables in \code{xord}, put them here.
+#' Entries with \code{NA} will have a copula model chosen.
+#' @param families A vector of copula family names to try
+#' fitting (will also consider their rotations/reflections). Limited to
+#' those families available in \code{VineCopula} package, listed in
+#' \code{\link{BiCopSelect}}.
 #' @param ... Other arguments to pass to \code{VineCopula::BiCopSelect}.
 #' @details This function first determines the order to pair up the response
 #' and predictors in the order of highest partial correlation (by using
@@ -53,7 +58,9 @@
 #' fit.BN(y, xdat)
 #' @export
 fit.BN <- function(y, xdat, ymarg = identity, xmargs = identity, xord = NULL,
-                   familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33, 34, 36:40), ...) {
+                   cops = NULL,
+                   families = c("bvncop","bvtcop","mtcj","gum","frk","joe","bb1","bb7","bb8"), ...) {
+    familyset = sort(unique(c(copname2num(families), recursive = TRUE)))
     if (is.vector(xdat)) xdat <- matrix(xdat, ncol = 1)
     p <- ncol(xdat)
     if (length(xmargs) == 1) xmargs <- rep(list(xmargs), p)
@@ -81,10 +88,17 @@ fit.BN <- function(y, xdat, ymarg = identity, xmargs = identity, xord = NULL,
         }
     }
     ## Now fit copula models and get starting points for parameter estimates
-    cops <- character(0)
+    if (is.null(cops)) cops <- rep(NA, length(xord))
     cpars <- list()
-    for (vbl in xord) {
-        thisfit <- VineCopula::BiCopSelect(y, xdat[, vbl], familyset=familyset, ...)
+    for (i in 1:length(xord)) {
+        vbl <- xord[i]
+        ## Get copula families if specified.
+        if (is.na(cops[i])){
+            thisfamilyset <- familyset
+        } else {
+            thisfamilyset <- copname2num(cops[i])[[1]]
+        }  
+        thisfit <- VineCopula::BiCopSelect(y, xdat[, vbl], familyset=thisfamilyset, ...)
         cops <- c(cops, copnum2name(thisfit$family))
         thiscpar <- numeric(0)
         if (thisfit$par != 0) thiscpar <- c(thiscpar, thisfit$par)

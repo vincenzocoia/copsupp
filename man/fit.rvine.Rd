@@ -5,8 +5,8 @@
 \title{Fit a Vine Model}
 \usage{
 fit.rvine(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat) - 1,
-  margs = identity, familyset = c(1:10, 13, 14, 16:20, 23, 24, 26:30, 33,
-  34, 36:40), ...)
+  margs = identity, A = NULL, families = c("bvncop", "bvtcop", "mtcj",
+  "gum", "frk", "joe", "bb1", "bb7", "bb8"), ...)
 }
 \arguments{
 \item{xdat}{Matrix of data; columns represent variables, and rows observations.}
@@ -21,8 +21,14 @@ of the truncation level of the vine to be fit.}
 the data, in the order of the columns. Or a single function if the cdf's
 are all the same.}
 
-\item{familyset}{A vector of integer codes of the copula families to try
-fitting. See \code{VineCopula::RVineCopSelect} for a full list.}
+\item{A}{If you know the vine array that you want to use, put it here.
+Labels should correspond to column numbers of \code{xdat}. Otherwise,
+leave it \code{NULL}.}
+
+\item{families}{A vector of copula family names to try
+fitting (will also consider their rotations/reflections). Limited to
+those families available in \code{VineCopula} package, listed in
+\code{\link{BiCopSelect}}.}
 
 \item{...}{Other arguments to pass to \code{VineCopula::RVineCopSelect}.}
 }
@@ -30,6 +36,8 @@ fitting. See \code{VineCopula::RVineCopSelect} for a full list.}
 A list with three entries:
 
 \itemize{
+     \item \code{$cdf}: List of length \code{ncol(xdat)} of the marginal
+     distribution functions, as input in \code{margs}.
      \item \code{$A}: Vine array, truncated to \code{ntrunc}.
      \item \code{$copmat}: \code{ntrunc x ncol(A)} upper-triangular
      matrix of copula model names.
@@ -38,6 +46,11 @@ A list with three entries:
      less parameters than 1, each entry is a list of length one containing
      the vector of copula parameters for that copula family.
 }
+
+Note that the \code{$cdf} output is listed so that the position of the cdf
+in the list corresponds to the integer labels in \code{$A}.
+This might change in the future if it's more convenient or sensible
+to only listing the cdfs for variables in \code{$A}.
 }
 \description{
 Fits a joint distribution for the data using a vine copula. The vine array
@@ -51,7 +64,7 @@ copula models are chosen and fit using \code{RVineCopSelect} in the
 For the \code{familyset} argument, the default is almost all of
 the families available. It just doesn't include the Tawn copula families.
 
-Note that you'll need the \code{igraph0} package installed.
+Note that you'll need the \code{igraph} package installed.
 }
 \note{
 Because of some conflict between the deprecated package \code{igraph0}

@@ -15,8 +15,13 @@
 #' @param margs List of vectorized functions of the univariate marginal cdf's of
 #' the data, in the order of the columns. Or a single function if the cdf's
 #' are all the same.
-#' @param familyset A vector of integer codes of the copula families to try
-#' fitting. See \code{VineCopula::RVineCopSelect} for a full list.
+#' @param A If you know the vine array that you want to use, put it here.
+#' Labels should correspond to column numbers of \code{xdat}. Otherwise,
+#' leave it \code{NULL}.
+#' @param families A vector of copula family names to try
+#' fitting (will also consider their rotations/reflections). Limited to
+#' those families available in \code{VineCopula} package, listed in
+#' \code{\link{BiCopSelect}}.
 #' @param ... Other arguments to pass to \code{VineCopula::RVineCopSelect}.
 #' @note Because of some conflict between the deprecated package \code{igraph0}
 #' (used by package \code{CopulaModel})
@@ -26,6 +31,8 @@
 #' @return A list with three entries:
 #'
 #' \itemize{
+#'      \item \code{$cdf}: List of length \code{ncol(xdat)} of the marginal
+#'      distribution functions, as input in \code{margs}.
 #'      \item \code{$A}: Vine array, truncated to \code{ntrunc}.
 #'      \item \code{$copmat}: \code{ntrunc x ncol(A)} upper-triangular
 #'      matrix of copula model names.
@@ -34,10 +41,15 @@
 #'      less parameters than 1, each entry is a list of length one containing
 #'      the vector of copula parameters for that copula family.
 #' }
+#' 
+#' Note that the \code{$cdf} output is listed so that the position of the cdf
+#' in the list corresponds to the integer labels in \code{$A}. 
+#' This might change in the future if it's more convenient or sensible
+#' to only listing the cdfs for variables in \code{$A}.
 #' @details For the \code{familyset} argument, the default is almost all of
 #' the families available. It just doesn't include the Tawn copula families.
 #'
-#' Note that you'll need the \code{igraph0} package installed.
+#' Note that you'll need the \code{igraph} package installed.
 #' @examples
 #' ## Get some simulated data:
 #' set.seed(152)
@@ -52,29 +64,41 @@
 #' fit.rvine(dat, ntrunc=ntrunc)
 #' fit.rvine(dat, c(4, 2, 3))
 #' @export
-fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1, margs = identity,
-                 familyset = c(1:10,13,14,16:20,23,24,26:30,33,34,36:40), ...) {
-    if (is.vector(xdat) | ncol(xdat) == 1){
-        list(A=matrix(1), copmat=matrix(""), cparmat=matrix(0))
-    }
+fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1, 
+                      margs = identity, A = NULL,
+                      families = c("bvncop","bvtcop","mtcj","gum","frk","joe","bb1","bb7","bb8"), ...) {
+    familyset = sort(unique(c(copname2num(families), recursive = TRUE)))
+    if (is.vector(xdat)) xdat <- matrix(xdat, ncol = 1)
+    if (is.data.frame(xdat)) xdat <- as.matrix(xdat)
     p_all <- ncol(xdat)
     n <- nrow(xdat)
+    p <- length(vars)
+    ## Marginals:
     if (length(margs) == 1) margs <- rep(list(margs), p_all)
+    if (p == 1){
+        return(list(cdf=margs, A=matrix(vars), copmat=matrix(""), cparmat=matrix(0)))
+    }
     ## Uniformize and subset data
     for (col in vars) xdat[, col] <- margs[[col]](xdat[, col])
     xdat <- xdat[, vars]
-    p <- length(vars)
-    if (p == 2) {
-        A1 <- matrix(c(1,0,1,2), ncol = 2)
+    ## Get vine array to input to RVineCopSelect. Call it `A1` instead of `A`
+    ##  because I'll use the output matrix of RVineCopSelect (which *should*
+    ##  always be the same anyway).
+    if (is.null(A)) {
+        if (p == 2) {
+            A1 <- matrix(c(1,0,1,2), ncol = 2) # Needs to have labels = 1:2.
+        } else {
+            ## Get correlation matrix
+            cormat <- cor(qnorm(xdat))
+            ## Choose vine array
+            library(igraph)
+            arrayfit <- CopulaModel::gausstrvine.mst(cormat, ntrunc)
+            A1 <- arrayfit$RVM$VineA
+        }
     } else {
-        ## Get correlation matrix
-        cormat <- cor(qnorm(xdat))
-        ## Choose vine array
-        # library(igraph0)
-        library(igraph)
-        arrayfit <- CopulaModel::gausstrvine.mst(cormat, ntrunc)
-        A1 <- arrayfit$RVM$VineA
+        A1 <- A
     }
+    
     ## Now get and fit copulas
     capture.output(vinefit <- VineCopula::RVineCopSelect(xdat,
                                                          familyset = familyset,
@@ -119,7 +143,31 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1, margs = 
     } else {
         cparmat <- makeuppertri.list(parvec, len, nrow = ntrunc, ncol = p)
     }
+    ## It seems that, when RVineCopSelect fits a 90- or 270-degree rotated
+    ##  copula, it also makes the parameters negative. Need to fix this.
+    ## joe; mtcj; gum; bb1; bb6; bb7; bb8
+    for (i in 1:nrow(copmat)) for (j in (i+1):ncol(copmat)) {
+        thiscop <- copmat[i, j]
+        ## Is this copula model 90- or 270-degree rotated?
+        lastchar <- substring(thiscop, first=nchar(thiscop), last=nchar(thiscop))
+        if (lastchar == "u" | lastchar == "v") {
+            ## Copula name ends in "u" or "v". Could that mean that it's "rotated"?
+            wouldbe_pcop <- paste0("p", substring(thiscop, first=1, last=nchar(thiscop)-1))
+            if (exists(wouldbe_pcop)) rotated <- TRUE else rotated <- FALSE
+            ## Now that we know if it's rotated, flip the parameters if need be.
+            if (rotated) {
+                if (is.list(cparmat[1,1])) {
+                    cparmat[i, j][[1]] <- -cparmat[i, j][[1]]
+                } else {
+                    cparmat[i, j] <- -cparmat[i, j]
+                }
+            }
+        }
+    }
     ## Output results
     Avars <- varray.vars(A)
-    list(A=relabel.varray(A, vars[Avars]), copmat=copmat, cparmat=cparmat)
+    list(cdf=margs,
+         A=relabel.varray(A, vars[Avars]), 
+         copmat=copmat, 
+         cparmat=cparmat)
 }

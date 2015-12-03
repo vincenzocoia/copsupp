@@ -39,3 +39,13 @@
 9. Get the vignette working so that, upon typing `vignette('copsupp')` in R, the vignette appears.
 
 10. Incorporate `CopulaModel`'s `cparbound()` function in the `cparspace()` function of `copsupp`. 
+
+11. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
+	* Forces you to use a pre-defined set of bivariate copula families.
+	* Doesn't let you choose the copula model matrix. It would even be nice to be able to choose _parts_ of the copula model matrix too.
+	* (Also with `BiCopSelect()`) Puts negative parameters on 90- or 270-degree rotated copulas, but those models actually have positive parameters. 
+	* (Also with `BiCopSelect()`) Can't seem to fit the BB6 copula properly. See this example: 
+
+    udat <- CopulaModel::rbb6(10000, c(3,3))
+    lapply(VineCopula::BiCopSelect(1-udat[, 1], udat[, 2], familyset = 28), identity)
+

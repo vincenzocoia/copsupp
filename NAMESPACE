@@ -3,6 +3,7 @@
 export(Atocon)
 export(center.varray)
 export(contoA)
+export(copname2num)
 export(copnum2name)
 export(cparspace)
 export(cparvec2cpar)
