@@ -205,6 +205,7 @@ center.varray <- function(A) {
 #' @export
 Atocon <- function(A) {
     ntrunc <- nrow(A) - 1
+    if (ntrunc == 0) return(A)
     vars <- varray.vars(A)
     Acon <- A[1:ntrunc, ]
     if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = ntrunc)
@@ -216,6 +217,7 @@ Atocon <- function(A) {
 #' @export
 contoA <- function(Acon) {
     ntrunc <- nrow(Acon) - 1
+    if (ntrunc == 0) return(Acon)
     d <- ncol(Acon)
     vars <- Acon[1, ]
     A <- Acon[-1, ]

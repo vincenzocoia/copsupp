@@ -37,6 +37,7 @@
 reform.copmat <- function(mat, Anew, Aold) {
     ntrunc <- nrow(Anew) - 1
     d <- ncol(Anew)
+    if (ntrunc == 0) return(matrix(nrow=0, ncol=d))
     dold <- ncol(Aold)
     ## Convert to convenient format:
     Anew <- Atocon(Anew)

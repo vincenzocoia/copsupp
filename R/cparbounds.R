@@ -2,7 +2,9 @@
 #'
 #' For a selection of bivariate copula families, returns the parameter space.
 #'
-#' @param cop Vector of copula family names (characters).
+#' @param cop Single copula family name (character).
+#' @param fn Logical; should a function of the parameter space be returned? If
+#' not, returns a list of the lower and upper bounds.
 #' @return Returns a function that accepts a vector of copula
 #' parameters (corresponding to \code{cop}) and returns \code{TRUE} if that
 #' parameter is in the parameter space and \code{FALSE} otherwise.
@@ -20,7 +22,7 @@
 #' cparspace("bvncop")(0.8)
 #' cparspace("thiscopuladoesnotexist")("89")
 #' @export
-cparspace <- function(cop) {
+cparspace <- function(cop, fn = TRUE) {
     ## Get default bounds:
     bnds <- list(frk = list(left = -Inf, right = Inf),
                  gum = list(left = 1, right = 20),
@@ -65,6 +67,12 @@ cparspace <- function(cop) {
         return(function(cpar) TRUE)
     }
     left <- do.call(c, lapply(thesebounds, function(l) l$left))
+    names(left) <- NULL
     right <- do.call(c, lapply(thesebounds, function(l) l$right))
-    function(cpar) all(cpar > left) & all(cpar < right)
+    names(right) <- NULL
+    if (fn) {
+        return(function(cpar) all(cpar > left) & all(cpar < right))
+    } else {
+        return(list(lower=left, upper=right))
+    }
 }

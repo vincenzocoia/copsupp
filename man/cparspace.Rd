@@ -4,10 +4,13 @@
 \alias{cparspace}
 \title{Get Copula Parameter Bounds}
 \usage{
-cparspace(cop)
+cparspace(cop, fn = TRUE)
 }
 \arguments{
-\item{cop}{Vector of copula family names (characters).}
+\item{cop}{Single copula family name (character).}
+
+\item{fn}{Logical; should a function of the parameter space be returned? If
+not, returns a list of the lower and upper bounds.}
 }
 \value{
 Returns a function that accepts a vector of copula

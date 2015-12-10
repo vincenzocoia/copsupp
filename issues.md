@@ -40,7 +40,9 @@
 
 10. Incorporate `CopulaModel`'s `cparbound()` function in the `cparspace()` function of `copsupp`. 
 
-11. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
+11. `fit.rvine()` outputs a different vine array depending on the order of the variables input into the `vars` argument. It shouldn't.
+
+12. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
 	* Forces you to use a pre-defined set of bivariate copula families.
 	* Doesn't let you choose the copula model matrix. It would even be nice to be able to choose _parts_ of the copula model matrix too.
 	* (Also with `BiCopSelect()`) Puts negative parameters on 90- or 270-degree rotated copulas, but those models actually have positive parameters. 
