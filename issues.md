@@ -14,6 +14,7 @@
 	* Involves being careful about what variable comes first when specifying a vine edge, and getting the copula right when the vine array is moved around (such as re-leafing).
 
 4. As more functionality is developed, it might be useful to work with "vine objects", which would contain the vine array, copula model matrix, and copula parameter matrix instead of working with each separately (and it should also contain the marginals too). They should be specified in that order, with the possibility that "upstream" features (like the copula parameter matrix, or both copula and parameter matrices) are unspecified and therefore unknown.
+	* Make a constructor function. Call the class `"rvine"`, and the corresponding constructor function `rvine()`. Examples of constructor functions are `data.frame()` and `factor()`. 
 	* `reform.copmat()` would not be needed anymore.
 
 5. It might be useful to change the format of the copula families so that **number of parameters** and **parameter space** can be extracted (so that the user doesn't have to look it up all the time). Here are some ideas:
@@ -42,7 +43,11 @@
 
 11. `fit.rvine()` outputs a different vine array depending on the order of the variables input into the `vars` argument. It shouldn't.
 
-12. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
+12. `pcondrvine()` would be awfully handy if it had the capability to work with subsets of the data instead of all the data. So, choose the conditioned variables too. It would also be useful if the input was a "vine object", instead of its components individually.
+
+13. `qcondrvine()` would be handy to have in some situations.
+
+14. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
 	* Forces you to use a pre-defined set of bivariate copula families.
 	* Doesn't let you choose the copula model matrix. It would even be nice to be able to choose _parts_ of the copula model matrix too.
 	* (Also with `BiCopSelect()`) Puts negative parameters on 90- or 270-degree rotated copulas, but those models actually have positive parameters. 
