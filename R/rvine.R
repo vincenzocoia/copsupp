@@ -11,7 +11,7 @@
 #' A <- CopulaModel::Dvinearray(4)
 #' copmat <- makeuppertri(c("gum", "bvtcop", "mtcj",
 #'                          "frk", "indepcop",
-#'                          "frk"), 3, 4)
+#'                          "frk"), 3, 4, blanks = "")
 #' cparmat <- makeuppertri.list(c(2, 0.5, 4, 2,
 #'                                1,
 #'                                1), len = c(1,2,1,1,0,1), nrow = 3, ncol = 4)

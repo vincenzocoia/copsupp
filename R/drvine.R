@@ -5,15 +5,7 @@
 #'
 #' @param dat Data matrix. Rows are observations, and columns are variables.
 #' Could be a vector if there's only one observation.
-#' @param A Vine array. Integer labels should correspond to the column number
-#' in \code{dat}.
-#' @param copmat Matrix of bivariate copula model names, corresponding to
-#' the upper-triangular part of \code{A}.
-#' @param cparmat Matrix of parameters for copula models in \code{copmat}.
-#' If a copula model has more or less parameters than 1, put the vector of
-#' copula parameters in a list in each entry.
-#' @param Fmarg List of vectorized marginal cdfs of data, in the order listed
-#' in \code{dat}. Or a single such function if they're all the same.
+#' @param rvine Object of class 'rvine'
 #' @details This function is a wrapper for
 #' \code{rvinellkv.trunc2} in the \code{CopulaModel} package.
 #' @return Vector of length = number of observations in \code{dat}, representing
@@ -25,8 +17,9 @@
 #'                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 #' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
 #'                              len = c(1,1,2,1,1), row = 2, col = 4)
+#' rvine <- rvine(A=A, copmat=copmat, cparmat=cparmat)
 #' dat <- fvinesim(10, A, copmat, cparmat)
-#' logdrvine(dat, A, copmat, cparmat)
+#' logdrvine(dat, rvine)
 #' drvine(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
 #'
 #' ## The variables in A don't need to refer to all data:
@@ -38,9 +31,16 @@
 #' ## is the same as...
 #' A <- CopulaModel::Dvinearray(4)
 #' logdrvine(3:6/10, A, copmat, cparmat)
+#' @seealso \code{\link{rvine}}
 #' @rdname d_logd_rvine
 #' @export
-logdrvine <- function(dat, A, copmat, cparmat, Fmarg = identity) {
+logdrvine <- function(dat, rvine) {
+    A <- rvine$A
+    copmat <- rvine$copmat
+    cparmat <- rvine$cparmat
+    marg <- rvine$marg
+    if (is.null(copmat) | is.null(cparmat))
+        stop("rvine must have copmat and cparmat specified")
     ## Get parvec:
     if (is.list(cparmat[1,1])) {
         parvec <- c(t(cparmat), recursive = TRUE)
@@ -65,9 +65,10 @@ logdrvine <- function(dat, A, copmat, cparmat, Fmarg = identity) {
         np[upper.tri(np)] <- 1
     }
     ## Get udat
-    if (length(Fmarg) == 1) Fmarg <- rep(list(Fmarg), ncolA)
+    if (is.null(marg)) marg <- rep(list(identity), ncolA)
+    if (length(marg) == 1) marg <- rep(list(marg), ncolA)
     if (!is.matrix(dat)) dat <- matrix(dat, nrow = 1)
-    for (col in 1:ncolA) dat[, col] <- Fmarg[[col]](dat[, col])
+    for (col in 1:ncolA) dat[, col] <- marg[[col]](dat[, col])
     ## Make array variables 1:ncol(A), and permute data to reflect that.
     vars <- varray.vars(A)
     A <- relabel.varray(A)
@@ -86,5 +87,5 @@ logdrvine <- function(dat, A, copmat, cparmat, Fmarg = identity) {
 
 #' @rdname d_logd_rvine
 #' @export
-drvine <- function(dat, A, copmat, cparmat, Fmarg = identity)
-    exp(logdrvine(dat, A, copmat, cparmat, Fmarg = identity))
+drvine <- function(dat, rvine)
+    exp(logdrvine(dat, rvine))
