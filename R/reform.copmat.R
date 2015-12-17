@@ -4,8 +4,6 @@
 #' convert other matrices associated with the original vine array
 #' (such as copula matrix or copula parameter matrix)
 #' into new matrices associated with the new vine array.
-#' Deprecated; this functionality is built-in to rvine modifiers like
-#' \code{\link{trunc.rvine}} and \code{\link{subset.rvine}}.
 #'
 #' @param mat Old matrix to rearrange, such as a copula matrix or copula
 #' parameter matrix. Should be upper-triangular, with nrows = truncation number,
@@ -36,8 +34,7 @@
 #' reform.copmat(copmat, Anew, A)
 #' reform.copmat(cparmat, Anew, A)
 #' @export
-reform.copmat <- function(mat, Anew, Aold) {
-    warning("'reform.copmat' is deprecated. This functionality should not be needed.")
+reformcopmat <- function(mat, Anew, Aold) {
     ntrunc <- nrow(Anew) - 1
     d <- ncol(Anew)
     if (ntrunc == 0) return(matrix(nrow=0, ncol=d))
