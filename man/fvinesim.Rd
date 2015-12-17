@@ -9,31 +9,17 @@ fvinesim(n, A, cops, cpars, iprint = FALSE)
 \arguments{
 \item{n}{Number of observations to generate}
 
-\item{A}{Vine array matrix, possibly truncated.}
-
-\item{cops}{Upper-triangular matrix of copula names (like "frk" or "gum"),
-corresponding to the edges in vine array \code{A}. Or, a single name
-if it applies to all edges in \code{A}, or a vector of length
-\code{nrow(A)-1} where entry \code{i} corresponds to edges in row \code{i}
-of \code{A}.}
-
-\item{cpars}{Matrix of copula parameters, with entries corresponding to
-entries in \code{cops}. Optionally, if only one copula is being fit for
-the entire vine, could be the copula parameter (a vector).}
-
 \item{iprint}{Logical, as in \code{\link{rvinesimvec2}}, which says
 "print flag for intermediate results".}
+
+\item{rvine}{Object of type "rvine".}
 }
 \description{
 A (hopefully) user-friendly function to simulate from a vine copula.
 Essentially a wrapper
-for \code{\link{rvinesimvec2}}. (**Doesn't yet work for truncated vines,
-because I can't figure out how to do truncated vines using
-\code{\link{rvinesimvec2}})
+for \code{\link{rvinesimvec2}}.
 }
 \details{
-To truncate a vine array, use \code{\link{trunc.varray}}.
-
 To make a matrix of copulas, use \code{\link{makeuppertri}}. Some copula
 parameters may have more or less parameters than 1 -- in this case,
 enlist the help of \code{\link{makeuppertri.list}}.
@@ -47,8 +33,8 @@ permutation symmetric.
 }
 \examples{
 ## Vine array:
-A <- CopulaModel::Dvinearray(5)
-A <- relabel.varray(A, c(3, 5, 1, 2, 4))
+rv <- rvine(CopulaModel::Dvinearray(5), "frk", makeuppertri(2, 4, 5))
+A <- relabel(rv, c(3, 5, 1, 2, 4))
 
 ## Simulate 10 observations with Frank copulas:
 set.seed(123)

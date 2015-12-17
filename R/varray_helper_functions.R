@@ -1,44 +1,4 @@
-#' Relabel Variables in a Vine Array
-#'
-#' @param A Vine array. Could be truncated.
-#' @param labs Vector of new labels. The order of the labels correspond to
-#' the order of the variables in the vine array \code{A}.
-#' @details Similar to \code{CopulaModel::varrayperm} but allows for
-#' the posibility that \code{A} is not square, as well as labels outside
-#' of the set \code{{1:ncol(A)}}.
-#' @return A relabelled vine array matrix.
-#' @examples
-#' (A <- truncvarray(CopulaModel::Cvinearray(5), 2))
-#' relabel.varray(A, c(3, 2, 1, 5, 4))
-#'
-#' ## Labels don't need to be in the set {1:ncol(A)}.
-#' A <- CopulaModel::Dvinearray(4)
-#' A <- apply(A, 1:2, function(i) if (i==0) "" else letters[i])
-#' relabel.varray(A, c("this", "is", "a", "demo"))
-#' relabel.varray(A)
-#' @export
-relabel.varray <- function(A, labs = 1:ncol(A)) {
-    d <- ncol(A)
-    r <- nrow(A)
-    labs_orig <- varray.vars(A)
-    isnumeric <- is.numeric(labs)
-    ## Map original label to order
-    map2order <- function(labo) which(labs_orig == labo)
-    ## Map original labels to new labels
-    for (row in 1:r) {
-        for (col in row:d) {
-            A[row, col] <- labs[map2order(A[row, col])]
-        }
-    }
-    ## This is a little extensive, to allow for non-integers...
-    ##   but why not include it?
-    if (isnumeric){
-        A[lower.tri(A)] <- 0
-        return(apply(A, 1:2, as.numeric))
-    } else {
-        return(A)
-    }
-}
+
 
 #' Invert a permutation
 #'
@@ -92,28 +52,7 @@ truncvarray <- function(A, ntrunc) {
     rbind(A, matrix(vars, nrow=1))
 }
 
-#' Extract Variables in a Vine Array
-#'
-#' Extract variables in a vine array, possibly truncated, in the order
-#' of the vine array.
-#'
-#' @param A Vine array, possibly truncated.
-#' @return Vector of vine variables.
-#' @examples
-#' A <- CopulaModel::Dvinearray(5)
-#' A <- relabel.varray(A, c(5, 2, 4, 3, 1))
-#' varray.vars(A)
-#'
-#' A <- truncvarray(A, 2)
-#' varray.vars(A)
-#' @export
-varray.vars <- function(A) {
-    p <- ncol(A)
-    r <- nrow(A)
-    firstvars <- diag(A)
-    secondvars <- A[r, r+seq_len(p-r)]
-    c(firstvars, secondvars)
-}
+
 
 #' Center a Vine Array
 #'

@@ -5,26 +5,15 @@
 \alias{logdrvine}
 \title{Density of a Regular Vine}
 \usage{
-logdrvine(dat, A, copmat, cparmat, Fmarg = identity)
+logdrvine(dat, rvine)
 
-drvine(dat, A, copmat, cparmat, Fmarg = identity)
+drvine(dat, rvine)
 }
 \arguments{
 \item{dat}{Data matrix. Rows are observations, and columns are variables.
 Could be a vector if there's only one observation.}
 
-\item{A}{Vine array. Integer labels should correspond to the column number
-in \code{dat}.}
-
-\item{copmat}{Matrix of bivariate copula model names, corresponding to
-the upper-triangular part of \code{A}.}
-
-\item{cparmat}{Matrix of parameters for copula models in \code{copmat}.
-If a copula model has more or less parameters than 1, put the vector of
-copula parameters in a list in each entry.}
-
-\item{Fmarg}{List of vectorized marginal cdfs of data, in the order listed
-in \code{dat}. Or a single such function if they're all the same.}
+\item{rvine}{Object of class 'rvine'}
 }
 \value{
 Vector of length = number of observations in \code{dat}, representing
@@ -45,8 +34,9 @@ copmat <- makeuppertri(c("gum", "gal", "bvtcop",
                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
                              len = c(1,1,2,1,1), row = 2, col = 4)
+rvine <- rvine(A=A, copmat=copmat, cparmat=cparmat)
 dat <- fvinesim(10, A, copmat, cparmat)
-logdrvine(dat, A, copmat, cparmat)
+logdrvine(dat, rvine)
 drvine(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
 
 ## The variables in A don't need to refer to all data:
@@ -58,5 +48,8 @@ logdrvine(1:6/10, A, copmat, cparmat)
 ## is the same as...
 A <- CopulaModel::Dvinearray(4)
 logdrvine(3:6/10, A, copmat, cparmat)
+}
+\seealso{
+\code{\link{rvine}}
 }
 

@@ -4,18 +4,22 @@
 \alias{rvine}
 \title{Create an object of class `rvine`}
 \usage{
-rvine(A, copmat = NULL, cparmat = NULL, marg = NULL)
+rvine(A, copmat = NULL, cparmat = NULL, marg = identity)
 }
 \arguments{
 \item{A}{Vine array (matrix), possibly truncated.}
 
-\item{copmat}{Upper triangular \code{(nrow(A)-1) x ncol(A)} matrix of copula model names.}
+\item{copmat}{Upper triangular \code{(nrow(A)-1) x ncol(A)} matrix of copula model names.
+Or, a vector of copula model names for the edges in \code{A}, listed in
+"reading order". Use a vector of length 1 if the same copula model applies to all
+edges.}
 
 \item{cparmat}{Upper triangular \code{(nrow(A)-1) x ncol(A)} matrix of
 parameters taken by the copulas in \code{copmat}.}
 
 \item{marg}{List of \code{ncol(A)} vectorized marginal distribution functions
-with entries corresponding to the columns in \code{A}.}
+with entries corresponding to the columns in \code{A}. Or, a single vectorized
+(distribution) function that applies to each variable.}
 }
 \value{
 An object of class `rvine`, which is a named list of the arguments.
@@ -24,10 +28,23 @@ An object of class `rvine`, which is a named list of the arguments.
 Create an object of class `rvine`
 }
 \examples{
+## Empty vine:
+rvine(matrix(integer(0)))
+
+## Independence vine:
+(rv <- rvine(matrix(4:1, ncol = 4)))
+## Take a look at each component of the vine:
+lapply(rv, identity)
+
 A <- CopulaModel::Dvinearray(4)
+rvine(A, "frk", makeuppertri(2, nrow=3, ncol=4), pexp)
+rvine(A, rep(c("frk", "gum"), 3), makeuppertri(2, nrow=3, ncol=4))
+
 copmat <- makeuppertri(c("gum", "bvtcop", "mtcj",
                          "frk", "indepcop",
                          "frk"), 3, 4, blanks = "")
+rvine(A, copmat)
+
 cparmat <- makeuppertri.list(c(2, 0.5, 4, 2,
                                1,
                                1), len = c(1,2,1,1,0,1), nrow = 3, ncol = 4)
