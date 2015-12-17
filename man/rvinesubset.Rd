@@ -19,7 +19,7 @@ the subset does not form a vine.
 }
 \description{
 Find the vine connecting a subset of variables from a bigger vine, if
-it exists.
+it exists. Deprecated; use \code{\link{subset.rvine}} instead.
 }
 \details{
 Just a technicality:
@@ -32,8 +32,8 @@ doesn't hold for this distribution).
 }
 \examples{
 ## Try a D-Vine
-A <- CopulaModel::Dvinearray(5)
-rvinesubset(A, c(2, 3, 4))
-rvinesubset(A, c(4, 1))
+rv <- rvine(CopulaModel::Dvinearray(5))
+subset(rv, c(2, 3, 4))
+subset(rv, c(4, 1))
 }
 
