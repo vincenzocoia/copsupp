@@ -24,33 +24,7 @@ invert.perm <- function(perm) {
     sapply(1:p, function(i) which(perm == i))
 }
 
-#' Truncate a Vine Array
-#'
-#' Truncates a vine array, collapsing the variables upwards.
-#'
-#' @param A A vine array, possibly truncated.
-#' @param ntrunc Integer; truncation level
-#' @return If \code{ntrunc >= nrow(A) - 1}, the original vine array is
-#' returned. Otherwise, a truncated vine array with \code{ntrunc + 1} rows is
-#' returned.
-#' @note The variables are listed along the initial diagonal of the vine
-#' array, then continue along the bottom row.
-#' @examples
-#' (A <- CopulaModel::Dvinearray(6))
-#' (A <- truncvarray(A, 3))
-#' (A <- relabel.varray(A, c(6, 2, 4, 3, 1, 5)))
-#' truncvarray(A, 2)
-#' @export
-truncvarray <- function(A, ntrunc) {
-    d <- ncol(A)
-    r <- nrow(A)
-    if (ntrunc > r-2) return(A)
-    vars <- varray.vars(A)
-    A <- A[1:ntrunc, 1:d]
-    if (!is.matrix(A)) A <- matrix(A, ncol = d)
-    vars[1:ntrunc] <- 0
-    rbind(A, matrix(vars, nrow=1))
-}
+
 
 
 
@@ -145,11 +119,12 @@ center.varray <- function(A) {
 Atocon <- function(A) {
     ntrunc <- nrow(A) - 1
     if (ntrunc == 0) return(A)
-    vars <- varray.vars(A)
+    d <- ncol(A)
+    v <- c(diag(A), A[ntrunc + 1, ntrunc+1+seq_len(d-ntrunc-1)])
     Acon <- A[1:ntrunc, ]
     if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = ntrunc)
     diag(Acon) <- 0
-    rbind(matrix(vars, nrow = 1), Acon)
+    rbind(matrix(v, nrow = 1), Acon)
 }
 
 #' @rdname A_Acon_convert
@@ -158,10 +133,10 @@ contoA <- function(Acon) {
     ntrunc <- nrow(Acon) - 1
     if (ntrunc == 0) return(Acon)
     d <- ncol(Acon)
-    vars <- Acon[1, ]
+    v <- Acon[1, ]
     A <- Acon[-1, ]
     if (!is.matrix(A)) A <- matrix(A, nrow = 1)
-    A <- rbind(A, matrix(c(rep(0, ntrunc), vars[(ntrunc+1):d]), nrow = 1))
-    diag(A) <- vars[1:(ntrunc+1)]
+    A <- rbind(A, matrix(c(rep(0, ntrunc), v[(ntrunc+1):d]), nrow = 1))
+    diag(A) <- v[1:(ntrunc+1)]
     A
 }

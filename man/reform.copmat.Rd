@@ -24,6 +24,8 @@ If you changed the order of your vine array, this function will
 convert other matrices associated with the original vine array
 (such as copula matrix or copula parameter matrix)
 into new matrices associated with the new vine array.
+Deprecated; this functionality is built-in to rvine modifiers like
+\code{\link{trunc.rvine}} and \code{\link{subset.rvine}}.
 }
 \note{
 Make sure that the variables in \code{Aold}
