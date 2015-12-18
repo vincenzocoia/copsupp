@@ -26,3 +26,7 @@
     udat <- CopulaModel::rbb6(10000, c(3,3))
     lapply(VineCopula::BiCopSelect(1-udat[, 1], udat[, 2], familyset = 28), identity)
 
+8. Marginal models need to be more carefully specified so that they have more information. May need distribution name and parameter, if either are available, or possibly just user-specified cdf, qf, and pdf. Should also consider fitting (possibly with `fitdistrplus`'s `fitdist()` function), allowing for empirical distribution too.
+
+9. A fitting procedure for vines that's similar to that of the marginal should be included. So, parts of the vine might be specified, parts of the marginals might be specified, and maybe even some parameters ought to be shared amongst some edges.
+	* Would it make sense to add components to an `"rvine"` object, such as data and corresponding measures of fit like AIC/BIC?
