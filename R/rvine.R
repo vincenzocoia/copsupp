@@ -63,6 +63,11 @@ rvine <- function(A, copmat = NULL, cparmat = NULL, marg = identity) {
         warning("Parameter matrix cannot be specified until copula matrix is.")
         cparmat <- NULL
     }
+    if (is.matrix(cparmat)) if (!is.list(cparmat[1,1])) {
+        cparvec <- c(t(cparmat)[lower.tri(t(cparmat))], recursive = TRUE)
+        cparmat <- makeuppertri.list(cparvec, len=rep(1,length(cparvec)),
+                                     nrow = nrow(cparmat), ncol = ncol(cparmat))
+    }
     ## Make vector of cdfs if it's a single value:
     if (length(marg) == 1) marg <- rep(list(marg), d)
     ## Output
