@@ -5,7 +5,7 @@
 #'
 #' @param dat Data matrix. Rows are observations, and columns are variables.
 #' Could be a vector if there's only one observation.
-#' @param rvine Object of class 'rvine'
+#' @param rv Regular vine object
 #' @details This function is a wrapper for
 #' \code{rvinellkv.trunc2} in the \code{CopulaModel} package.
 #' @return Vector of length = number of observations in \code{dat}, representing
@@ -17,28 +17,24 @@
 #'                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 #' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
 #'                              len = c(1,1,2,1,1), row = 2, col = 4)
-#' rvine <- rvine(A=A, copmat=copmat, cparmat=cparmat)
-#' dat <- fvinesim(10, A, copmat, cparmat)
-#' logdrvine(dat, rvine)
-#' drvine(c(0.5,0.5,0.5,0.5), A, copmat, cparmat)
+#' rv <- rvine(A=A, copmat=copmat, cparmat=cparmat)
+#' dat <- fvinesim(10, rv)
+#' logdrvine(dat, rv)
+#' drvine(runif(4), rv)
 #'
 #' ## The variables in A don't need to refer to all data:
-#' A <- CopulaModel::Dvinearray(6)
-#' A <- rvinesubset(A, 3:6)
-#' copmat <- makeuppertri("frk", 4, 4, "")
-#' cparmat <- makeuppertri(6:1, 4, 4)
-#' logdrvine(1:6/10, A, copmat, cparmat)
-#' ## is the same as...
-#' A <- CopulaModel::Dvinearray(4)
-#' logdrvine(3:6/10, A, copmat, cparmat)
+#' u <- runif(4)
+#' drvine(u, subset(rv, 3:4))
+#' ## ...is the same as:
+#' drvine(u[3:4]), subset(rv, 3:4)
 #' @seealso \code{\link{rvine}}
 #' @rdname d_logd_rvine
 #' @export
-logdrvine <- function(dat, rvine) {
-    A <- rvine$A
-    copmat <- rvine$copmat
-    cparmat <- rvine$cparmat
-    marg <- rvine$marg
+logdrvine <- function(dat, rv) {
+    A <- rv$A
+    copmat <- rv$copmat
+    cparmat <- rv$cparmat
+    marg <- rv$marg
     if (is.null(copmat) | is.null(cparmat))
         stop("rvine must have copmat and cparmat specified")
     ## Get parvec:
@@ -87,5 +83,5 @@ logdrvine <- function(dat, rvine) {
 
 #' @rdname d_logd_rvine
 #' @export
-drvine <- function(dat, rvine)
-    exp(logdrvine(dat, rvine))
+drvine <- function(dat, rv)
+    exp(logdrvine(dat, rv))
