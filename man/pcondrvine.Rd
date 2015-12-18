@@ -4,28 +4,18 @@
 \alias{pcondrvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcondrvine(dat, cond, A, copmat, cparmat, Fmarg = identity, verbose = FALSE)
+pcondrvine(dat, rv, cond, vbls = vars(rv), verbose = FALSE)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
 
+\item{rv}{Regular vine object, complete.}
+
 \item{cond}{Integer; the variable you wish to condition on (i.e. the
-column number of \code{dat}).}
+column number of \code{dat}, also present in \code{rv}).}
 
-\item{A}{Vine array matrix, possibly truncated.
-Variables should be labelled to correspond to
-the order they appear in \code{dat}, not so that
-they match the column number of \code{A}.}
-
-\item{copmat}{Upper triangular matrix of copula names corresponding to
-the edges in \code{A}.}
-
-\item{cparmat}{Upper triangular matrix of copula parameters
-corresponding to the copula families in \code{copmat}.}
-
-\item{Fmarg}{List of (univariate) marginal cdfs corresponding to
-the columns in \code{dat};
-each should be vectorized. Or a single function if the cdf is all the same.}
+\item{vbls}{Vector of integers; the variables you wish to consider. Default
+is all variables in \code{rv}.}
 
 \item{verbose}{Logical; should the function output how it goes about
 finding the conditional distribution?}
@@ -33,23 +23,22 @@ finding the conditional distribution?}
 \value{
 A vector of length = the number of observations in \code{dat},
 representing the evaluated conditional distribution of variable \code{cond}
-given the other variables in \code{A}.
+given the other variables in \code{vbls}.
 }
 \description{
 Evaluates the conditional distribution of a variable in a regular vine,
 given values of the other variables in that vine.
 }
 \details{
-This function could do one of two things, depending on the
-scenario.
+To compute the conditional distribution, the vine is subsetted to
+the selected variables if possible. Then, if the conditioned variable is a
+leaf, the conditional distributon is directly computed. If it's not a leaf,
+the conditional distribution is computed by integrating the density.
 
-\itemize{
- \item If variable \code{cond} is not a leaf (that is, a vine array cannot
- be written with it at the end), then the conditional density is integrated.
- \item If variable \code{cond} is a leaf, then Bo's
- \code{rVineTruncCondCDF} function in the \code{copreg} package is
- used to compute the conditional cdf.
-}
+If the subsetted vine does not exist, then the vine will be subsetted "as
+much as possible", and the remaining variables that cannot be removed
+will be integrated out to find the joint density of the selected variables,
+from which the conditional cdf will be found.
 }
 \examples{
 ## D-Vine example

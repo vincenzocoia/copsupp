@@ -4,34 +4,25 @@
 #' given values of the other variables in that vine.
 #'
 #' @param dat vector or matrix of observations (columns are variables).
+#' @param rv Regular vine object, complete.
 #' @param cond Integer; the variable you wish to condition on (i.e. the
-#' column number of \code{dat}).
-#' @param A Vine array matrix, possibly truncated.
-#' Variables should be labelled to correspond to
-#' the order they appear in \code{dat}, not so that
-#' they match the column number of \code{A}.
-#' @param copmat Upper triangular matrix of copula names corresponding to
-#' the edges in \code{A}.
-#' @param cparmat Upper triangular matrix of copula parameters
-#' corresponding to the copula families in \code{copmat}.
-#' @param Fmarg List of (univariate) marginal cdfs corresponding to
-#' the columns in \code{dat};
-#' each should be vectorized. Or a single function if the cdf is all the same.
+#' column number of \code{dat}, also present in \code{rv}).
+#' @param vbls Vector of integers; the variables you wish to consider. Default
+#' is all variables in \code{rv}.
 #' @param verbose Logical; should the function output how it goes about
 #' finding the conditional distribution?
-#' @details This function could do one of two things, depending on the
-#' scenario.
+#' @details To compute the conditional distribution, the vine is subsetted to
+#' the selected variables if possible. Then, if the conditioned variable is a
+#' leaf, the conditional distributon is directly computed. If it's not a leaf,
+#' the conditional distribution is computed by integrating the density.
 #'
-#' \itemize{
-#'  \item If variable \code{cond} is not a leaf (that is, a vine array cannot
-#'  be written with it at the end), then the conditional density is integrated.
-#'  \item If variable \code{cond} is a leaf, then Bo's
-#'  \code{rVineTruncCondCDF} function in the \code{copreg} package is
-#'  used to compute the conditional cdf.
-#' }
+#' If the subsetted vine does not exist, then the vine will be subsetted "as
+#' much as possible", and the remaining variables that cannot be removed
+#' will be integrated out to find the joint density of the selected variables,
+#' from which the conditional cdf will be found.
 #' @return A vector of length = the number of observations in \code{dat},
 #' representing the evaluated conditional distribution of variable \code{cond}
-#' given the other variables in \code{A}.
+#' given the other variables in \code{vbls}.
 #' @examples
 #' ## D-Vine example
 #' A <- CopulaModel::Dvinearray(5)
@@ -63,22 +54,25 @@
 #' pcondrvine(3:5/10, 1, A, copmat, cparmat)
 #' pcondrvine(3:5/10, 2, A, copmat, cparmat)
 #' @export
-pcondrvine <- function(dat, cond, A, copmat, cparmat, Fmarg = identity,
-                        verbose = FALSE) {
+pcondrvine <- function(dat, rv, cond, vbls = vars(rv), verbose = FALSE) {
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
+    ## Extract info
+    A <- rv$A
+    Fmarg <- rv$marg
     d <- ncol(A)
     ptot <- ncol(dat)
     ntrunc <- nrow(A) - 1
-    vars <- varray.vars(A)
+    v <- vars(rv)
+    ikeep <- sapply(vbls, function(vbl) which(v == vbl))
     ## Uniformize data:
-    if (length(Fmarg) == 1) {
-        udat <- Fmarg(dat)
-    } else {
-        udat <- dat
-        for (col in vars) udat[, col] <- Fmarg[[col]](dat[, col])
-        ## ^^ Note ^^: only the variables in the vine array get uniformized -- because
-        ##  those are the only ones that will be used, and what if no marginal
-        ##  is specified for variables outside of vars?
+    dat <- dat[, vbls]
+    for (i in 1:length(ikeep)) {
+        dat[, i] <- Fmarg[[ikeep[i]]](dat[, i])
+    }
+    ## Can I subset the vine?
+    subrv <- subset(rv, vbls)
+    if (!is.null(subrv)) {
+
     }
     ## Is cond a leaf? If so, get the vine array with it as a leaf.
     Aleaf <- releaf.varray(A, leaf = cond)

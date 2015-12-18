@@ -5,7 +5,7 @@
 #' for \code{\link{rvinesimvec2}}.
 #'
 #' @param n Number of observations to generate
-#' @param rvine Object of type "rvine".
+#' @param rv Object of type "rvine".
 #' @param iprint Logical, as in \code{\link{rvinesimvec2}}, which says
 #' "print flag for intermediate results".
 #' @details
@@ -19,31 +19,34 @@
 #' Like in \code{\link{rvinesimvec2}}, the copula families are assumed to be
 #' permutation symmetric.
 #' @examples
-#' ## Vine array:
+#' ## Vine:
 #' rv <- rvine(CopulaModel::Dvinearray(5), "frk", makeuppertri(2, 4, 5))
 #' A <- relabel(rv, c(3, 5, 1, 2, 4))
 #'
-#' ## Simulate 10 observations with Frank copulas:
+#' ## Simulate 10 observations:
 #' set.seed(123)
-#' fvinesim(10, A, cops="frk", cpars=2)
+#' fvinesim(10, rv)
 #'
 #' ## Same thing, but 2-truncated:
-#' A <- trunc.varray(A, 2)
+#' rv <- trunc(rv, 2)
 #' set.seed(123)
-#' fvinesim(10, A, cops="frk", cpars=2)
+#' fvinesim(10, rv)
 #' ## Notice that variables 3,5,1 -- the first three generated --- are the same
 #' ##  as the complete vine, since they are only linked by 2 trees anyways.
 #'
 #' ## One more with slightly more specifications:
-#' A <- truncvarray(Cvinearray(4), 2)
-#' copmat <- makeuppertri(c("gum", "gal", "bvtcop",
-#'                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
-#' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
-#'                              len = c(1,1,2,1,1), row = 2, col = 4)
-#' fvinesim(10, A, copmat, cparmat)
+#' rv <- trunc(rvine(Cvinearray(4)), 2)
+#' #copmat(rv) <- makeuppertri(c("gum", "gal", "bvtcop",
+#' #                           "bvncop", "frk"), row = 2, col = 4, blanks = "")
+#' #cparmat(rv) <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
+#' #                                 len = c(1,1,2,1,1), row = 2, col = 4)
+#' #fvinesim(10, A, copmat, cparmat)
 #' @import CopulaModel
 #' @export
-fvinesim <- function(n, A, cops, cpars, iprint=FALSE){
+fvinesim <- function(n, rv, iprint=FALSE){
+    A <- rv$A
+    copmat <- rv$copmat
+    cparmat <- rv$cparmat
   ## Get extra parameters for rvinesimvec2 function
   ## Dimension of the vine copula:
   d <- ncol(A)

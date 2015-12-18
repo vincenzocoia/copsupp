@@ -4,7 +4,7 @@
 \alias{releaf.varray}
 \title{"Re-leaf" a Vine Array}
 \usage{
-releaf.varray(A, leaf = varray.vars(A))
+\method{releaf}{varray}(A, leaf = varray.vars(A))
 }
 \arguments{
 \item{A}{Vine array matrix, possibly truncated.}

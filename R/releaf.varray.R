@@ -3,6 +3,118 @@
 #' Convert a vine array so that a variable(s) of your choice appears last
 #' (bottom-right corner) of the vine array -- if possible.
 #'
+#' @param rv Regular vine object.
+#' @param leaf Integer; variable you want to make a leaf of the array.
+#' @return A regular vine object with \code{leaf} at the end
+#' of the vine array, if such a
+#' vine exists; \code{NULL} otherwise.
+#' @examples
+#' A <- makeuppertri(c(4,4,4,4,6,5,
+#'                     6,6,6,4,4,
+#'                     1,1,1,6,
+#'                     5,5,1,
+#'                     2,2,
+#'                     3), 6, 6, incDiag=T)
+#' rv <- rvine(A)
+#' releaf(rv, leaf = 2)
+#' releaf(rv, leaf = 1)
+#' releaf(trunc(rv, 2), leaf = 1)
+#'
+#' ## 1:ncol(A) not required as variables.
+#' rv <- subset(rv, vars(rv)[1:4])
+#' releaf(rv, leaf = 1)
+#' @export
+releaf.rvine <- function(rv, leaf) {
+    A <- rv$A
+    d <- ncol(A)
+    ## Empty vine case:
+    if (d == 0) return(rv)
+    v <- vars(rv)
+    ## Stop if the leaf is not in the vine
+    if (!(leaf %in% v)) stop(paste("Variable", leaf, "not found in vine."))
+    ntrunc <- nrow(A) - 1
+    ## If 'leaf' is already at the end of the vine, just return the vine.
+    if (A[ntrunc+1, d] == leaf) return(rv)
+    ## If rv is an independence vine, that's an easy case:
+    if (ntrunc == 0) {
+        ileaf <- which(v == leaf)
+        A[1, c(ileaf, d)] <- A[1, c(d, ileaf)]
+        marg <- rv$marg
+        marg[c(ileaf, d)] <- marg[c(d, ileaf)]
+        return(rvine(A, marg = marg))
+    }
+    ## Case when d=2
+    if (d == 2) {
+        A <- matrix(c(A[2,2], 0, A[2,2], leaf), ncol = 2)
+        return(rvine(A, rv$copmat, rv$cparmat, rv$marg[2:1]))
+    }
+    ## Center the vine:
+    rvc <- center(rv)
+    ## Deal with the complete-vine case separately, in which case rvc is
+    ##   in natural order.
+    if (d == ntrunc + 1) {
+        A <- rvc$A
+        if (A[d,d] == leaf) {
+            return(rvc)
+        }
+        if (A[d-1, d-1] == leaf) {
+            Anew <- A
+            copmatnew <- rvc$copmat
+            cparmatnew <- rvc$cparmat
+            ## Swap columns
+            Anew[, d-1] <- A[, d]
+            Anew[, d] <- A[, d-1]
+            ## Deal with 2x2 bottom-right portion:
+            Anew[d-1, d-1] <- A[d, d]
+            Anew[d, d] <- A[d-1, d-1]
+            Anew[d, d-1] <- 0
+            Anew[d-1, d] <- Anew[d-1, d-1]
+            ## Swap top d-1 portion of last two columns of copula and param matrices:
+            if (!is.null(copmatnew)) {
+                one <- copmatnew[1:(d-1), d-1]
+                two <- copmatnew[1:(d-1), d]
+                copmatnew[1:(d-1), d-1] <- two
+                copmatnew[1:(d-1), d] <- one
+            }
+            if (!is.null(cparmatnew)) {
+                one <- cparmatnew[1:(d-1), d-1]
+                two <- cparmatnew[1:(d-1), d]
+                cparmatnew[1:(d-1), d-1] <- two
+                cparmatnew[1:(d-1), d] <- one
+            }
+            ## Swap marginals
+            margnew <- rvc$marg
+            margnew[c(d-1, d)] <- margnew[c(d, d-1)]
+            return(rvine(Anew, copmatnew, cparmatnew, margnew))
+        }
+        return(NULL)
+    }
+    ## --- END special cases. ---
+    Ac <- rvc$A
+    ## Get variables that won't work:
+    bad <- unique(as.vector(Ac[1:ntrunc, (ntrunc+1):d]))
+    if (leaf %in% bad) return(NULL)
+    ## Leaf if valid. Reorder vine:
+    vc <- vars(rvc)
+    ileaf <- which(vc == leaf)
+    Ac[, c(ileaf, d)] <- Ac[, c(d, ileaf)]
+    copmatc <- rvc$copmat
+    copmatc[, c(ileaf, d)] <- copmatc[, c(d, ileaf)]
+    cparmatc <- rvc$cparmat
+    cparmatc[, c(ileaf, d)] <- cparmatc[, c(d, ileaf)]
+    margc <- rvc$marg
+    margc[c(ileaf, d)] <- margc[c(d, ileaf)]
+    rvine(Ac, copmatc, cparmatc, margc)
+}
+
+#' @export
+releaf <- function(...) UseMethod("releaf")
+
+#' "Re-leaf" a Vine Array
+#'
+#' Convert a vine array so that a variable(s) of your choice appears last
+#' (bottom-right corner) of the vine array -- if possible.
+#'
 #' @param A Vine array matrix, possibly truncated.
 #' @param leaf Vector of variables that you want to
 #' get new vine array for, if such a vine array exists.
@@ -27,6 +139,7 @@
 #' releaf.varray(A)
 #' @export
 releaf.varray <- function(A, leaf=varray.vars(A)) {
+    warning("'releaf.varray()' is deprecated. Please use 'releaf.rvine()' instead.")
     if (!is.matrix(A)) return(NULL)
     if (length(leaf) == 0) return(list())
     if (ncol(A) == 0) return(NULL) # Only after checking length(leaf) > 0.
