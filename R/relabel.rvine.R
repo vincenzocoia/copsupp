@@ -21,7 +21,7 @@ relabel.rvine <- function(rv, labs = 1:ncol(rv$A)) {
     A <- rv$A
     d <- ncol(A)
     r <- nrow(A)
-    labs_orig <- varray.vars(A)
+    labs_orig <- vars(rv)
     isnumeric <- is.numeric(labs)
     ## Map original label to order
     map2order <- function(labo) which(labs_orig == labo)

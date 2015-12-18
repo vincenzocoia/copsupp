@@ -51,21 +51,26 @@ center.rvine <- function(rv) {
     copmat <- rv$copmat
     cparmat <- rv$cparmat
     marg <- rv$marg
+    ovars <- vars(rv)
     ## If the vine is complete, just use "natural order":
     if (ntrunc == d-1) {
-        Anew <- varray2NO(A)$NOa
+        ## Change variable names to variable order, and convert to natural order.
+        ord2var <- vars(rv)
+        rv <- relabel(rv, 1:length(ord2var))
+        Anew <- varray2NO(rv$A)$NOa
+        ## Convert back to variable names:
+        newordvars <- vars(rvine(Anew))
+        vnew <- ord2var[newordvars]
+        Anew <- relabel(rvine(Anew), vnew)$A
         if (!is.null(copmat)) copmat <- reformcopmat(copmat, Anew = Anew, Aold = A)
         if (!is.null(cparmat)) cparmat <- reformcopmat(cparmat, Anew = Anew, Aold = A)
-        vA <- vars(rv)
-        vnew <- vars(rvine(Anew))
-        vmap <- sapply(vA, function(v_) which(vnew == v_))
+        vmap <- sapply(vnew, function(vnew_) which(ovars == vnew_))
         return(rvine(Anew, copmat, cparmat, rv$marg[vmap]))
     }
     ## Initiate the final array as (ntrunc+1)x(ntrunc+1) array (call it B)
     ##  using variables in A[, d], with A[d,d] going at the end.
     Bvars <- A[, d]
     B <- subset(rv, Bvars)$A
-    ovars <- vars(rv)  # Stands for "original variables"
     rvars <- setdiff(ovars, Bvars)  # Stands for "remaining variables".
     ## Convert A to a convenient form by moving labels to top row:
     Acon <- Atocon(A)
@@ -113,7 +118,7 @@ center.rvine <- function(rv) {
     if (!is.null(copmat)) copmat <- reformcopmat(copmat, B, A)
     if (!is.null(cparmat)) cparmat <- reformcopmat(cparmat, B, A)
     newvars <- vars(rvine(B))
-    marg <- marg[sapply(ovars, function(v_) which(newvars == v_))]
+    marg <- marg[sapply(newvars, function(v_) which(ovars == v_))]
     rvine(B, copmat, cparmat, marg)
 }
 

@@ -102,7 +102,7 @@ subset.rvine <- function(rv, select) {
             unstrung2 <- c(unstrung2, cparmat[i-1, j])
         }
     }
-    if (length(unstrung) != nrownew * (k-1) - choose(nrownew, 2)) {
+    if (length(unstrung) != (nrownew-1) * k - choose(nrownew, 2)) {
         warning(paste0("Vine can't be subsetted to selection ",
                        paste(select, collapse = ", "),
                        ". Returning NULL."))

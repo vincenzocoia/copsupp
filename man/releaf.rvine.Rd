@@ -34,6 +34,6 @@ releaf(trunc(rv, 2), leaf = 1)
 
 ## 1:ncol(A) not required as variables.
 rv <- subset(rv, vars(rv)[1:4])
-releaf(A, leaf = 1)
+releaf(rv, leaf = 1)
 }
 
