@@ -4,18 +4,21 @@
 \alias{pcondrvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcondrvine(dat, rv, cond, vbls = vars(rv), verbose = FALSE)
+pcondrvine(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FALSE)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
 
-\item{rv}{Regular vine object, complete.}
+\item{rv}{Regular vine object (complete).}
 
 \item{cond}{Integer; the variable you wish to condition on (i.e. the
 column number of \code{dat}, also present in \code{rv}).}
 
-\item{vbls}{Vector of integers; the variables you wish to consider. Default
-is all variables in \code{rv}.}
+\item{vbls}{Vector of integers; the subset of variables you wish to consider.
+Default is all variables in \code{rv}.}
+
+\item{maxint}{Integer; maximum dimension of integration to tolerate. Put
+\code{Inf} if you don't want an upper limit.}
 
 \item{verbose}{Logical; should the function output how it goes about
 finding the conditional distribution?}
@@ -24,10 +27,13 @@ finding the conditional distribution?}
 A vector of length = the number of observations in \code{dat},
 representing the evaluated conditional distribution of variable \code{cond}
 given the other variables in \code{vbls}.
+
+If integration beyond \code{maxint} dimensions is required to obtain
+the quantities, then an error is thrown.
 }
 \description{
-Evaluates the conditional distribution of a variable in a regular vine,
-given values of the other variables in that vine.
+Evaluates the conditional distribution of a variable in a regular vine
+out of all specified variables.
 }
 \details{
 To compute the conditional distribution, the vine is subsetted to
@@ -42,33 +48,23 @@ from which the conditional cdf will be found.
 }
 \examples{
 ## D-Vine example
-A <- CopulaModel::Dvinearray(5)
-A <- relabel.varray(A, c(1, 5, 4, 3, 2))
-A <- truncvarray(A, 2)
-copmat <- makeuppertri("bvncop", 2, 5)
-cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
-udat <- fvinesim(10, A, copmat, cparmat)
-pcondrvine(udat, 5, A, copmat, cparmat, verbose=T)  # integrates vine density.
-pcondrvine(udat, 2, A, copmat, cparmat, verbose=T)  # computes from D-vine formula
+rv <- rvine(CopulaModel::Dvinearray(5), marg = identity)
+rv <- trunc(rv, 2)
+rv$copmat <- makeuppertri("bvncop", 2, 5, blanks = "")
+rv$cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
+udat <- fvinesim(10, rv)
 
-## C-Vine example
-A <- CopulaModel::Cvinearray(5)
-A <- truncvarray(A, 2)
-udat <- fvinesim(10, A, copmat, cparmat)
-pcondrvine(udat, 3, A, copmat, cparmat, verbose=T)  # computes from general R-vine algo
+## Compute 5|1:4. There's an algorithm for that.
+pcondrvine(udat, rv, cond=5, verbose=T)
 
-## Array doesn't have to involve all data:
-A <- CopulaModel::Dvinearray(5)
-A <- truncvarray(A, 2)
-A <- rvinesubset(A, 3:5)
-copmat <- makeuppertri("frk", 2, 3, "")
-cparmat <- makeuppertri(3:1, 2, 3)
-pcondrvine(1:5/10, 3, A, copmat, cparmat)
-pcondrvine(1:5/10, 4, A, copmat, cparmat)
-## are the same as...
-A <- CopulaModel::Dvinearray(3)
-A <- truncvarray(A, 2)
-pcondrvine(3:5/10, 1, A, copmat, cparmat)
-pcondrvine(3:5/10, 2, A, copmat, cparmat)
+## Compute 5|4. pcondrvine just uses 'pcondcop()'.
+pcondrvine(udat, rv, cond=5, vbls=c(4,5), verbose=T)
+
+## Compute 5|2:3. Two integrals takes ~13 if maxint > 1.
+pcondrvine(udat, rv, cond=5, vbls=c(2,3,5), maxint=1, verbose=T)
+
+## Compute 4|(1,2,3,5). No algorithm for that.
+pcondrvine(udat, rv, cond=4, verbose=T)
+pcondrvine(udat, rv, cond=4, maxint=0, verbose=T) # No int. tolerance
 }
 

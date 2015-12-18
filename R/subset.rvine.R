@@ -89,8 +89,14 @@ subset.rvine <- function(rv, select) {
     ## Remove columns of non-selected variables:
     Acon <- Acon[, ikeep]
     vnew <- Acon[1, ]
-    if (!is.null(copmat)) copmat <- copmat[, ikeep]
-    if (!is.null(cparmat)) cparmat <- cparmat[, ikeep]
+    if (!is.null(copmat)) {
+        copmat <- copmat[, ikeep]
+        if (!is.matrix(copmat)) copmat <- matrix(copmat, ncol = length(ikeep))
+    }
+    if (!is.null(cparmat)) {
+        cparmat <- cparmat[, ikeep]
+        if (!is.matrix(cparmat)) cparmat <- matrix(cparmat, ncol = length(ikeep))
+    }
     ## Go column-by-column, and gather variables that are in the selection set.
     unstrung <- integer(0)
     unstrung1 <- character(0)
