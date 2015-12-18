@@ -4,13 +4,13 @@
 \alias{center.rvine}
 \title{Center a Vine Array}
 \usage{
-center.rvine(rv)
+\method{center}{rvine}(rv)
 }
 \arguments{
 \item{rv}{Regular vine object.}
 }
 \value{
-A vine array with the same dimensions as \code{A}.
+A regular vine, with variables reordered.
 }
 \description{
 Converts a vine array \code{A} so that the first variables (up to
@@ -25,5 +25,32 @@ introduced in the outputted array are not leaves.
 If \code{t = ncol(A)-1}, then the entered vine isn't truncated, and the
 first \code{t-1} variables in the outputted array are not leaves (in fact,
 a natural order array is outputted, since it satisfies that requirement).
+}
+\examples{
+## Setup a vine.
+A <- CopulaModel::Dvinearray(5)
+copmat <- makeuppertri(c("gum", "mtcj", "gal", "joe",
+                         "frk", "gum", "bb7",
+                         "bb1", "indepcop",
+                         "bb8"), 4, 5, "")
+cparmat <- makeuppertri.list(c(3, 2.5, 2, 1.5,
+                               1, 1.3, 2, 2,
+                               3, 4,
+                               5, 0.5),
+                             len = c(1,1,1,1,1,1,2,2,0,2),
+                             4, 5)
+(rv <- rvine(A, copmat, cparmat,
+             list(pexp, identity, pnorm, pexp, sqrt)))
+
+## Center it. Since it's a complete vine, the output is in natural order:
+center(rv)
+
+## Center a truncated vine:
+center(trunc(rv, 2))
+
+## It works in these cases too:
+center(trunc(rv, 0))
+center(subset(rv, 5))
+center(subset(rv, integer(0)))
 }
 
