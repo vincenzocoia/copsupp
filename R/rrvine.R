@@ -1,7 +1,8 @@
 #' Simulate from a Regular Vine
 #'
 #' Simulate from a Regular Vine. Essentially a wrapper
-#' for \code{\link{rvinesimvec2}}.
+#' for \code{\link{rvinesimvec2}}. NOTE: Marginals not working yet, so
+#' data are marginally Uniform.
 #'
 #' @param n Number of observations to generate
 #' @param rv Regular vine object, complete.

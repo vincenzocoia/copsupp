@@ -19,7 +19,8 @@ Matrix with \code{n} rows and \code{max(vars(rv))} columns.
 }
 \description{
 Simulate from a Regular Vine. Essentially a wrapper
-for \code{\link{rvinesimvec2}}.
+for \code{\link{rvinesimvec2}}. NOTE: Marginals not working yet, so
+data are marginally Uniform.
 }
 \details{
 The vine variables \code{vars(rv)} are the column numbers of the outputted
