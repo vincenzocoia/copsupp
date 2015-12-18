@@ -1,53 +1,23 @@
 # Issues, Future Directions, and Ideas
 
-1. The package needs a consistent naming convention:
-	* `relabel.varray()` and `truncvarray()` are inconsistent -- the latter is missing a period (but that's because if there's a period, `roxygen` (I believe) wants to make it an S3 object.
-	* `rvinesubset()` is not of the form `verb.object()` like the others tend to be.
-	* When is it appropriate to use `"varray"` or `"rvine"`? 
-		* And should `"vine"` be used instead of `"rvine"`, for simplicity? 
-	* May want to give a name to the "convenient vine arrays" which put the labels on top. Would need to rename `Atocon()` and `contoA()` too to reflect that.
+1. It might be useful to have a function to check whether a vine (including the array) is valid (like in `CopulaModel`, but allowing for truncated vines).
 
-2. It might be useful to have a function to check whether a vine array is valid (like in `CopulaModel`, but allowing for truncated vines).
-
-3. It might be useful to somehow add functionality so that `U-V` asymmetric copulas can be used:
+2. It might be useful to somehow add functionality so that `U-V` asymmetric copulas can be used:
 	* In addition to the 4 possible reflections, there's also the `U-V` flip for those -- meaning that there's 8 copula families in total. Are the latter 4 really needed?
 	* Involves being careful about what variable comes first when specifying a vine edge, and getting the copula right when the vine array is moved around (such as re-leafing).
 
-4. As more functionality is developed, it might be useful to work with "vine objects", which would contain the vine array, copula model matrix, and copula parameter matrix instead of working with each separately (and it should also contain the marginals too). They should be specified in that order, with the possibility that "upstream" features (like the copula parameter matrix, or both copula and parameter matrices) are unspecified and therefore unknown.
-	* Make a constructor function. Call the class `"rvine"`, and the corresponding constructor function `rvine()`. Examples of constructor functions are `data.frame()` and `factor()`. 
-	* `reform.copmat()` would not be needed anymore.
+3. Package should probably be renamed "rvine".
 
-5. It might be useful to change the format of the copula families so that **number of parameters** and **parameter space** can be extracted (so that the user doesn't have to look it up all the time). Here are some ideas:
-	* Could add that info as 'attributes' for each function. 
-		* Problem: too many functions to do this too!
-	* Instead of having a bunch of functions for each family under a naming convention, make a single object that is a list of such functions. This list could also contain this additional info. 
-		* For example, `frk$pcop` and `frk$qcond` for the cdf and conditional quantile functions, and `frk$npar` and `frk$parspace` for number of parameters and parameter space.
-		* Problem: That's a lot that would need changing.
-	* Have objects come with the `copsupp` package that contains this information. Specifically:
-		* `cparspacecop()` can be a function that takes the parameter vector and return `TRUE` if it's in the parameter space copula "cop", and `FALSE` otherwise.
-		* `ncparcop` or `nparcop` can be integer objects carrying the number of parameters family "cop" accepts. Or maybe put all that info in one list called `ncpar` to be used like `ncpar$cop`. Or just have it as a function that takes no arguments, like `ncparcop()`. Or have one function that accepts the copula name as an argument.
-
-6. `fvinesim()` does not work when an independence copula is in the mix.
-	* Solution: trick `CopulaModel` by substituting the independence copula with a copula family with a parameter such that it equals the independence copula.
-
-7. After writing the vignette, it's clear that the main objective of `copsupp` is to mirror the suite of functions that exists for a copula family like `"frk"`, except for a regular vine. Perhaps the package name should be modified to reflect that.
-	* Or, is the purpose a bit broader than that?
-
-8. The vignette needs to be improved:
+4. The vignette needs to be improved:
 	* It contains too much extraneous information that would only be useful for developers.
 	* (This might follow from the previous downfall) it reads more like a pile of information, as opposed to a meaningful "story" that communicates what a user would want to use the package for. 
+	* Get the vignette working so that, upon typing `vignette('copsupp')` in R, the vignette appears.
 
-9. Get the vignette working so that, upon typing `vignette('copsupp')` in R, the vignette appears.
+5. `fit.rvine()` outputs a different vine array depending on the order of the variables input into the `vars` argument. It shouldn't.
 
-10. Incorporate `CopulaModel`'s `cparbound()` function in the `cparspace()` function of `copsupp`. 
+6. `qcondrvine()` would be handy to have in some situations.
 
-11. `fit.rvine()` outputs a different vine array depending on the order of the variables input into the `vars` argument. It shouldn't.
-
-12. `pcondrvine()` would be awfully handy if it had the capability to work with subsets of the data instead of all the data. So, choose the conditioned variables too. It would also be useful if the input was a "vine object", instead of its components individually.
-
-13. `qcondrvine()` would be handy to have in some situations.
-
-14. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
+7. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
 	* Forces you to use a pre-defined set of bivariate copula families.
 	* Doesn't let you choose the copula model matrix. It would even be nice to be able to choose _parts_ of the copula model matrix too.
 	* (Also with `BiCopSelect()`) Puts negative parameters on 90- or 270-degree rotated copulas, but those models actually have positive parameters. 

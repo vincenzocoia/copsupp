@@ -59,6 +59,14 @@ rrvine <- function(n, rv, iprint=FALSE){
   }
   ## ntrunc: Truncation of the vine (can't be more than d-1)
   ntrunc <- nrow(A) - 1
+  ## If there are any independence copulas, trick rvinesimvec2() by putting
+  ##  a copula family with parameter that gives independence copula.
+  for (i in 1:ntrunc) for (j in (i+1):d) {
+      if (copmat[i, j] == "indepcop") {
+          copmat[i, j] <- "new"
+          cparmat[i, j][[1]] <- 0
+      }
+  }
   ## np: Dimension of the copula parameters
   np <- apply(cparmat, 1:2, length)
   ## qcondmat, pcondmat, parvec:
