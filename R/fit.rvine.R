@@ -7,135 +7,148 @@
 #' copula models are chosen and fit using \code{RVineCopSelect} in the
 #' \code{VineCopula} package.
 #'
-#' @param xdat Matrix of data; columns represent variables, and rows observations.
-#' @param vars Vector of integers specifying the column numbers of \code{xdat}
+#' @param dat Matrix of data having Uniform marginal distributions;
+#' columns represent variables, and rows observations.
+#' @param rv Object of class "rvine", representing a pre-specification of the
+#' vine to fit. Or, \code{NULL} for fully unspecified. See details.
+#' @param var Vector of integers specifying the column numbers of \code{dat}
 #' to fit a model to. Default is all variables.
-#' @param ntrunc Integer, either \code{1, 2, ...,ncol(xdat)-1},
+#' @param ntrunc Integer, either \code{1, 2, ...,ncol(dat)-1},
 #' of the truncation level of the vine to be fit.
-#' @param margs List of vectorized functions of the univariate marginal cdf's of
-#' the data, in the order of the columns. Or a single function if the cdf's
-#' are all the same.
-#' @param A If you know the vine array that you want to use, put it here.
-#' Labels should correspond to column numbers of \code{xdat}. Otherwise,
-#' leave it \code{NULL}.
 #' @param families A vector of copula family names to try
 #' fitting (will also consider their rotations/reflections). Limited to
 #' those families available in \code{VineCopula} package, listed in
 #' \code{\link{BiCopSelect}}.
 #' @param ... Other arguments to pass to \code{VineCopula::RVineCopSelect}.
-#' @note Because of some conflict between the deprecated package \code{igraph0}
-#' (used by package \code{CopulaModel})
-#' and the newer package \code{igraph} (used by package \code{VineCopula}),
-#' this function can only be run a maximum of one time.
-#' Run it more and you'll get an error.
-#' @return A list with three entries:
+#' @return A "fitrvine" object, which has class \code{c("fitrvine", "rvine")},
+#' which is a named list of the following:
 #'
 #' \itemize{
-#'      \item \code{$cdf}: List of length \code{ncol(xdat)} of the marginal
-#'      distribution functions, as input in \code{margs}.
 #'      \item \code{$A}: Vine array, truncated to \code{ntrunc}.
 #'      \item \code{$copmat}: \code{ntrunc x ncol(A)} upper-triangular
 #'      matrix of copula model names.
 #'      \item \code{$cparmat}: \code{ntrunc x ncol(A)} upper-triangular
-#'      matrix of copula parameters. If at least one copula family has more or
-#'      less parameters than 1, each entry is a list of length one containing
+#'      matrix of copula parameters. Each entry is a list of length one containing
 #'      the vector of copula parameters for that copula family.
+#'      \item \code{$dat}: The inputted data matrix, \code{dat}.
+#'      \item \code{$aic}: The AIC of the fitted model.
+#'      \item \code{$bic}: The BIC of the fitted model.
+#'      \item \code{$nllh}: The negative log likelihood of the fitted model.
+#'      \item \code{$covmat}: Covariance matrix of the fitted parameters (in
+#'      reading-order of the parameters, i.e.
+#'      \code{c(t(cparmat)[lower.tri(t(cparmat))], recursive=TRUE)}).
+#' }
+#' @details
+#' If you want to specify parts of the vine, then specify them in an "rvine" object
+#' (see \code{\link{rvine}}):
+#'
+#' \enumerate{
+#'      \item Your first option is to specify the vine array \code{A}.
+#'      \item If the vine array is specified, then you can specify some or all
+#'      of the copula families by putting them in \code{copmat}. Leave
+#'      unspecified edges as \code{NA}.
+#'      \item If there are copula families specified, you can specify parameters
+#'      for those families by putting the parameters in \code{cparmat}.
+#'      Unspecified parameters should be \code{NA}.
 #' }
 #'
-#' Note that the \code{$cdf} output is listed so that the position of the cdf
-#' in the list corresponds to the integer labels in \code{$A}.
-#' This might change in the future if it's more convenient or sensible
-#' to only listing the cdfs for variables in \code{$A}.
-#' @details For the \code{familyset} argument, the default is almost all of
-#' the families available. It just doesn't include the Tawn copula families.
+#' For parts of the vine that are unspecified, you have some fitting options:
 #'
-#' Note that you'll need the \code{igraph} package installed.
+#' \itemize{
+#'      \item If you didn't specify a vine array \code{A}, you can select which
+#'      variables (column numbers of \code{dat}) you'd like to fit through the
+#'      \code{var} argument. You can also select the truncation level of
+#'      the vine array through the argument \code{ntrunc}.
+#'      \item If you left some copula families unspecified, you can indicate
+#'      the candidate families in the \code{families} argument.
+#' }
+#' @import igraph, CopulaModel, VineCopula
 #' @examples
 #' ## Get some simulated data:
 #' set.seed(152)
 #' ntrunc <- 2
-#' p <- 4
-#' A0 <- truncvarray(CopulaModel::Dvinearray(p), ntrunc)
-#' copmat0 <- makeuppertri("frk", ntrunc, p, "")
-#' cparmat0 <- makeuppertri(3, ntrunc, p)
+#' d <- 4
+#' A0 <- truncvarray(CopulaModel::Dvinearray(d), ntrunc)
+#' copmat0 <- makeuppertri("frk", ntrunc, d, "")
+#' cparmat0 <- makeuppertri(3, ntrunc, d)
 #' dat <- fvinesim(100, A0, copmat0, cparmat0)
 #'
 #' ## Fit a model to the data:
 #' fit.rvine(dat, ntrunc=ntrunc)
 #' fit.rvine(dat, c(4, 2, 3))
 #' @export
-fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
-                      margs = identity, A = NULL,
-                      families = c("bvncop","bvtcop","mtcj","gum","frk","joe","bb1","bb7","bb8"), ...) {
-    familyset = sort(unique(c(copname2num(families), recursive = TRUE)))
-    if (is.vector(xdat)) xdat <- matrix(xdat, ncol = 1)
-    if (is.data.frame(xdat)) xdat <- as.matrix(xdat)
-    p_all <- ncol(xdat)
-    n <- nrow(xdat)
-    p <- length(vars)
-    ## Marginals:
-    if (length(margs) == 1) margs <- rep(list(margs), p_all)
-    if (p == 1){
-        return(list(cdf=margs, A=matrix(vars), copmat=matrix(""), cparmat=matrix(0)))
-    }
-    ## Uniformize and subset data
-    for (col in vars) xdat[, col] <- margs[[col]](xdat[, col])
-    xdat <- xdat[, vars]
-    ## Get vine array to input to RVineCopSelect. Call it `A1` instead of `A`
-    ##  because I'll use the output matrix of RVineCopSelect (which *should*
-    ##  always be the same anyway).
-    if (!is.null(A)) {
-        ntruncspec <- nrow(A) - 1
-        d <- ncol(A)
-        if (ntruncspec < d-1) {
-            warning("No functionality for pre-specifying a truncated vine array yet.")
-            A1 <- NULL
-        } else {
-            A1 <- A
-        }
+fitrvine <- function(dat, rv = NULL, var = 1:ncol(dat), ntrunc = ncol(dat)-1,
+                     families = c("bvncop","bvtcop","mtcj","gum","frk","joe","bb1","bb7","bb8"), ...) {
+    ## Look at input
+    if (is.data.frame(dat)) dat <- as.matrix(dat)
+    n <- nrow(dat)
+    if (is.null(rv)) {
+        d <- length(var)
     } else {
-        A1 <- A
+        var <- vars(rv)
+        d <- length(var)
     }
-    if (is.null(A1)) {
-        if (p == 2) {
-            A1 <- matrix(c(1,0,1,2), ncol = 2) # Needs to have labels = 1:2.
-        } else {
-            ## Get correlation matrix
-            cormat <- cor(qnorm(xdat))
-            ## Choose vine array
-            library(igraph)
-            arrayfit <- CopulaModel::gausstrvine.mst(cormat, ntrunc)
-            A1 <- arrayfit$RVM$VineA
-        }
+    ## The trivial case
+    if (d == 1 | d == 0) {
+        res <- rvine(matrix(var))
+        res <- c(res, dat=dat, aic=NA, bic=NA, nllh=NA, covmat=NA)
+        class(res) <- c("fitrvine", "rvine")
+        return(res)
+    }
+    if (ntrunc == 0) {
+        res <- rvine(matrix(var, nrow=1))
+        res <- c(res, dat=dat, aic=NA, bic=NA, nllh=NA, covmat=NA)
+        class(res) <- c("fitrvine", "rvine")
+        return(res)
     }
 
-    ## Now get and fit copulas
-    capture.output(vinefit <- VineCopula::RVineCopSelect(xdat,
-                                                         familyset = familyset,
-                                                         Matrix = A1,
-                                                         trunclevel = ntrunc,
-                                                         ...))
+    ## Get specified things
+    if (is.null(rv)) {
+        ## Get vine array
+        if (d == 2) {
+            A <- matrix(c(1,0,1,2), ncol = 2) # Needs to have labels = 1:2.
+        } else {
+            ## Get correlation matrix
+            cormat <- cor(qnorm(dat[, var]))
+            ## Choose vine array
+            arrayfit <- gausstrvine.mst(cormat, ntrunc)
+            A <- arrayfit$RVM$VineA
+        }
+        ## Indicate blank copmat and cparmat
+        copmat <- NULL
+        cparmat <- NULL
+    } else {
+        ## Change labels to 1:d
+        A <- relabel(rv, 1:d)$A
+        ## Fill-in truncated part:
+        A <- rbind(A, matrix(0, nrow = d - ntrunc - 1, ncol = d))
+        diag(A) <- 1:d
+    }
+    familyset = sort(unique(c(copname2num(families), recursive = TRUE)))
+    ## Now get and fit copulas. We'll use RVineCopSelect() for now, which
+    ##  means we'll fit the entire vine first and then replace the fit
+    ##  with the pre-specified things. It's not ideal but it's a start.
+    ##  (use capture.output() to keep RVineCopSelect() quiet)
+    capture.output(vinefit <- RVineCopSelect(dat,
+                                             familyset = familyset,
+                                             Matrix = A,
+                                             trunclevel = ntrunc,
+                                             ...))
     ## Extract things.
-    #### Vine array -- it should be the same as A1. Truncate it if need be.
-    A <- vinefit$Matrix[p:1, p:1]
-    if (!identical(A, A1))
-        warning(paste("The vine array output by RVineCopSelect is different",
-                      "than what was input. Using the output anyway, but you",
-                      "might want to investigate why."))
-    A <- truncvarray(A, ntrunc)
-    #### copmat
-    copmatind <- vinefit$family[(p:1)[1:ntrunc], p:1]
-    if (!is.matrix(copmatind)) copmatind <- matrix(copmatind, ncol = p)
+    #### 1. copmat
+    copmatind <- vinefit$family[(d:1)[1:ntrunc], d:1]
+    if (!is.matrix(copmatind)) copmatind <- matrix(copmatind, ncol = d)
     copmat <- apply(copmatind, 1:2, copnum2name)
     copmat[!upper.tri(copmat)] <- ""
+    #### Replace copulas with specified copulas:
     #### cparmat
-    parmat1 <- vinefit$par[(p:1)[1:ntrunc], p:1]
-    parmat2 <- vinefit$par2[(p:1)[1:ntrunc], p:1]
-    if (!is.matrix(parmat1)) parmat1 <- matrix(parmat1, ncol = p)
-    if (!is.matrix(parmat2)) parmat2 <- matrix(parmat2, ncol = p)
+    parmat1 <- vinefit$par[(d:1)[1:ntrunc], d:1]
+    parmat2 <- vinefit$par2[(d:1)[1:ntrunc], d:1]
+    if (!is.matrix(parmat1)) parmat1 <- matrix(parmat1, ncol = d)
+    if (!is.matrix(parmat2)) parmat2 <- matrix(parmat2, ncol = d)
     parvec <- numeric(0)
     len <- integer(0)
-    for (i in 1:ntrunc) for (j in (i+1):p) {
+    for (i in 1:ntrunc) for (j in (i+1):d) {
         if (parmat1[i, j] == 0) {
             len <- c(len, 0)
         } else {
@@ -149,9 +162,9 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
         }
     }
     if (all(len == 1)) {
-        cparmat <- makeuppertri(parvec, nrow = ntrunc, ncol = p)
+        cparmat <- makeuppertri(parvec, nrow = ntrunc, ncol = d)
     } else {
-        cparmat <- makeuppertri.list(parvec, len, nrow = ntrunc, ncol = p)
+        cparmat <- makeuppertri.list(parvec, len, nrow = ntrunc, ncol = d)
     }
     ## It seems that, when RVineCopSelect fits a 90- or 270-degree rotated
     ##  copula, it also makes the parameters negative. Need to fix this.
@@ -177,7 +190,24 @@ fit.rvine <- function(xdat, vars = 1:ncol(xdat), ntrunc = ncol(xdat)-1,
     ## Output results
     Avars <- varray.vars(A)
     list(cdf=margs,
-         A=relabel.varray(A, vars[Avars]),
+         A=relabel.varray(A, var[Avars]),
          copmat=copmat,
          cparmat=cparmat)
 }
+
+#' @export
+print.fitrvine <- function(rv) {
+    d <- ncol(rv$A)
+    if (d == 0) return(cat("Empty fitted vine: no variables."))
+    v <- var(rv)
+    ntrunc <- nrow(rv$A) - 1
+    if (ntrunc == 0) {
+        trunctext <- "Independent 'fitted'"
+    } else {
+        trunctext <- paste0(ntrunc, "-truncated fitted")
+    }
+    cat(paste0(trunctext, " vine with variables ", paste(v, collapse = ", "), ".\n"))
+    cat(paste0("aic,bic: ", rv$aic, ",", rv$bic, "\n"))
+    invisible()
+}
+

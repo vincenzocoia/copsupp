@@ -41,12 +41,20 @@ rvine <- function(A, copmat = NULL, cparmat = NULL, marg = identity) {
         return(structure(list(A=A, copmat=NA, cparmat=NA, marg=NA), class = "rvine"))
     }
     if (d == 1) {
-        return(structure(list(A=A, copmat=matrix(nrow=0, ncol=1),
-                         cparmat=matrix(nrow=0, ncol=1), marg = marg),
+        return(structure(list(A=A,
+                              copmat=matrix(nrow=0, ncol=1),
+                              cparmat=matrix(nrow=0, ncol=1), marg = marg),
+                         class = "rvine"))
+    }
+    ntrunc <- nrow(A) - 1
+    if (ntrunc == 0) {
+        return(structure(list(A=A,
+                              copmat=matrix(nrow=0, ncol=d),
+                              cparmat=matrix(nrow=0, ncol=d),
+                              marg=marg),
                          class = "rvine"))
     }
     ## Next, construct the copula matrix if not already done.
-    ntrunc <- nrow(A) - 1
     if (ntrunc == 0){
         copmat <- matrix(nrow = 0, ncol = d)
         cparmat <- matrix(nrow = 0, ncol = d)
