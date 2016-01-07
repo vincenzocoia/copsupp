@@ -8,6 +8,5 @@ Maintainer: Vincenzo Coia <vincen.coia@stat.ubc.ca>
 Description: Makes it easy to work with vine copula models.
 License: MIT
 LazyData: TRUE
-Imports: CopulaModel, copreg, VineCopula, igraph
 Suggests: knitr
 VignetteBuilder: knitr

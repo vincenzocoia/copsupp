@@ -119,7 +119,7 @@ pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FAL
                 ## Use Bo's function
                 Aleaf <- subrvleaf$A
                 ## Fill-in vine array so it's d x d
-                Aleaf <- rbind(Aleaf, matrix(0, nrow = d - ntrunc - 1, ncol = d))
+                Aleaf <- rbind(Aleaf, matrix(0, nrow = d - nrow(Aleaf), ncol = d))
                 diag(Aleaf) <- 1:d
                 ## parvec
                 # parvec <- c(t(cparmat), recursive = TRUE)

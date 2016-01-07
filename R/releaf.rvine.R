@@ -69,18 +69,18 @@ releaf.rvine <- function(rv, leaf) {
             Anew[d, d] <- A[d-1, d-1]
             Anew[d, d-1] <- 0
             Anew[d-1, d] <- Anew[d-1, d-1]
-            ## Swap top d-1 portion of last two columns of copula and param matrices:
+            ## Swap top ntrunc-1 portion of last two columns of copula and param matrices:
             if (!is.null(copmatnew)) {
-                one <- copmatnew[1:(d-1), d-1]
-                two <- copmatnew[1:(d-1), d]
-                copmatnew[1:(d-1), d-1] <- two
-                copmatnew[1:(d-1), d] <- one
+                one <- copmatnew[1:(ntrunc-1), d-1]
+                two <- copmatnew[1:(ntrunc-1), d]
+                copmatnew[1:(ntrunc-1), d-1] <- two
+                copmatnew[1:(ntrunc-1), d] <- one
             }
             if (!is.null(cparmatnew)) {
-                one <- cparmatnew[1:(d-1), d-1]
-                two <- cparmatnew[1:(d-1), d]
-                cparmatnew[1:(d-1), d-1] <- two
-                cparmatnew[1:(d-1), d] <- one
+                one <- cparmatnew[1:(ntrunc-1), d-1]
+                two <- cparmatnew[1:(ntrunc-1), d]
+                cparmatnew[1:(ntrunc-1), d-1] <- two
+                cparmatnew[1:(ntrunc-1), d] <- one
             }
             ## Swap marginals
             margnew <- rvc$marg
