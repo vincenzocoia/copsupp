@@ -77,17 +77,117 @@
 #' fit.rvine(dat, ntrunc=ntrunc)
 #' fit.rvine(dat, c(4, 2, 3))
 #' @export
-fitrvine <- function(dat, rv = NULL, var = 1:ncol(dat), ntrunc = ncol(dat)-1,
-                     families = c("bvncop","bvtcop","mtcj","gum","frk","joe","bb1","bb7","bb8"), ...) {
+fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
     ## Look at input
     if (is.data.frame(dat)) dat <- as.matrix(dat)
     n <- nrow(dat)
-    if (is.null(rv)) {
-        d <- length(var)
+    var <- layer$var
+    ## If no layers are being added, output the base vine.
+    if (length(var) == 0) if (is.null(basevine)) {
+        res <- rvine(matrix(nrow=0, ncol=0))
+        return(rvine2fitrvine(dat, res))
     } else {
-        var <- vars(rv)
-        d <- length(var)
+        if (is.fitrvine(basevine)) {
+            return(basevine)
+        } else {
+            return(rvine2fitrvine(dat, basevine))
+        }
     }
+    ## If there's no base vine, then make the base vine consist of the first variable.
+    if (is.null(basevine)) {
+        basevine <- rvine2fitrvine(dat, rvine(matrix(var[1])))
+        var <- var[-1]
+    }
+    if (length(var) == 0) return(basevine)
+    ## What variables are in the base vine?
+    var_base <- vars(basevine)
+    if (length(intersect(var, var_base)) == 0)
+        stop(paste0("Variables ", paste(intersect(var, var_base), collapse=", "),
+                    " already exist in the base vine."))
+    var_all <- c(var_base, var)
+    if (max(var_all) > ncol(dat))
+        stop(paste0("The variable(s) ",
+                    paste(var_all[var_all>ncol(dat)], collapse=", "),
+                    " refer to columns that do not exist in 'dat'."))
+    ## We now have a fitted base vine with at least one variable, and at least one other
+    ##  variable is being added. We first need to get an array, then chooose
+    ##  and fit copula models. We'll do so by adding one variable at a time.
+    ## Setup:
+    #### Truncation and vine array
+    A_base <- basevine$A
+    A <- layer$A
+    if (is.null(A)) {
+        ntrunc <- layer$ntrunc
+        maxtrunc <- length(var_base) + 1:length(var) - 1
+        if (is.null(ntrunc)) ntrunc <- maxtrunc
+        if (length(ntrunc) == 1) ntrunc <- rep(ntrunc, length(var))
+        ntrunc <- pmin(ntrunc, maxtrunc)
+        A <- do.call(makevinemat, lapply(ntrunc, function(ntrunc_) rep(NA, ntrunc_+1)))
+        A[1, ] <- var
+    } else {
+        ntrunc <- apply(A, 2, function(col) nrow(A) - 1 - sum(col == 0, na.rm = TRUE))
+    }
+    #### Copula Matrix
+    copmat <- layer$cops
+    if (is.null(copmat)) {
+        cop_layers <- lapply(ntrunc, function(ntrunc_) rep(list(layer$families), ntrunc_))
+        copmat <- do.call(makevinemat, c(cop_layers, zerocol = TRUE))
+    }
+    #### Copula parameter matrix
+    cparmat <- layer$cpars
+    if (is.null(cparmat)) {
+        cpar_layers <- lapply(ntrunc, function(ntrunc_) rep(list(NA), ntrunc_))
+        cparmat <- do.call(makevinemat, c(cpar_layers, zerocol = TRUE))
+    }
+    ## Now add the layers.
+    for (j in 1:length(var)) {
+        var_ <- var[j]
+        ## --- 1. Vine array ---
+        ## In this section, we'll fill-in the missing parts
+        ##  of the original vine array in the order of
+        ##  highest partial correlation (approximated by lm()).
+        for (i in 1+1:ntrunc[j]) if (is.na(A[i, j])) {
+            ## Choose the entry w/ highest partial correlation (approximated by lm()).
+            condset <- A[1+seq_len(i-1), j]
+            candidatevars <- setdiff(var_base, condset)
+            y <- qnorm(dat[, var_])
+            x <- qnorm(dat[, candidatevars])
+            if (!is.matrix(x)) x <- matrix(x, ncol = 1)
+            cond <- qnorm(dat[, condset])
+            if (length(condset) != 0) {
+                y <- lm(y ~ cond)$residuals
+                names(y) <- NULL
+                x <- apply(x, 2, function(x_) {
+                    res <- lm(x_ ~ cond)$residuals
+                    names(res) <- NULL
+                    res
+                })
+            }
+            cors <- cor(x, y)
+            A[i, j] <- candidatevars[which(cors == max(cors))]
+        }
+        ## We now have a completed column in A.
+        ## --- 2. Fit the new layer ---
+        ## Copula families
+        fams <- copmat[1:ntrunc[j], j]
+        if (!is.list(fams)) fams <- as.list(fams)
+        fams <- lapply(fams, function(vec) if (all(is.na(vec))) layer$families else vec)
+        ## Parameters
+        speccpar <- cparmat[1:ntrunc[j], j]
+        if (!is.list(speccpar)) speccpar <- as.list(speccpar)
+        fitlayer_ <- fitlayer(dat, basevine, edges = A[1+0:ntrunc[j], j],
+                              cops = fams, cpars = speccpar)
+        ## --- 3. Update ---
+        ## Update the base vine with the new layer
+
+    }
+    ## Re-estimate the layers altogether (they were originally done edge-by-edge)
+
+
+
+
+
+
     ## The trivial case
     if (d == 1 | d == 0) {
         res <- rvine(matrix(var))
@@ -211,3 +311,7 @@ print.fitrvine <- function(rv) {
     invisible()
 }
 
+#' @export
+is.fitrvine <- function(rv) {
+    inherits(rv, "fitrvine")
+}

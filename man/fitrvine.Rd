@@ -4,13 +4,13 @@
 \alias{fitrvine}
 \title{Fit a Vine Model}
 \usage{
-fitrvine(dat, rv = NULL, var = 1:ncol(dat), ntrunc = ncol(dat) - 1,
-  families = c("bvncop", "bvtcop", "mtcj", "gum", "frk", "joe", "bb1", "bb7",
-  "bb8"), ...)
+fitrvine(dat, layer = layeropts(1:ncol(dat)), basevine = NULL, ...)
 }
 \arguments{
 \item{dat}{Matrix of data having Uniform marginal distributions;
 columns represent variables, and rows observations.}
+
+\item{...}{Other arguments to pass to \code{VineCopula::RVineCopSelect}.}
 
 \item{rv}{Object of class "rvine", representing a pre-specification of the
 vine to fit. Or, \code{NULL} for fully unspecified. See details.}
@@ -25,8 +25,6 @@ of the truncation level of the vine to be fit.}
 fitting (will also consider their rotations/reflections). Limited to
 those families available in \code{VineCopula} package, listed in
 \code{\link{BiCopSelect}}.}
-
-\item{...}{Other arguments to pass to \code{VineCopula::RVineCopSelect}.}
 }
 \value{
 A "fitrvine" object, which has class \code{c("fitrvine", "rvine")},

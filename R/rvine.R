@@ -109,3 +109,8 @@ print.rvine <- function(rv) {
         cat("\nUniform margins.")
     invisible()
 }
+
+#' @export
+is.rvine <- function(rv) {
+    inherits(rv, "rvine")
+}
