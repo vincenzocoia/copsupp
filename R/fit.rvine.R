@@ -77,6 +77,8 @@
 #' fit.rvine(dat, ntrunc=ntrunc)
 #' fit.rvine(dat, c(4, 2, 3))
 #' @export
+
+
 fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
     ## Look at input
     if (is.data.frame(dat)) dat <- as.matrix(dat)
@@ -133,12 +135,14 @@ fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
         cop_layers <- lapply(ntrunc, function(ntrunc_) rep(list(layer$families), ntrunc_))
         copmat <- do.call(makevinemat, c(cop_layers, zerocol = TRUE))
     }
+    copmatnew <- copmat
     #### Copula parameter matrix
     cparmat <- layer$cpars
     if (is.null(cparmat)) {
         cpar_layers <- lapply(ntrunc, function(ntrunc_) rep(list(NA), ntrunc_))
         cparmat <- do.call(makevinemat, c(cpar_layers, zerocol = TRUE))
     }
+    cparmatnew <- cparmat
     ## Now add the layers.
     for (j in 1:length(var)) {
         var_ <- var[j]
@@ -146,26 +150,9 @@ fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
         ## In this section, we'll fill-in the missing parts
         ##  of the original vine array in the order of
         ##  highest partial correlation (approximated by lm()).
-        for (i in 1+1:ntrunc[j]) if (is.na(A[i, j])) {
-            ## Choose the entry w/ highest partial correlation (approximated by lm()).
-            condset <- A[1+seq_len(i-1), j]
-            candidatevars <- setdiff(var_base, condset)
-            y <- qnorm(dat[, var_])
-            x <- qnorm(dat[, candidatevars])
-            if (!is.matrix(x)) x <- matrix(x, ncol = 1)
-            cond <- qnorm(dat[, condset])
-            if (length(condset) != 0) {
-                y <- lm(y ~ cond)$residuals
-                names(y) <- NULL
-                x <- apply(x, 2, function(x_) {
-                    res <- lm(x_ ~ cond)$residuals
-                    names(res) <- NULL
-                    res
-                })
-            }
-            cors <- cor(x, y)
-            A[i, j] <- candidatevars[which(cors == max(cors))]
-        }
+        A[1:(ntrunc[j]+1), j] <- fitseq(dat, A[1, j],
+                                        linkwith = A[1, 1:j],
+                                        a = A[1+1:ntrunc[j], j])
         ## We now have a completed column in A.
         ## --- 2. Fit the new layer ---
         ## Copula families
@@ -179,7 +166,7 @@ fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
                               cops = fams, cpars = speccpar)
         ## --- 3. Update ---
         ## Update the base vine with the new layer
-
+        cparmat[]
     }
     ## Re-estimate the layers altogether (they were originally done edge-by-edge)
 
@@ -188,111 +175,111 @@ fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
 
 
 
-    ## The trivial case
-    if (d == 1 | d == 0) {
-        res <- rvine(matrix(var))
-        res <- c(res, dat=dat, aic=NA, bic=NA, nllh=NA, covmat=NA)
-        class(res) <- c("fitrvine", "rvine")
-        return(res)
-    }
-    if (ntrunc == 0) {
-        res <- rvine(matrix(var, nrow=1))
-        res <- c(res, dat=dat, aic=NA, bic=NA, nllh=NA, covmat=NA)
-        class(res) <- c("fitrvine", "rvine")
-        return(res)
-    }
-
-    ## Get specified things
-    if (is.null(rv)) {
-        ## Get vine array
-        if (d == 2) {
-            A <- matrix(c(1,0,1,2), ncol = 2) # Needs to have labels = 1:2.
-        } else {
-            ## Get correlation matrix
-            cormat <- cor(qnorm(dat[, var]))
-            ## Choose vine array
-            arrayfit <- gausstrvine.mst(cormat, ntrunc)
-            A <- arrayfit$RVM$VineA
-        }
-        ## Indicate blank copmat and cparmat
-        copmat <- NULL
-        cparmat <- NULL
-    } else {
-        ## Change labels to 1:d
-        A <- relabel(rv, 1:d)$A
-        ## Fill-in truncated part:
-        A <- rbind(A, matrix(0, nrow = d - ntrunc - 1, ncol = d))
-        diag(A) <- 1:d
-    }
-    familyset = sort(unique(c(copname2num(families), recursive = TRUE)))
-    ## Now get and fit copulas. We'll use RVineCopSelect() for now, which
-    ##  means we'll fit the entire vine first and then replace the fit
-    ##  with the pre-specified things. It's not ideal but it's a start.
-    ##  (use capture.output() to keep RVineCopSelect() quiet)
-    capture.output(vinefit <- RVineCopSelect(dat,
-                                             familyset = familyset,
-                                             Matrix = A,
-                                             trunclevel = ntrunc,
-                                             ...))
-    ## Extract things.
-    #### 1. copmat
-    copmatind <- vinefit$family[(d:1)[1:ntrunc], d:1]
-    if (!is.matrix(copmatind)) copmatind <- matrix(copmatind, ncol = d)
-    copmat <- apply(copmatind, 1:2, copnum2name)
-    copmat[!upper.tri(copmat)] <- ""
-    #### Replace copulas with specified copulas:
-    #### cparmat
-    parmat1 <- vinefit$par[(d:1)[1:ntrunc], d:1]
-    parmat2 <- vinefit$par2[(d:1)[1:ntrunc], d:1]
-    if (!is.matrix(parmat1)) parmat1 <- matrix(parmat1, ncol = d)
-    if (!is.matrix(parmat2)) parmat2 <- matrix(parmat2, ncol = d)
-    parvec <- numeric(0)
-    len <- integer(0)
-    for (i in 1:ntrunc) for (j in (i+1):d) {
-        if (parmat1[i, j] == 0) {
-            len <- c(len, 0)
-        } else {
-            parvec <- c(parvec, parmat1[i, j])
-            if (parmat2[i, j] != 0) {
-                parvec <- c(parvec, parmat2[i, j])
-                len <- c(len, 2)
-            } else {
-                len <- c(len, 1)
-            }
-        }
-    }
-    if (all(len == 1)) {
-        cparmat <- makeuppertri(parvec, nrow = ntrunc, ncol = d)
-    } else {
-        cparmat <- makeuppertri.list(parvec, len, nrow = ntrunc, ncol = d)
-    }
-    ## It seems that, when RVineCopSelect fits a 90- or 270-degree rotated
-    ##  copula, it also makes the parameters negative. Need to fix this.
-    ## joe; mtcj; gum; bb1; bb6; bb7; bb8
-    for (i in 1:nrow(copmat)) for (j in (i+1):ncol(copmat)) {
-        thiscop <- copmat[i, j]
-        ## Is this copula model 90- or 270-degree rotated?
-        lastchar <- substring(thiscop, first=nchar(thiscop), last=nchar(thiscop))
-        if (lastchar == "u" | lastchar == "v") {
-            ## Copula name ends in "u" or "v". Could that mean that it's "rotated"?
-            wouldbe_pcop <- paste0("p", substring(thiscop, first=1, last=nchar(thiscop)-1))
-            if (exists(wouldbe_pcop)) rotated <- TRUE else rotated <- FALSE
-            ## Now that we know if it's rotated, flip the parameters if need be.
-            if (rotated) {
-                if (is.list(cparmat[1,1])) {
-                    cparmat[i, j][[1]] <- -cparmat[i, j][[1]]
-                } else {
-                    cparmat[i, j] <- -cparmat[i, j]
-                }
-            }
-        }
-    }
-    ## Output results
-    Avars <- varray.vars(A)
-    list(cdf=margs,
-         A=relabel.varray(A, var[Avars]),
-         copmat=copmat,
-         cparmat=cparmat)
+#     ## The trivial case
+#     if (d == 1 | d == 0) {
+#         res <- rvine(matrix(var))
+#         res <- c(res, dat=dat, aic=NA, bic=NA, nllh=NA, covmat=NA)
+#         class(res) <- c("fitrvine", "rvine")
+#         return(res)
+#     }
+#     if (ntrunc == 0) {
+#         res <- rvine(matrix(var, nrow=1))
+#         res <- c(res, dat=dat, aic=NA, bic=NA, nllh=NA, covmat=NA)
+#         class(res) <- c("fitrvine", "rvine")
+#         return(res)
+#     }
+#
+#     ## Get specified things
+#     if (is.null(rv)) {
+#         ## Get vine array
+#         if (d == 2) {
+#             A <- matrix(c(1,0,1,2), ncol = 2) # Needs to have labels = 1:2.
+#         } else {
+#             ## Get correlation matrix
+#             cormat <- cor(qnorm(dat[, var]))
+#             ## Choose vine array
+#             arrayfit <- gausstrvine.mst(cormat, ntrunc)
+#             A <- arrayfit$RVM$VineA
+#         }
+#         ## Indicate blank copmat and cparmat
+#         copmat <- NULL
+#         cparmat <- NULL
+#     } else {
+#         ## Change labels to 1:d
+#         A <- relabel(rv, 1:d)$A
+#         ## Fill-in truncated part:
+#         A <- rbind(A, matrix(0, nrow = d - ntrunc - 1, ncol = d))
+#         diag(A) <- 1:d
+#     }
+#     familyset = sort(unique(c(copname2num(families), recursive = TRUE)))
+#     ## Now get and fit copulas. We'll use RVineCopSelect() for now, which
+#     ##  means we'll fit the entire vine first and then replace the fit
+#     ##  with the pre-specified things. It's not ideal but it's a start.
+#     ##  (use capture.output() to keep RVineCopSelect() quiet)
+#     capture.output(vinefit <- RVineCopSelect(dat,
+#                                              familyset = familyset,
+#                                              Matrix = A,
+#                                              trunclevel = ntrunc,
+#                                              ...))
+#     ## Extract things.
+#     #### 1. copmat
+#     copmatind <- vinefit$family[(d:1)[1:ntrunc], d:1]
+#     if (!is.matrix(copmatind)) copmatind <- matrix(copmatind, ncol = d)
+#     copmat <- apply(copmatind, 1:2, copnum2name)
+#     copmat[!upper.tri(copmat)] <- ""
+#     #### Replace copulas with specified copulas:
+#     #### cparmat
+#     parmat1 <- vinefit$par[(d:1)[1:ntrunc], d:1]
+#     parmat2 <- vinefit$par2[(d:1)[1:ntrunc], d:1]
+#     if (!is.matrix(parmat1)) parmat1 <- matrix(parmat1, ncol = d)
+#     if (!is.matrix(parmat2)) parmat2 <- matrix(parmat2, ncol = d)
+#     parvec <- numeric(0)
+#     len <- integer(0)
+#     for (i in 1:ntrunc) for (j in (i+1):d) {
+#         if (parmat1[i, j] == 0) {
+#             len <- c(len, 0)
+#         } else {
+#             parvec <- c(parvec, parmat1[i, j])
+#             if (parmat2[i, j] != 0) {
+#                 parvec <- c(parvec, parmat2[i, j])
+#                 len <- c(len, 2)
+#             } else {
+#                 len <- c(len, 1)
+#             }
+#         }
+#     }
+#     if (all(len == 1)) {
+#         cparmat <- makeuppertri(parvec, nrow = ntrunc, ncol = d)
+#     } else {
+#         cparmat <- makeuppertri.list(parvec, len, nrow = ntrunc, ncol = d)
+#     }
+#     ## It seems that, when RVineCopSelect fits a 90- or 270-degree rotated
+#     ##  copula, it also makes the parameters negative. Need to fix this.
+#     ## joe; mtcj; gum; bb1; bb6; bb7; bb8
+#     for (i in 1:nrow(copmat)) for (j in (i+1):ncol(copmat)) {
+#         thiscop <- copmat[i, j]
+#         ## Is this copula model 90- or 270-degree rotated?
+#         lastchar <- substring(thiscop, first=nchar(thiscop), last=nchar(thiscop))
+#         if (lastchar == "u" | lastchar == "v") {
+#             ## Copula name ends in "u" or "v". Could that mean that it's "rotated"?
+#             wouldbe_pcop <- paste0("p", substring(thiscop, first=1, last=nchar(thiscop)-1))
+#             if (exists(wouldbe_pcop)) rotated <- TRUE else rotated <- FALSE
+#             ## Now that we know if it's rotated, flip the parameters if need be.
+#             if (rotated) {
+#                 if (is.list(cparmat[1,1])) {
+#                     cparmat[i, j][[1]] <- -cparmat[i, j][[1]]
+#                 } else {
+#                     cparmat[i, j] <- -cparmat[i, j]
+#                 }
+#             }
+#         }
+#     }
+#     ## Output results
+#     Avars <- varray.vars(A)
+#     list(cdf=margs,
+#          A=relabel.varray(A, var[Avars]),
+#          copmat=copmat,
+#          cparmat=cparmat)
 }
 
 #' @export
