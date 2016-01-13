@@ -18,7 +18,7 @@ vine exists; \code{NULL} otherwise.
 }
 \description{
 Convert a vine array so that a variable(s) of your choice appears last
-(bottom-right corner) of the vine array -- if possible.
+in the vine array -- if possible.
 }
 \examples{
 A <- makeuppertri(c(4,4,4,4,6,5,

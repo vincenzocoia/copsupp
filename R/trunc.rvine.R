@@ -3,69 +3,94 @@
 #' Truncates a regular vine.
 #'
 #' @param rv A regular vine object.
-#' @param ntrunc Integer; truncation level.
-#' @return If \code{ntrunc >= nrow(A) - 1}, the original vine is
+#' @param ntrunc Integer; truncation level. Or, vector specifying the truncation
+#' level of each column of the G-Vine array.
+#' @return If \code{ntrunc >= nrow(G) - 1}, the original vine is
 #' returned. Otherwise, an 'rvine' object is returned
 #' with the truncation implemented.
-#' @note The variables are listed along the initial diagonal of the vine
-#' array, then continue along the bottom row.
 #' @examples
-#' rv <- rvine(CopulaModel::Dvinearray(6))
+#' rv <- rvine(AtoG(CopulaModel::Dvinearray(6)), "frk", 2)
 #' trunc(rv, 3)
 #' trunc(rv, 100)
 #' trunc(rv, 0)
+#'
+#' ## Column-specific truncation
+#' (rv1 <- trunc(rv, c(0, 1, 2, 1, 2, 4)))
+#' lapply(rv1, identity)
+#' rv2 <- trunc(rv, c(4, 4, 4, 1, 2, 4))
+#' identical(rv1, rv2)
 #' @export
 trunc.rvine <- function(rv, ntrunc) {
-    A <- rv$A
-    copmat <- rv$copmat
-    cparmat <- rv$cparmat
-    d <- ncol(A)
-    r <- nrow(A)
-    if (ntrunc > r-2) return(rv)
-    if (ntrunc == 0) return(rvine(matrix(vars(rv), nrow=1), marg=rv$marg))
-    Acon <- Atocon(A)
-    Acon <- Acon[1:(ntrunc+1), ]
-    A <- contoA(Acon)
-    if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = 1)
-    if (!is.null(copmat)) {
-        copmat <- copmat[seq_len(ntrunc), ]
-        if (!is.matrix(copmat)) copmat <- matrix(copmat, nrow = 1)
-    }
-    if (!is.null(cparmat)) {
-        cparmat <- cparmat[seq_len(ntrunc), ]
-        if (!is.matrix(cparmat)) cparmat <- matrix(cparmat, nrow = 1)
-    }
-    rvine(A, copmat, cparmat, rv$marg)
+    G <- truncvinemat(rv$G, ntrunc)
+    copmat <- truncvinemat(rv$copmat, ntrunc, varray=FALSE, zero="")
+    cparmat <- truncvinemat(rv$cparmat, ntrunc, varray=FALSE, zero=list(NULL))
+    rvine(G, copmat, cparmat)
 }
 
 #' @export
 trunc <- function(...) UseMethod("trunc")
 
-#' Truncate a Vine Array
+#' Get Truncation Level
 #'
-#' Truncates a vine array, collapsing the variables upwards. Deprecated;
-#' please use \code{\link{trunc.rvine}} instead.
+#' Extract the truncation level of a vine array. Intended for internal use.
 #'
-#' @param A A vine array, possibly truncated.
-#' @param ntrunc Integer; truncation level
-#' @return If \code{ntrunc >= nrow(A) - 1}, the original vine array is
-#' returned. Otherwise, a truncated vine array with \code{ntrunc + 1} rows is
-#' returned.
-#' @note The variables are listed along the initial diagonal of the vine
-#' array, then continue along the bottom row.
+#' @param G Vine array.
+#' @param overall Logical; \code{TRUE} returns the overall truncation level,
+#' \code{FALSE} the truncation level of each column.
 #' @examples
-#' (A <- CopulaModel::Dvinearray(6))
-#' (A <- truncvarray(A, 3))
-#' (A <- relabel.varray(A, c(6, 2, 4, 3, 1, 5)))
-#' truncvarray(A, 2)
+#' G <- AtoG(CopulaModel::Dvinearray(6))
+#' G <- truncvinemat(G, c(0, 1, 2, 1, 2, 4))
+#' trunclevel(G)
+#' trunclevel(G, TRUE)
 #' @export
-truncvarray <- function(A, ntrunc) {
-    d <- ncol(A)
-    r <- nrow(A)
-    if (ntrunc > r-2) return(A)
-    vars <- varray.vars(A)
-    A <- A[1:ntrunc, 1:d]
-    if (!is.matrix(A)) A <- matrix(A, ncol = d)
-    vars[1:ntrunc] <- 0
-    rbind(A, matrix(vars, nrow=1))
+trunclevel <- function(G, overall = FALSE) {
+    r <- nrow(G)
+    res <- r - apply(G, 2, function(col) sum(col == 0)) - 1
+    if (overall) return(max(res)) else return(res)
+}
+
+#' Truncate a Vine Matrix
+#'
+#' Truncates a vine matrix (either the vine array, copmat, or cparmat).
+#' Intended for internal use.
+#'
+#' @param mat Vine matrix
+#' @param ntrunc Integer; truncation level. Or vector for each column.
+#' @return A matrix, with the desired truncation.
+#' @examples
+#' (G <- AtoG(CopulaModel::Dvinearray(6)))
+#' truncvinemat(G, 3)
+#'
+#' copmat <- makevinemat("frk", rep("frk", 2), rep("frk", 3), rep("frk", 4), zerocol=T)
+#' truncvinemat(copmat, c(0, 1, 0, 3, 1), varray=FALSE, zero="")
+#' @export
+truncvinemat <- function(mat, ntrunc, varray = TRUE, zero = 0) {
+    d <- ncol(mat)
+    r <- nrow(mat)
+    if (r == 0) return(mat)
+    if (r == 1 & varray) return(mat)
+    if (length(ntrunc) == 1) ntrunc <- rep(ntrunc, d)
+    ntrunc <- pmin(ntrunc, 1:d-1)
+    nzeroes <- r - ntrunc  # Number of "zeroes" to go after non-zeroes in each col
+    if (varray) nzeroes <- nzeroes - 1
+    for (j in 1:d) {
+        if (varray) {
+            mat[ntrunc[j] + 1 + seq_len(nzeroes[j]), j] <- zero
+        } else {
+            mat[ntrunc[j] + seq_len(nzeroes[j]), j] <- zero
+        }
+    }
+    ## Remove unneccessary zero-rows:
+    overalltrunc <- max(ntrunc)
+    if (varray) {
+        mat <- mat[1:(overalltrunc+1), ]
+        if (!is.matrix(mat)) mat <- matrix(mat, nrow = 1)
+    } else {
+        mat <- mat[seq_len(overalltrunc), ]
+        if (!is.matrix(mat)) {
+            mat <- as.list(mat)[-1]
+            mat <- do.call(makevinemat, c(mat, zerocol = TRUE))
+        }
+    }
+    mat
 }

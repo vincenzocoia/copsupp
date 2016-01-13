@@ -10,25 +10,25 @@
 \item{rv}{Regular vine object.}
 }
 \value{
-A regular vine, with variables reordered.
+G-vine array, with variables reordered.
 }
 \description{
-Converts a vine array \code{A} so that the first variables (up to
+Converts a vine array \code{G} so that the first variables (up to
 truncation) are not leaves. So, a slightly weaker condition than
 natural order. Deprecated; use \code{\link{center.rvine}} instead.
 }
 \details{
-For a \code{t}-truncated vine array \code{(t < ncol(A)-1)},
+For a \code{t}-truncated vine array \code{(t < ncol(G)-1)},
 the vine array is re-ordered so that the first \code{t} variables
 introduced in the outputted array are not leaves.
 
-If \code{t = ncol(A)-1}, then the entered vine isn't truncated, and the
+If \code{t = ncol(G)-1}, then the entered vine isn't truncated, and the
 first \code{t-1} variables in the outputted array are not leaves (in fact,
 a natural order array is outputted, since it satisfies that requirement).
 }
 \examples{
 ## Setup a vine.
-A <- CopulaModel::Dvinearray(5)
+G <- CopulaModel::Dvinearray(5)
 copmat <- makeuppertri(c("gum", "mtcj", "gal", "joe",
                          "frk", "gum", "bb7",
                          "bb1", "indepcop",
@@ -39,7 +39,7 @@ cparmat <- makeuppertri.list(c(3, 2.5, 2, 1.5,
                                5, 0.5),
                              len = c(1,1,1,1,1,1,2,2,0,2),
                              4, 5)
-(rv <- rvine(A, copmat, cparmat,
+(rv <- rvine(G, copmat, cparmat,
              list(pexp, identity, pnorm, pexp, sqrt)))
 
 ## Center it. Since it's a complete vine, the output is in natural order:

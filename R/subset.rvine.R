@@ -4,8 +4,10 @@
 #' it exists.
 #'
 #' @param rv A regular vine object.
-#' @param select Vector of variable indices in \code{diag(A)} to subset,
+#' @param select Vector of variables to subset,
 #' if possible. The order of the variables does not matter.
+#' @param justcheck Logical; should this function only check whether or not
+#' the subset exists? \code{TRUE} if so.
 #' @details Just a technicality:
 #' by saying a subset "doesn't have an existing vine", I mean that
 #' a vine can't be formed using nodes and edges from
@@ -13,12 +15,17 @@
 #' joint distribution of the selected variables can't be created from a vine
 #' (so as to say, for example, that the simplifying assumption of vines
 #' doesn't hold for this distribution).
-#' @return Returns a regular vine of the subsetted variables, with variables
-#' ordered according to their order in \code{A}; or \code{NULL} if
+#' @return
+#' If \code{justcheck} is \code{TRUE}, returns \code{TRUE} if the requested
+#' subset exists, and \code{FALSE} if not.
+#'
+#' If \code{justcheck} is \code{FALSE}, returns
+#' a vine of the subsetted variables, with variables
+#' ordered according to their order in \code{G}; or \code{NULL} if
 #' the subset does not form a vine.
 #' @examples
 #' ## Setup a vine.
-#' A <- CopulaModel::Dvinearray(5)
+#' G <- AtoG(CopulaModel::Dvinearray(5))
 #' copmat <- makeuppertri(c("gum", "mtcj", "gal", "joe",
 #'                          "frk", "gum", "bb7",
 #'                          "bb1", "indepcop",
@@ -29,8 +36,7 @@
 #'                                5, 0.5),
 #'                                len = c(1,1,1,1,1,1,2,2,0,2),
 #'                                4, 5)
-#' (rv <- rvine(A, copmat, cparmat,
-#'              list(pexp, identity, pnorm, pexp, sqrt)))
+#' (rv <- rvine(G, copmat, cparmat))
 #'
 #' ## Subset some variables.
 #' subset(rv, c(2, 4, 3))
@@ -38,102 +44,70 @@
 #' subset(rv, integer(0))
 #'
 #' ## This subset won't work:
-#' subset(rv, c(4, 1))
+#' subset(rv, c(4, 1), justcheck = TRUE)
 #' ## But it will in a 0-truncated vine:
+#' subset(trunc(rv, 0), c(4, 1), justcheck = TRUE)
 #' subset(trunc(rv, 0), c(4, 1))
 #'
 #' ## Select variables not present?
 #' subset(rv, c(2, 4, 17))
 #' @export
-subset.rvine <- function(rv, select) {
-    A <- rv$A
+subset.rvine <- function(rv, select, justcheck = FALSE) {
+    ## Extract info
+    G <- rv$G
     copmat <- rv$copmat
     cparmat <- rv$cparmat
-    p <- ncol(A)
-    ntrunc <- nrow(A) - 1
-    k <- length(select)
     v <- vars(rv)
+    k <- length(select)
+    ## The trivial cases:
     unknownvars <- setdiff(select, v)
-    if (length(unknownvars) > 0)
-        stop(paste("Can't subset. Variables not in vine:",
+    if (length(unknownvars) > 0) {
+        warning(paste("Variables not in vine were selected to subset:",
                    paste(unknownvars, collapse = ", ")))
-    if (k == p) return(rv)
-    if (k == 1) return(rvine(matrix(select), marg = rv$marg[[which(v == select)]]))
-    if (k == 0) return(rvine(matrix(nrow=0, ncol=0)))
-    ## Indices to keep (i.e. what columns of A, or which of the
-    ##   ordered variables to keep?)
-    ikeep <- sort(sapply(select, function(s) which(v == s)))
-    ilose <- setdiff(1:p, ikeep)
-    ## If it's an independence vine, it's easy to subset:
-    if (ntrunc == 0) {
-        A <- matrix(A[, ikeep], nrow = 1)
-        blankmat <- matrix(nrow=0, ncol=k)
-        return(rvine(A, marg=rv$marg[ikeep]))
+        if (justcheck) return(FALSE) else return(NULL)
     }
-    ## Convert vine array to a "convenient" vine array, where the labels go on
-    ##  top instead of the "skewed diagonal":
-    Acon <- Atocon(A)
-    ## Remove bottom rows if need be:
-    if (k - 1 < ntrunc) {
-        Acon <- Acon[1:k, ]
-        if (!is.null(copmat)) {
-            copmat <- copmat[1:(k-1), ]
-            if (!is.matrix(copmat)) copmat <- matrix(copmat, nrow = 1)
+    if (k == 0) {
+        if (justcheck) return(TRUE) else return(rvine(matrix(ncol=0, nrow=0)))
+    }
+    if (k == 1) {
+        if (justcheck) return(TRUE) else return(rvine(matrix(select)))
+    }
+    ## Get columns of G associated to the selection.
+    colsel <- sort(sapply(select, function(s) which(v == s)))
+    ## Take those columns of the vine array:
+    Gsub <- G[, colsel]
+    if (!is.matrix(Gsub)) Gsub <- matrix(Gsub, nrow = 1)
+    nlink <- integer(0)
+    ## Find out how much to subset for each column:
+    for (i in 1:k) {
+        ## For the i'th column, there can be anywhere from 1 to i consecutive
+        ##  variables in 'select'.
+        inselect <- Gsub[, i] %in% select
+        thisnlink <- sum(inselect)
+        ## Make sure the TRUEs are consecutive:
+        if (sum(inselect[1:thisnlink]) < thisnlink) {
+            if (justcheck) return(FALSE) else return(NULL)
         }
-        if (!is.null(cparmat)) {
-            cparmat <- cparmat[1:(k-1), ]
-            if (!is.matrix(cparmat)) cparmat <- matrix(cparmat, nrow = 1)
-        }
+        nlink[i] <- thisnlink
     }
-    nrownew <- nrow(Acon)
-    ## Remove columns of non-selected variables:
-    Acon <- Acon[, ikeep]
-    vnew <- Acon[1, ]
-    if (!is.null(copmat)) {
-        copmat <- copmat[, ikeep]
-        if (!is.matrix(copmat)) copmat <- matrix(copmat, ncol = length(ikeep))
+    if (justcheck) return(TRUE)
+    ## Subset the matrices:
+    copmatsub <- copmat[, colsel]
+    if (nrow(copmat) == 1) copmatsub <- t(copmatsub)
+    cparmatsub <- cparmat[, colsel]
+    if (nrow(cparmat) == 1) cparmatsub <- t(cparmatsub)
+    Glayers <- list(Gsub[1, 1])
+    coplayers <- list()
+    cparlayers <- list()
+    for (i in 2:k) {
+        Glayers[[i]] <- Gsub[1:nlink[i], i]
+        coplayers[[i-1]] <- copmatsub[seq_len(nlink[i]-1), i]
+        cparlayers[[i-1]] <- cparmatsub[seq_len(nlink[i]-1), i]
     }
-    if (!is.null(cparmat)) {
-        cparmat <- cparmat[, ikeep]
-        if (!is.matrix(cparmat)) cparmat <- matrix(cparmat, ncol = length(ikeep))
-    }
-    ## Go column-by-column, and gather variables that are in the selection set.
-    unstrung <- integer(0)
-    unstrung1 <- character(0)
-    unstrung2 <- numeric(0)
-    for (j in 2:k) for (i in 2:min(j, nrownew)) {
-        if (Acon[i, j] %in% select) {
-            unstrung <- c(unstrung, Acon[i, j])
-            unstrung1 <- c(unstrung1, copmat[i-1, j])
-            unstrung2 <- c(unstrung2, cparmat[i-1, j])
-        }
-    }
-    if (length(unstrung) != (nrownew-1) * k - choose(nrownew, 2)) {
-        warning(paste0("Vine can't be subsetted to selection ",
-                       paste(select, collapse = ", "),
-                       ". Returning NULL."))
-        return(NULL)
-    }
-    resA <- makeuppertri(unstrung, nrow = nrownew-1, ncol = k, byRow = FALSE)
-    resA <- rbind(matrix(vnew, nrow=1), resA)
-    if (!is.null(copmat))
-        copmat <- makeuppertri(unstrung1, nrow=nrownew-1, ncol=k, byRow=FALSE,
-                               blanks = "")
-    if (!is.null(cparmat)) {
-        if (is.list(unstrung2)) {
-            len <- sapply(unstrung2, length)
-            cparmat <- makeuppertri.list(c(unstrung2, recursive=TRUE),
-                                         len=len, nrow=nrownew-1, ncol=k,
-                                         byRow=FALSE)
-        } else {
-            cparmat <- makeuppertri(unstrung2, nrow=nrownew-1, ncol=k, byRow=FALSE)
-        }
-    }
-    ## Convert back to standard array format:
-    resA <- contoA(resA)
-    ## Grab the marginals:
-    resmarg <- rv$marg[ikeep]
-    rvine(resA, copmat, cparmat, resmarg)
+    G <- do.call(makevinemat, Glayers)
+    copmat <- do.call(makevinemat, c(coplayers, zerocol = TRUE))
+    cparmat <- do.call(makevinemat, c(cparlayers, zerocol = TRUE))
+    rvine(G, copmat, cparmat)
 }
 
 #' @export

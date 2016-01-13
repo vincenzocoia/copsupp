@@ -9,24 +9,27 @@
 \arguments{
 \item{rv}{A regular vine object.}
 
-\item{ntrunc}{Integer; truncation level.}
+\item{ntrunc}{Integer; truncation level. Or, vector specifying the truncation
+level of each column of the G-Vine array.}
 }
 \value{
-If \code{ntrunc >= nrow(A) - 1}, the original vine is
+If \code{ntrunc >= nrow(G) - 1}, the original vine is
 returned. Otherwise, an 'rvine' object is returned
 with the truncation implemented.
 }
 \description{
 Truncates a regular vine.
 }
-\note{
-The variables are listed along the initial diagonal of the vine
-array, then continue along the bottom row.
-}
 \examples{
-rv <- rvine(CopulaModel::Dvinearray(6))
+rv <- rvine(AtoG(CopulaModel::Dvinearray(6)), "frk", 2)
 trunc(rv, 3)
 trunc(rv, 100)
 trunc(rv, 0)
+
+## Column-specific truncation
+(rv1 <- trunc(rv, c(0, 1, 2, 1, 2, 4)))
+lapply(rv1, identity)
+rv2 <- trunc(rv, c(4, 4, 4, 1, 2, 4))
+identical(rv1, rv2)
 }
 

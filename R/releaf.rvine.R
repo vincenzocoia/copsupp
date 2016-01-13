@@ -1,7 +1,7 @@
 #' "Re-leaf" a Vine Array
 #'
 #' Convert a vine array so that a variable(s) of your choice appears last
-#' (bottom-right corner) of the vine array -- if possible.
+#' in the vine array -- if possible.
 #'
 #' @param rv Regular vine object.
 #' @param leaf Integer; variable you want to make a leaf of the array.

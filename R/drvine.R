@@ -9,44 +9,51 @@
 #' @details This function is a wrapper for
 #' \code{rvinellkv.trunc2} in the \code{CopulaModel} package.
 #' @return Vector of length = number of observations in \code{dat}, representing
-#' the evaluated joint density of the variables in \code{A}.
+#' the evaluated joint density of the variables in \code{G}.
 #' @examples
 #' set.seed(123)
-#' A <- truncvarray(CopulaModel::Cvinearray(4), 2)
+#' G <- AtoG(CopulaModel::Cvinearray(4))[1:3, ]
 #' copmat <- makeuppertri(c("gum", "gal", "bvtcop",
 #'                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 #' cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
 #'                              len = c(1,1,2,1,1), row = 2, col = 4)
-#' rv <- rvine(A=A, copmat=copmat, cparmat=cparmat)
-#' dat <- fvinesim(10, rv)
+#' rv <- rvine(G=G, copmat=copmat, cparmat=cparmat)
+#' dat <- rrvine(10, rv)
 #' logdrvine(dat, rv)
 #' drvine(runif(4), rv)
 #'
-#' ## The variables in A don't need to refer to all data:
+#' ## The variables in G don't need to refer to all data:
 #' u <- runif(4)
-#' drvine(u, subset(rv, 3:4))
+#' drvine(u, subset(rv, 1:2))
 #' ## ...is the same as:
-#' drvine(u[3:4]), subset(rv, 3:4)
+#' drvine(u[1:2], subset(rv, 1:2))
 #' @seealso \code{\link{rvine}}
 #' @rdname d_logd_rvine
 #' @export
 logdrvine <- function(dat, rv) {
-    A <- rv$A
+    ## Array
+    A <- GtoA(rv$G)
+    nrowA <- nrow(A)
+    ncolA <- ncol(A)
+    if (ncolA == 0) return(NULL)
+    if (nrowA == 1) return(0) # Independence vine
+    ntrunc <- nrowA - 1
     copmat <- rv$copmat
     cparmat <- rv$cparmat
-    marg <- rv$marg
-    if (is.null(copmat) | is.null(cparmat))
-        stop("rvine must have copmat and cparmat specified")
+    if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
+    if (ncolA == 2) {
+        logdcop <- get(paste0("logd", copmat[1, 2]))
+        u <- dat[, A[1,1]]
+        v <- dat[, A[2,2]]
+        return(logdcop(u, v, cparmat[1, 2][[1]]))
+    }
     ## Get parvec:
     if (is.list(cparmat[1,1])) {
         parvec <- c(t(cparmat), recursive = TRUE)
     } else {
         parvec <- t(cparmat)[lower.tri(t(cparmat))]
     }
-    ## ntrunc:
-    nrowA <- nrow(A)
-    ncolA <- ncol(A)
-    ntrunc <- nrowA - 1
+
     ## logdcopmat:
     logdcopmat <- apply(copmat, 1:2, function(cop) paste0("logd", cop))
     logdcopmat[!upper.tri(logdcopmat)] <- ""
@@ -61,14 +68,11 @@ logdrvine <- function(dat, rv) {
         np[upper.tri(np)] <- 1
     }
     ## Get udat
-    if (is.null(marg)) marg <- rep(list(identity), ncolA)
-    if (length(marg) == 1) marg <- rep(list(marg), ncolA)
     if (!is.matrix(dat)) dat <- matrix(dat, nrow = 1)
-    for (col in 1:ncolA) dat[, col] <- marg[[col]](dat[, col])
     ## Make array variables 1:ncol(A), and permute data to reflect that.
-    vars <- varray.vars(A)
-    A <- relabel.varray(A)
-    dat <- dat[, vars]
+    v <- vars(rv)
+    A <- GtoA(relabel(rv)$G) # relabel.varray(A)
+    dat <- dat[, v]
     if (!is.matrix(dat)) dat <- matrix(dat, nrow = 1)
     ## Fill in A:
     A[nrowA, ] <- 0
@@ -83,5 +87,4 @@ logdrvine <- function(dat, rv) {
 
 #' @rdname d_logd_rvine
 #' @export
-drvine <- function(dat, rv)
-    exp(logdrvine(dat, rv))
+drvine <- function(dat, rv) exp(logdrvine(dat, rv))

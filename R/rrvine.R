@@ -20,7 +20,7 @@
 #' @return
 #' Matrix with \code{n} rows and \code{max(vars(rv))} columns.
 #' @examples
-#' rv <- rvine(CopulaModel::Dvinearray(5), "frk", makeuppertri(2, 4, 5))
+#' rv <- rvine(AtoG(CopulaModel::Dvinearray(5)), "frk", makeuppertri(2, 4, 5))
 #' set.seed(123)
 #'
 #' ## Simulate 10 observations:
@@ -35,62 +35,63 @@
 #' @import CopulaModel
 #' @export
 rrvine <- function(n, rv, iprint=FALSE){
-    A <- rv$A
+    G <- rv$G
+    A <- GtoA(G)
+    ## Get extra parameters for rvinesimvec2 function
+    ## Dimension of the vine copula:
+    d <- ncol(A)
+    if (d == 0) return(matrix(ncol = 0, nrow = n))
+    v <- vars(rv)
+    if (d == 1) {
+        res <- matrix(NA, nrow = n, ncol = v)
+        res[, v] <- runif(n)
+        return(res)
+    }
     copmat <- rv$copmat
     cparmat <- rv$cparmat
-    v <- vars(rv)
-  ## Get extra parameters for rvinesimvec2 function
-  ## Dimension of the vine copula:
-  d <- ncol(A)
-  if (d == 0) return(matrix(ncol = 0, nrow = n))
-  if (d == 1) {
-      res <- matrix(NA, nrow = n, ncol = v)
-      res[, v] <- runif(n)
-      return(res)
-  }
-  if (d == 2) {
-      res <- matrix(NA, nrow = n, ncol = max(v))
-      u1 <- runif(n)
-      res[, v[1]] <- u1
-      qcond <- get(paste0("qcond", copmat[1, 2]))
-      u2 <- qcond(runif(n), u1, cparmat[1, 2][[1]])
-      res[, v[2]] <- u2
-      return(res)
-  }
-  ## ntrunc: Truncation of the vine (can't be more than d-1)
-  ntrunc <- nrow(A) - 1
-  ## If there are any independence copulas, trick rvinesimvec2() by putting
-  ##  a copula family with parameter that gives independence copula.
-  for (i in 1:ntrunc) for (j in (i+1):d) {
-      if (copmat[i, j] == "indepcop") {
-          copmat[i, j] <- "new"
-          cparmat[i, j][[1]] <- 0
-      }
-  }
-  ## np: Dimension of the copula parameters
-  np <- apply(cparmat, 1:2, length)
-  ## qcondmat, pcondmat, parvec:
-  #### How many copulas should there be?
-  numcops <- choose(d, 2) - choose(d - ntrunc, 2)
-  #### parvec: Vector of parameters
-  parvec <- c(t(cparmat)[lower.tri(t(cparmat))], recursive = TRUE)
-  #### Now make the desired matrices:
-  qmat <- apply(copmat, 1:2, function(cop) paste0("qcond", cop))
-  pmat <- apply(copmat, 1:2, function(cop) paste0("pcond", cop))
-  qmat[!upper.tri(qmat)] <- ""
-  pmat[!upper.tri(pmat)] <- ""
-  ## Relabel A so that the variable name is the variable order.
-  A <- relabel(rv)$A
-  ## Inflate A so that it's dxd:
-  if (ntrunc < d-1) {
-      A <- rbind(A, matrix(0, nrow = d-(ntrunc+1), ncol = d))
-      diag(A) <- 1:d # Don't worry about removing A[ntrunc+1, (ntrunc+1):d].
-  }
-  ## Input arguments into CopulaModel function:
-  res <- rvinesimvec2(n, A, ntrunc=ntrunc, parvec=parvec, np=np,
-               qcondmat=qmat, pcondmat=pmat, iprint=iprint)
-  ## The user wanted the variables to be printed in the order of v:
-  res2 <- matrix(NA, nrow = n, ncol = max(v))
-  res2[, v] <- res
-  res2
+    if (d == 2) {
+        res <- matrix(NA, nrow = n, ncol = max(v))
+        u1 <- runif(n)
+        res[, v[1]] <- u1
+        qcond <- get(paste0("qcond", copmat[1, 2]))
+        u2 <- qcond(runif(n), u1, cparmat[1, 2][[1]])
+        res[, v[2]] <- u2
+        return(res)
+    }
+    ## ntrunc: Truncation of the vine (can't be more than d-1)
+    ntrunc <- nrow(A) - 1
+    ## If there are any independence copulas, trick rvinesimvec2() by putting
+    ##  a copula family with parameter that gives independence copula.
+    for (i in 1:ntrunc) for (j in (i+1):d) {
+        if (copmat[i, j] == "indepcop") {
+            copmat[i, j] <- "new"
+            cparmat[i, j][[1]] <- 0
+        }
+    }
+    ## np: Dimension of the copula parameters
+    np <- apply(cparmat, 1:2, function(x) length(x[[1]]))
+    ## qcondmat, pcondmat, parvec:
+    #### How many copulas should there be?
+    numcops <- choose(d, 2) - choose(d - ntrunc, 2)
+    #### parvec: Vector of parameters
+    parvec <- c(t(cparmat)[lower.tri(t(cparmat))], recursive = TRUE)
+    #### Now make the desired matrices:
+    qmat <- apply(copmat, 1:2, function(cop) paste0("qcond", cop))
+    pmat <- apply(copmat, 1:2, function(cop) paste0("pcond", cop))
+    qmat[!upper.tri(qmat)] <- ""
+    pmat[!upper.tri(pmat)] <- ""
+    ## Relabel A so that the variable name is the variable order.
+    A <- GtoA(relabel(rv)$G)
+    ## Inflate A so that it's dxd:
+    if (ntrunc < d-1) {
+        A <- rbind(A, matrix(0, nrow = d-(ntrunc+1), ncol = d))
+        diag(A) <- 1:d # Don't worry about removing A[ntrunc+1, (ntrunc+1):d].
+    }
+    ## Input arguments into CopulaModel function:
+    res <- rvinesimvec2(n, A, ntrunc=ntrunc, parvec=parvec, np=np,
+                        qcondmat=qmat, pcondmat=pmat, iprint=iprint)
+    ## The user wanted the variables to be printed in the order of v:
+    res2 <- matrix(NA, nrow = n, ncol = max(v))
+    res2[, v] <- res
+    res2
 }

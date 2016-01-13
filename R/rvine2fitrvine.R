@@ -11,7 +11,7 @@
 rvine2fitrvine <- function(dat, basevine) {
     nvar <- length(vars(basevine))
     basevine$dat <- dat
-    basevine$estimated <- res$cparmat
+    basevine$estimated <- basevine$cparmat
     if (nvar == 0) {
         basevine$nllh <- NA
         basevine$aic <- NA
@@ -31,6 +31,13 @@ rvine2fitrvine <- function(dat, basevine) {
     basevine$estimated <- apply(basevine$estimated, 1:2, function(l) {
         if (is.null(l[[1]])) NULL else rep(FALSE, length(l[[1]]))
     })
+#     basevine$estimated <- apply(basevine$estimated, 1:2, function(l) {
+#         if (is.null(l[[1]])) {
+#             NULL
+#         } else {
+#             sapply(l[[1]], function(v_) if (is.na(v_)) TRUE else FALSE)
+#         }
+#     })
     ## Get likelihood
     nllh <- -sum(logdrvine(dat, basevine))
     basevine$nllh <- nllh

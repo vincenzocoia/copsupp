@@ -1,15 +1,12 @@
 #' Create an object of class `rvine`
 #'
-#' @param A Vine array (matrix), possibly truncated.
-#' @param copmat Upper triangular \code{(nrow(A)-1) x ncol(A)} matrix of copula model names.
-#' Or, a vector of copula model names for the edges in \code{A}, listed in
-#' "reading order". Use a vector of length 1 if the same copula model applies to all
+#' @param G G-Vine array
+#' @param copmat Upper triangular \code{(nrow(G)-1) x ncol(G)} matrix of copula model names.
+#' Or, a vector of length 1 if the same copula model applies to all
 #' edges.
-#' @param cparmat Upper triangular \code{(nrow(A)-1) x ncol(A)} matrix of
-#' parameters taken by the copulas in \code{copmat}.
-#' @param marg List of \code{ncol(A)} vectorized marginal distribution functions
-#' with entries corresponding to the columns in \code{A}. Or, a single vectorized
-#' (distribution) function that applies to each variable.
+#' @param cparmat Upper triangular \code{(nrow(G)-1) x ncol(G)} matrix of
+#' parameters taken by the copulas in \code{copmat}. Or, a single vector
+#' of the parameter to be applied to the entire vine.
 #' @return An object of class `rvine`, which is a named list of the arguments.
 #' @examples
 #' ## Empty vine:
@@ -20,79 +17,71 @@
 #' ## Take a look at each component of the vine:
 #' lapply(rv, identity)
 #'
-#' A <- CopulaModel::Dvinearray(4)
-#' rvine(A, "frk", makeuppertri(2, nrow=3, ncol=4), pexp)
-#' rvine(A, rep(c("frk", "gum"), 3), makeuppertri(2, nrow=3, ncol=4))
+#' G <- AtoG(CopulaModel::Dvinearray(4))
+#' (rv <- rvine(G, "frk", 2))
+#' lapply(rv, identity)
+#' (rv <- rvine(G, "bvtcop", c(0.4, 5)))
 #'
-#' copmat <- makeuppertri(c("gum", "bvtcop", "mtcj",
-#'                          "frk", "indepcop",
-#'                          "frk"), 3, 4, blanks = "")
-#' rvine(A, copmat)
-#'
-#' cparmat <- makeuppertri.list(c(2, 0.5, 4, 2,
-#'                                1,
-#'                                1), len = c(1,2,1,1,0,1), nrow = 3, ncol = 4)
-#' rvine(A, copmat, cparmat)
+#' G <- AtoG(CopulaModel::Dvinearray(4))
+#' copmat <- makevinemat("gum",
+#'                       c("bvtcop", "frk"),
+#'                       c("mtcj", "frk", "indepcop"),
+#'                       c("bvncop", "joe", "mtcj", "frk"), zerocol = TRUE)
+#' cparmat <- makevinemat(3.1,
+#'                        list(c(0.5, 4), 2.3),
+#'                        list(4.2, 3.5, numeric(0)),
+#'                        c(0.5, 2.2, 2.5, 1.6), zerocol = TRUE)
+#' rv <- rvine(G, copmat, cparmat)
 #' @export
-rvine <- function(A, copmat = NULL, cparmat = NULL, marg = identity) {
-    ## First -- deal with the "trivial case" of A.
-    d <- ncol(A)
+rvine <- function(G, copmat, cparmat) {
+    ## First -- deal with the "trivial case" of G.
+    d <- ncol(G)
     if (d == 0) {
-        return(structure(list(A=A, copmat=NA, cparmat=NA, marg=NA), class = "rvine"))
+        return(structure(list(G=G, copmat=NA, cparmat=NA), class = "rvine"))
     }
     if (d == 1) {
-        return(structure(list(A=A,
+        return(structure(list(G=G,
                               copmat=matrix(nrow=0, ncol=1),
-                              cparmat=matrix(nrow=0, ncol=1), marg = marg),
+                              cparmat=matrix(nrow=0, ncol=1)),
                          class = "rvine"))
     }
-    ntrunc <- nrow(A) - 1
+    ntrunc <- nrow(G) - 1
     if (ntrunc == 0) {
-        return(structure(list(A=A,
+        return(structure(list(G=G,
                               copmat=matrix(nrow=0, ncol=d),
-                              cparmat=matrix(nrow=0, ncol=d),
-                              marg=marg),
+                              cparmat=matrix(nrow=0, ncol=d)),
                          class = "rvine"))
     }
     ## Next, construct the copula matrix if not already done.
-    if (ntrunc == 0){
-        copmat <- matrix(nrow = 0, ncol = d)
-        cparmat <- matrix(nrow = 0, ncol = d)
-    } else {
-        if (!is.matrix(copmat) & !is.null(copmat)) {
-            if (length(copmat) == 1) {
-                copmat <- rep(copmat, ntrunc*d - choose(ntrunc+1, 2))
-            }
-            copmat <- makeuppertri(copmat, ntrunc, d, blanks = "")
-        }
+    if (!is.matrix(copmat)) {
+        copmat <- rep(copmat, ntrunc*d - choose(ntrunc+1, 2))
+        copmat <- makeuppertri(copmat, ntrunc, d, blanks = "")
     }
     ## Copula parameter matrix:
-    if (is.null(copmat) & !is.null(cparmat)) {
-        warning("Parameter matrix cannot be specified until copula matrix is.")
-        cparmat <- NULL
-    }
-    if (is.matrix(cparmat)) if (!is.list(cparmat[1,1])) {
+    if (is.matrix(cparmat)) if(!is.list(cparmat[1,1])) {
         cparvec <- c(t(cparmat)[lower.tri(t(cparmat))], recursive = TRUE)
         cparmat <- makeuppertri.list(cparvec, len=rep(1,length(cparvec)),
                                      nrow = nrow(cparmat), ncol = ncol(cparmat))
     }
-    ## Make vector of cdfs if it's a single value:
-    if (length(marg) == 1) marg <- rep(list(marg), d)
+    if (!is.matrix(cparmat)) {
+        cparmat <- rep(cparmat, ntrunc*d - choose(ntrunc+1, 2))
+        len <- rep(length(cparmat), ntrunc*d - choose(ntrunc+1, 2))
+        cparmat <- makeuppertri.list(cparmat, len, nrow=ntrunc, ncol=d)
+    }
     ## Output
-    res <- list(A = A,
+    res <- list(G = G,
                 copmat = copmat,
-                cparmat = cparmat,
-                marg = marg)
+                cparmat = cparmat)
     class(res) <- "rvine"
     res
 }
 
 #' @export
 print.rvine <- function(rv) {
-    d <- ncol(rv$A)
+    d <- ncol(rv$G)
     if (d == 0) return(cat("Empty vine: no variables."))
-    v <- vars(rv)
-    ntrunc <- nrow(rv$A) - 1
+    v <- rv$G[1, ]
+    ntrunc <- nrow(rv$G) - 1
     if (ntrunc == 0) {
         trunctext <- "Independent"
     } else {
@@ -105,8 +94,6 @@ print.rvine <- function(rv) {
         if (is.null(rv$copmat))
             cat("\nUnspecified copula models and parameters.")
     }
-    if (identical(rv$marg, rep(list(identity), d)))
-        cat("\nUniform margins.")
     invisible()
 }
 

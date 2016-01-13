@@ -17,8 +17,8 @@ Extract variables from a regular vine, possibly truncated, in the order
 of the vine array.
 }
 \examples{
-rv <- rvine(CopulaModel::Dvinearray(5))
-rv <- relabel(A, c(5, 2, 4, 3, 1))
+rv <- rvine(AtoG(CopulaModel::Dvinearray(5)))
+rv <- relabel(rv, c(5, 2, 4, 3, 1))
 vars(rv)
 
 rv <- trunc(rv, 2)

@@ -30,41 +30,34 @@
 #' the quantities, then an error is thrown.
 #' @examples
 #' ## D-Vine example
-#' rv <- rvine(CopulaModel::Dvinearray(5), marg = identity)
-#' rv <- trunc(rv, 2)
-#' rv$copmat <- makeuppertri("bvncop", 2, 5, blanks = "")
-#' rv$cparmat <- makeuppertri(c(1:7/10), 2, 5, byRow = FALSE)
-#' udat <- fvinesim(10, rv)
+#' G <- AtoG(CopulaModel::Dvinearray(5))[1:3, ]
+#' rv <- rvine(G, "bvncop", makeuppertri(c(1:7/10), 2, 5, byRow = FALSE))
+#' dat <- rrvine(10, rv)
 #'
 #' ## Compute 5|1:4. There's an algorithm for that.
-#' pcondrvine(udat, rv, cond=5, verbose=T)
+#' pcondrvine(dat, rv, cond=5, verbose=T)
 #'
 #' ## Compute 5|4. pcondrvine just uses 'pcondcop()'.
-#' pcondrvine(udat, rv, cond=5, vbls=c(4,5), verbose=T)
+#' pcondrvine(dat, rv, cond=5, vbls=c(4,5), verbose=T)
 #'
 #' ## Compute 5|2:3. Two integrals takes ~13 if maxint > 1.
-#' pcondrvine(udat, rv, cond=5, vbls=c(2,3,5), maxint=1, verbose=T)
+#' pcondrvine(dat, rv, cond=5, vbls=c(2,3,5), maxint=1, verbose=T)
 #'
 #' ## Compute 4|(1,2,3,5). No algorithm for that.
-#' pcondrvine(udat, rv, cond=4, verbose=T)
-#' pcondrvine(udat, rv, cond=4, maxint=0, verbose=T) # No int. tolerance
+#' pcondrvine(dat, rv, cond=4, verbose=T)
+#' pcondrvine(dat, rv, cond=4, maxint=0, verbose=T) # No int. tolerance
 #' @export
 pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FALSE) {
     if (!(cond %in% vbls))
         stop("Conditioned variable 'cond' must be part of subsetted variables 'vbls'.")
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     ## Extract info
-    A <- rv$A
-    Fmarg <- rv$marg
+    A <- GtoA(rv$G)
     d <- length(vbls)
     ptot <- ncol(dat)
     ntrunc <- nrow(A) - 1
     v <- vars(rv)
     ikeep <- sapply(vbls, function(vbl) which(v == vbl))
-    ## Uniformize data:
-    for (i in 1:length(vbls)) {
-        dat[, vbls[i]] <- Fmarg[[ikeep[i]]](dat[, vbls[i]])
-    }
     ## Case 0: vbls = cond. Just return the cdf of cond.
     if (d == 1) {
         return(dat[, vbls])

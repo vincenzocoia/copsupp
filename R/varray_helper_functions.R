@@ -23,42 +23,42 @@ invert.perm <- function(perm) {
 }
 
 
-#' Convert Vine Array to "Convenient" Array
+#' Convert between G-Vine array and Traditional Vine Array
 #'
-#' A "convenient" array is achieved by moving the variables in a
+#' A G-Vine array is achieved by moving the variables in a
 #' (possibly truncated) vine array to the top row.
 #'
-#' @param A Vine array
-#' @param Acon A convenient vine array
+#' @param A Traditional vine array
+#' @param G G-vine array
 #' @details
-#' \code{Atocon} converts a vine array to a convenient vine array.
-#' \code{contoA} converts a convenient vine array to a vine array.
+#' \code{AtoG} converts a vine array to a convenient vine array.
+#' \code{GtoA} converts a convenient vine array to a vine array.
 #'
 #' These converters are intended to be used internally.
 #' @note This form of array is "convenient" because truncated vines can
 #' be respresented by truncating the bottom rows of the matrix.
 #' @return A vine array or convenient vine array
-#' @rdname A_Acon_convert
+#' @rdname A_G_convert
 #' @export
-Atocon <- function(A) {
+AtoG <- function(A) {
     ntrunc <- nrow(A) - 1
-    if (ntrunc == 0) return(A)
+    if (ntrunc <= 0) return(A)
     d <- ncol(A)
     v <- c(diag(A), A[ntrunc + 1, ntrunc+1+seq_len(d-ntrunc-1)])
-    Acon <- A[1:ntrunc, ]
-    if (!is.matrix(Acon)) Acon <- matrix(Acon, nrow = ntrunc)
-    diag(Acon) <- 0
-    rbind(matrix(v, nrow = 1), Acon)
+    G <- A[1:ntrunc, ]
+    if (!is.matrix(G)) G <- matrix(G, nrow = ntrunc)
+    diag(G) <- 0
+    rbind(matrix(v, nrow = 1), G)
 }
 
-#' @rdname A_Acon_convert
+#' @rdname A_G_convert
 #' @export
-contoA <- function(Acon) {
-    ntrunc <- nrow(Acon) - 1
-    if (ntrunc == 0) return(Acon)
-    d <- ncol(Acon)
-    v <- Acon[1, ]
-    A <- Acon[-1, ]
+GtoA <- function(G) {
+    ntrunc <- nrow(G) - 1
+    if (ntrunc <= 0) return(G)
+    d <- ncol(G)
+    v <- G[1, ]
+    A <- G[-1, ]
     if (!is.matrix(A)) A <- matrix(A, nrow = 1)
     A <- rbind(A, matrix(c(rep(0, ntrunc), v[(ntrunc+1):d]), nrow = 1))
     diag(A) <- v[1:(ntrunc+1)]

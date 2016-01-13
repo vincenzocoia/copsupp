@@ -4,22 +4,18 @@
 \alias{rvine}
 \title{Create an object of class `rvine`}
 \usage{
-rvine(A, copmat = NULL, cparmat = NULL, marg = identity)
+rvine(G, copmat, cparmat)
 }
 \arguments{
-\item{A}{Vine array (matrix), possibly truncated.}
+\item{G}{G-Vine array}
 
-\item{copmat}{Upper triangular \code{(nrow(A)-1) x ncol(A)} matrix of copula model names.
-Or, a vector of copula model names for the edges in \code{A}, listed in
-"reading order". Use a vector of length 1 if the same copula model applies to all
+\item{copmat}{Upper triangular \code{(nrow(G)-1) x ncol(G)} matrix of copula model names.
+Or, a vector of length 1 if the same copula model applies to all
 edges.}
 
-\item{cparmat}{Upper triangular \code{(nrow(A)-1) x ncol(A)} matrix of
-parameters taken by the copulas in \code{copmat}.}
-
-\item{marg}{List of \code{ncol(A)} vectorized marginal distribution functions
-with entries corresponding to the columns in \code{A}. Or, a single vectorized
-(distribution) function that applies to each variable.}
+\item{cparmat}{Upper triangular \code{(nrow(G)-1) x ncol(G)} matrix of
+parameters taken by the copulas in \code{copmat}. Or, a single vector
+of the parameter to be applied to the entire vine.}
 }
 \value{
 An object of class `rvine`, which is a named list of the arguments.
@@ -36,18 +32,20 @@ rvine(matrix(integer(0)))
 ## Take a look at each component of the vine:
 lapply(rv, identity)
 
-A <- CopulaModel::Dvinearray(4)
-rvine(A, "frk", makeuppertri(2, nrow=3, ncol=4), pexp)
-rvine(A, rep(c("frk", "gum"), 3), makeuppertri(2, nrow=3, ncol=4))
+G <- AtoG(CopulaModel::Dvinearray(4))
+(rv <- rvine(G, "frk", 2))
+lapply(rv, identity)
+(rv <- rvine(G, "bvtcop", c(0.4, 5)))
 
-copmat <- makeuppertri(c("gum", "bvtcop", "mtcj",
-                         "frk", "indepcop",
-                         "frk"), 3, 4, blanks = "")
-rvine(A, copmat)
-
-cparmat <- makeuppertri.list(c(2, 0.5, 4, 2,
-                               1,
-                               1), len = c(1,2,1,1,0,1), nrow = 3, ncol = 4)
-rvine(A, copmat, cparmat)
+G <- AtoG(CopulaModel::Dvinearray(4))
+copmat <- makevinemat("gum",
+                      c("bvtcop", "frk"),
+                      c("mtcj", "frk", "indepcop"),
+                      c("bvncop", "joe", "mtcj", "frk"), zerocol = TRUE)
+cparmat <- makevinemat(3.1,
+                       list(c(0.5, 4), 2.3),
+                       list(4.2, 3.5, numeric(0)),
+                       c(0.5, 2.2, 2.5, 1.6), zerocol = TRUE)
+rv <- rvine(G, copmat, cparmat)
 }
 

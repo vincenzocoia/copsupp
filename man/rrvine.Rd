@@ -34,7 +34,7 @@ Like in \code{\link{rvinesimvec2}}, the copula families are assumed to be
 permutation symmetric.
 }
 \examples{
-rv <- rvine(CopulaModel::Dvinearray(5), "frk", makeuppertri(2, 4, 5))
+rv <- rvine(AtoG(CopulaModel::Dvinearray(5)), "frk", makeuppertri(2, 4, 5))
 set.seed(123)
 
 ## Simulate 10 observations:

@@ -52,13 +52,15 @@ to the "traditional" form, use \code{\link{contoA}}.
 ## Vine array
 makevinemat(1, c(2,1), c(3, 1, 2), c(4, 1, 2, 3))
 makevinemat(1, c(2,1), c(3, 1, 2), c(4, 1), c(5, 1:4))
+makevinemat()
 
 ## Two layers of a vine array
 makevinemat(c(4,1), c(5, 1:4))
 
 ## Copula Matrix
 makevinemat(c("gum", "gum", "bvtcop"), c("frk", "", "joe"),
-            bylayer=F, zerocol=T)
+            bylayer = FALSE, zerocol = TRUE)
+makevinemat(zerocol = TRUE)
 
 ## Copula Parameter Matrix
 makevinemat(list(2.4, 3.8, c(0.6, 7)), c(4.5, 2.3), bylayer=F, zerocol=T)

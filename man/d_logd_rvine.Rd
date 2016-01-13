@@ -17,7 +17,7 @@ Could be a vector if there's only one observation.}
 }
 \value{
 Vector of length = number of observations in \code{dat}, representing
-the evaluated joint density of the variables in \code{A}.
+the evaluated joint density of the variables in \code{G}.
 }
 \description{
 Evaluates the density of a regular vine model (\code{drvine}) or log density
@@ -29,21 +29,21 @@ This function is a wrapper for
 }
 \examples{
 set.seed(123)
-A <- truncvarray(CopulaModel::Cvinearray(4), 2)
+G <- AtoG(CopulaModel::Cvinearray(4))[1:3, ]
 copmat <- makeuppertri(c("gum", "gal", "bvtcop",
                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 cparmat <- makeuppertri.list(c(1.5, 1.5, 0.9, 3, 0.1, 0.5),
                              len = c(1,1,2,1,1), row = 2, col = 4)
-rv <- rvine(A=A, copmat=copmat, cparmat=cparmat)
-dat <- fvinesim(10, rv)
+rv <- rvine(G=G, copmat=copmat, cparmat=cparmat)
+dat <- rrvine(10, rv)
 logdrvine(dat, rv)
 drvine(runif(4), rv)
 
-## The variables in A don't need to refer to all data:
+## The variables in G don't need to refer to all data:
 u <- runif(4)
-drvine(u, subset(rv, 3:4))
+drvine(u, subset(rv, 1:2))
 ## ...is the same as:
-drvine(u[3:4]), subset(rv, 3:4)
+drvine(u[1:2], subset(rv, 1:2))
 }
 \seealso{
 \code{\link{rvine}}

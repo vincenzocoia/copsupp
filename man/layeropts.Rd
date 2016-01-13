@@ -4,13 +4,36 @@
 \alias{layeropts}
 \title{Fitting options for a new Vine Layer}
 \usage{
-layeropts(var = NULL, A = NULL, ntrunc = NULL, cops = NULL,
+layeropts(var = NULL, G = NULL, ntrunc = NULL, cops = NULL,
   cpar = NULL, families = c("bvncop", "bvtcop", "mtcj", "gum", "frk", "joe",
   "bb1", "bb7", "bb8"))
 }
 \arguments{
 \item{ntrunc}{Truncation level. Could be a vector corresponding to the
-truncation level for the variables \code{var} or \code{A[1, ]}.}
+truncation level for the variables \code{var} or \code{G[1, ]}.}
+}
+\value{
+A list of partially-specified layers of a vine.
+
+Regarding the vine array info:
+
+\itemize{
+     \item \code{$var} Vector of new variables that these layers add, not
+     necessarily in order.
+     \item \code{$ntrunc} Depending on how much information is input, could be
+     \code{NULL}, an integer for maximum tree depth of these layers, or a
+     vector of tree depth for each layer.
+     \item \code{$G} Either \code{NULL}, or a vine array.
+}
+
+Regarding copula and parameter info:
+
+\itemize{
+     \item \code{$copmat} Copula matrix for these layers. No blank column
+     to the left. Some entries may be \code{NA}.
+     \item \code{$cparmat} Copula parameter matrix for these layers. No
+     blank column to the left. Some entries may contain \code{NA}'s.
+}
 }
 \description{
 When fitting a new layer(s) to a vine, use this function to specify

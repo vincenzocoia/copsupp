@@ -27,6 +27,7 @@
 #' edges[1]) | edges[2], etc. That's because when computing edges[1]|others,
 #' "pcond" can be used instead of "pcond12".
 #' @return List of fitted \code{$cops} and \code{$cpars}.
+#' @export
 fitlayer <- function(dat, basevine, edges, cops = NULL, cpars = NULL,
                      families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
                                   "frk","joe","bb1","bb7","bb8")) {

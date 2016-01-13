@@ -4,17 +4,24 @@
 \alias{subset.rvine}
 \title{Subset a Regular Vine}
 \usage{
-\method{subset}{rvine}(rv, select)
+\method{subset}{rvine}(rv, select, justcheck = FALSE)
 }
 \arguments{
 \item{rv}{A regular vine object.}
 
-\item{select}{Vector of variable indices in \code{diag(A)} to subset,
+\item{select}{Vector of variables to subset,
 if possible. The order of the variables does not matter.}
+
+\item{justcheck}{Logical; should this function only check whether or not
+the subset exists? \code{TRUE} if so.}
 }
 \value{
-Returns a regular vine of the subsetted variables, with variables
-ordered according to their order in \code{A}; or \code{NULL} if
+If \code{justcheck} is \code{TRUE}, returns \code{TRUE} if the requested
+subset exists, and \code{FALSE} if not.
+
+If \code{justcheck} is \code{FALSE}, returns
+a vine of the subsetted variables, with variables
+ordered according to their order in \code{G}; or \code{NULL} if
 the subset does not form a vine.
 }
 \description{
@@ -32,7 +39,7 @@ doesn't hold for this distribution).
 }
 \examples{
 ## Setup a vine.
-A <- CopulaModel::Dvinearray(5)
+G <- AtoG(CopulaModel::Dvinearray(5))
 copmat <- makeuppertri(c("gum", "mtcj", "gal", "joe",
                          "frk", "gum", "bb7",
                          "bb1", "indepcop",
@@ -43,8 +50,7 @@ cparmat <- makeuppertri.list(c(3, 2.5, 2, 1.5,
                                5, 0.5),
                                len = c(1,1,1,1,1,1,2,2,0,2),
                                4, 5)
-(rv <- rvine(A, copmat, cparmat,
-             list(pexp, identity, pnorm, pexp, sqrt)))
+(rv <- rvine(G, copmat, cparmat))
 
 ## Subset some variables.
 subset(rv, c(2, 4, 3))
@@ -52,8 +58,9 @@ subset(rv, 5)
 subset(rv, integer(0))
 
 ## This subset won't work:
-subset(rv, c(4, 1))
+subset(rv, c(4, 1), justcheck = TRUE)
 ## But it will in a 0-truncated vine:
+subset(trunc(rv, 0), c(4, 1), justcheck = TRUE)
 subset(trunc(rv, 0), c(4, 1))
 
 ## Select variables not present?

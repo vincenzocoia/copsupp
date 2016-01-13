@@ -36,13 +36,15 @@
 #' ## Vine array
 #' makevinemat(1, c(2,1), c(3, 1, 2), c(4, 1, 2, 3))
 #' makevinemat(1, c(2,1), c(3, 1, 2), c(4, 1), c(5, 1:4))
+#' makevinemat()
 #'
 #' ## Two layers of a vine array
 #' makevinemat(c(4,1), c(5, 1:4))
 #'
 #' ## Copula Matrix
 #' makevinemat(c("gum", "gum", "bvtcop"), c("frk", "", "joe"),
-#'             bylayer=F, zerocol=T)
+#'             bylayer = FALSE, zerocol = TRUE)
+#' makevinemat(zerocol = TRUE)
 #'
 #' ## Copula Parameter Matrix
 #' makevinemat(list(2.4, 3.8, c(0.6, 7)), c(4.5, 2.3), bylayer=F, zerocol=T)
@@ -50,6 +52,9 @@
 #' @export
 makevinemat <- function(..., bylayer = TRUE, zerocol = FALSE) {
     entry <- list(...)
+    if (length(entry) == 0) {
+        if (zerocol) return(matrix(ncol=1, nrow=0)) else return(matrix(ncol=0, nrow=0))
+    }
     ## Are any entries lists themselves? If so, make them all lists.
     listentries <- any(sapply(entry, is.list))
     if (listentries) entry <- lapply(entry, as.list)
@@ -74,6 +79,9 @@ makevinemat <- function(..., bylayer = TRUE, zerocol = FALSE) {
         }
     }
     res <- sapply(entry, identity)
+    if (!is.matrix(res)) { # This would happen if each entry of 'entry' has length 1.
+        res <- t(res)  # A neat trick to make it a matrix.
+    }
     if (!bylayer) res <- t(res)
     if (zerocol) res <- cbind(array(zero, c(nrow(res), 1)), res)
     res

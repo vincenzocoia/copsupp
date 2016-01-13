@@ -29,6 +29,7 @@
 #' v <- runif(100)
 #' fitbicop_lh(u, v)
 #' fitbicop_lh(u, v, families = "indepcop")
+#' @import VineCopula
 #' @rdname fitbicop
 #' @export
 fitbicop_lh <- function(u, v, families = c("indepcop", "bvncop","bvtcop","mtcj",
@@ -40,7 +41,7 @@ fitbicop_lh <- function(u, v, families = c("indepcop", "bvncop","bvtcop","mtcj",
     if (all(is_indepcop)) return(list(cop = "indepcop", cpar = integer(0), aic=0, bic=0))
     non_indep_cops <- families[!is_indepcop]
     #### Use BiCopSelect.
-    startfit <- VineCopula::BiCopSelect(u, v, familyset = c(copname2num(non_indep_cops),
+    startfit <- BiCopSelect(u, v, familyset = c(copname2num(non_indep_cops),
                                                             recursive = TRUE),
                                         selectioncrit = toupper(method))
     #### Extract chosen copula, and starting estimates.
