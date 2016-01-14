@@ -15,16 +15,17 @@
 #' ## reordervarray:
 #' G <- AtoG(CopulaModel::Dvinearray(5))
 #' reordervarray(G, 5:1)
-#' reordervarray(G, c(3, 2, 4, 1, 5)) # Natural order
+#' reordervarray(truncvarray(G, c(0, 1, 2, 1, 3)), c(3, 2, 4, 1, 5))
 #' reordervarray(G, c(5, 1, 4, 2, 3)) # NULL
 #' reordervarray(G, c(5:1, 87)) # Error
+#'
 #'
 #' ## reorder.rvine:
 #' copmat <- makevinemat("a", c("b","c"), letters[4:6], letters[7:10], zerocol=T)
 #' cparmat <- makevinemat(1, 2:3, 4:6, 7:10, zerocol=T)
 #' rv <- rvine(G, copmat, cparmat)
 #' reorder(rv, 5:1)
-#' reorder(rv, c(3, 2, 4, 1, 5)) # Natural order
+#' reorder(rv, c(3, 2, 4, 1, 5))
 #' reorder(rv, c(5, 1, 4, 2, 3)) # NULL
 #' reorder(rv, c(5:1, 87)) # Error
 #'
@@ -65,7 +66,7 @@ reordervarray <- function(G, ord) {
         ## Candidate variables to link with "thisvar" (must be already in array)
         candvars <- ord[1:(jnew-1)]
         ## Now see which of these candidate variables link up:
-        for (inew in 2:jnew) {
+        for (inew in 2:nrowG) {
             ## MOVE TO THE NEXT ROW
             ## Get variables conditioned on:
             condsetindices <- 1+seq_len(inew-2)

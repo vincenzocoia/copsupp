@@ -1,8 +1,9 @@
 #' Truncate a Regular Vine
 #'
-#' Truncates a regular vine.
+#' Truncates a vine (\code{trunc.rvine}), or a vine array (\code{truncvarray}).
 #'
 #' @param rv A regular vine object.
+#' @param G A vine array.
 #' @param ntrunc Integer; truncation level. Or, vector specifying the truncation
 #' level of each column of the G-Vine array.
 #' @return If \code{ntrunc >= nrow(G) - 1}, the original vine is
@@ -19,6 +20,7 @@
 #' lapply(rv1, identity)
 #' rv2 <- trunc(rv, c(4, 4, 4, 1, 2, 4))
 #' identical(rv1, rv2)
+#' @rdname trunc
 #' @export
 trunc.rvine <- function(rv, ntrunc) {
     G <- truncvinemat(rv$G, ntrunc)
@@ -29,6 +31,12 @@ trunc.rvine <- function(rv, ntrunc) {
 
 #' @export
 trunc <- function(...) UseMethod("trunc")
+
+#' @rdname trunc
+#' @export
+truncvarray <- function(G, ntrunc) {
+    truncvinemat(G, ntrunc)
+}
 
 #' Get Truncation Level
 #'

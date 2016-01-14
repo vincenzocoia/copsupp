@@ -2,15 +2,20 @@
 % Please edit documentation in R/trunc.rvine.R
 \name{trunc.rvine}
 \alias{trunc.rvine}
+\alias{truncvarray}
 \title{Truncate a Regular Vine}
 \usage{
 \method{trunc}{rvine}(rv, ntrunc)
+
+truncvarray(G, ntrunc)
 }
 \arguments{
 \item{rv}{A regular vine object.}
 
 \item{ntrunc}{Integer; truncation level. Or, vector specifying the truncation
 level of each column of the G-Vine array.}
+
+\item{G}{A vine array.}
 }
 \value{
 If \code{ntrunc >= nrow(G) - 1}, the original vine is
@@ -18,7 +23,7 @@ returned. Otherwise, an 'rvine' object is returned
 with the truncation implemented.
 }
 \description{
-Truncates a regular vine.
+Truncates a vine (\code{trunc.rvine}), or a vine array (\code{truncvarray}).
 }
 \examples{
 rv <- rvine(AtoG(CopulaModel::Dvinearray(6)), "frk", 2)
