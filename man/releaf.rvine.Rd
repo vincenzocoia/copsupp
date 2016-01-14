@@ -18,7 +18,8 @@ vine exists; \code{NULL} otherwise.
 }
 \description{
 Convert a vine array so that a variable(s) of your choice appears last
-in the vine array -- if possible.
+in the vine array -- if possible. Might only work when vines are
+at most truncated in the traditional sense.
 }
 \examples{
 A <- makeuppertri(c(4,4,4,4,6,5,
@@ -27,7 +28,7 @@ A <- makeuppertri(c(4,4,4,4,6,5,
                     5,5,1,
                     2,2,
                     3), 6, 6, incDiag=T)
-rv <- rvine(A)
+rv <- rvine(AtoG(A), "frk", 2)
 releaf(rv, leaf = 2)
 releaf(rv, leaf = 1)
 releaf(trunc(rv, 2), leaf = 1)

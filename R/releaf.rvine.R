@@ -1,7 +1,8 @@
 #' "Re-leaf" a Vine Array
 #'
 #' Convert a vine array so that a variable(s) of your choice appears last
-#' in the vine array -- if possible.
+#' in the vine array -- if possible. Might only work when vines are
+#' at most truncated in the traditional sense.
 #'
 #' @param rv Regular vine object.
 #' @param leaf Integer; variable you want to make a leaf of the array.
@@ -15,7 +16,7 @@
 #'                     5,5,1,
 #'                     2,2,
 #'                     3), 6, 6, incDiag=T)
-#' rv <- rvine(A)
+#' rv <- rvine(AtoG(A), "frk", 2)
 #' releaf(rv, leaf = 2)
 #' releaf(rv, leaf = 1)
 #' releaf(trunc(rv, 2), leaf = 1)
@@ -25,7 +26,7 @@
 #' releaf(rv, leaf = 1)
 #' @export
 releaf.rvine <- function(rv, leaf) {
-    A <- rv$A
+    A <- GtoA(rv$G)
     d <- ncol(A)
     ## Empty vine case:
     if (d == 0) return(rv)
@@ -39,21 +40,19 @@ releaf.rvine <- function(rv, leaf) {
     if (ntrunc == 0) {
         ileaf <- which(v == leaf)
         A[1, c(ileaf, d)] <- A[1, c(d, ileaf)]
-        marg <- rv$marg
-        marg[c(ileaf, d)] <- marg[c(d, ileaf)]
-        return(rvine(A, marg = marg))
+        return(rvine(AtoG(A)))
     }
     ## Case when d=2
     if (d == 2) {
         A <- matrix(c(A[2,2], 0, A[2,2], leaf), ncol = 2)
-        return(rvine(A, rv$copmat, rv$cparmat, rv$marg[2:1]))
+        return(rvine(AtoG(A), rv$copmat, rv$cparmat))
     }
     ## Center the vine:
     rvc <- center(rv)
     ## Deal with the complete-vine case separately, in which case rvc is
     ##   in natural order.
     if (d == ntrunc + 1) {
-        A <- rvc$A
+        A <- GtoA(rvc$G)
         if (A[d,d] == leaf) {
             return(rvc)
         }
@@ -82,15 +81,12 @@ releaf.rvine <- function(rv, leaf) {
                 cparmatnew[1:(ntrunc-1), d-1] <- two
                 cparmatnew[1:(ntrunc-1), d] <- one
             }
-            ## Swap marginals
-            margnew <- rvc$marg
-            margnew[c(d-1, d)] <- margnew[c(d, d-1)]
-            return(rvine(Anew, copmatnew, cparmatnew, margnew))
+            return(rvine(AtoG(Anew), copmatnew, cparmatnew))
         }
         return(NULL)
     }
     ## --- END special cases. ---
-    Ac <- rvc$A
+    Ac <- GtoA(rvc$G)
     ## Get variables that won't work:
     bad <- unique(as.vector(Ac[1:ntrunc, (ntrunc+1):d]))
     if (leaf %in% bad) return(NULL)
@@ -102,9 +98,7 @@ releaf.rvine <- function(rv, leaf) {
     copmatc[, c(ileaf, d)] <- copmatc[, c(d, ileaf)]
     cparmatc <- rvc$cparmat
     cparmatc[, c(ileaf, d)] <- cparmatc[, c(d, ileaf)]
-    margc <- rvc$marg
-    margc[c(ileaf, d)] <- margc[c(d, ileaf)]
-    rvine(Ac, copmatc, cparmatc, margc)
+    rvine(AtoG(Ac), copmatc, cparmatc)
 }
 
 #' @export

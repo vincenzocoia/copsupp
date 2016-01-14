@@ -4,7 +4,7 @@
 \alias{reformcopmat}
 \title{Rearrange the Matrices following Rearrangement of Vine Array}
 \usage{
-reformcopmat(mat, Anew, Aold)
+reformcopmat(mat, Gnew, Gold)
 }
 \arguments{
 \item{mat}{Old matrix to rearrange, such as a copula matrix or copula
@@ -31,21 +31,21 @@ and \code{Anew} have the same labels.
 }
 \examples{
 ## Originally...
-A <- truncvarray(Cvinearray(4), 2)
+G <- AtoG(Cvinearray(4))[1:3, ]
 copmat <- makeuppertri(c("gum", "gal", "bvtcop",
                          "bvncop", "frk"), row = 2, col = 4, blanks = "")
 cparmat <- makeuppertri.list(c(2, 3, 0.9, 4, 0.1, 0.5),
                              len = c(1,1,2,1,1), row = 2, col = 4)
 
 ## Obtain new vine array by some means:
-Anew <- center.varray(A)
+Gnew <- centervarray(G)
 ## Get new matrices:
-reform.copmat(copmat, Anew, A)
-reform.copmat(cparmat, Anew, A)
+reformcopmat(copmat, Gnew, G)
+reformcopmat(cparmat, Gnew, G)
 
-## Try changing the dimension of A
-Anew <- rvinesubset(truncvarray(A, 1), c(1,2,3))
-reform.copmat(copmat, Anew, A)
-reform.copmat(cparmat, Anew, A)
+## Try changing the dimension of G
+Gnew <- subsetvarray(G[1:2, ], 1:3)
+reformcopmat(copmat, Gnew, G)
+reformcopmat(cparmat, Gnew, G)
 }
 

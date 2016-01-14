@@ -2,9 +2,12 @@
 % Please edit documentation in R/subset.rvine.R
 \name{subset.rvine}
 \alias{subset.rvine}
+\alias{subsetvarray}
 \title{Subset a Regular Vine}
 \usage{
 \method{subset}{rvine}(rv, select, justcheck = FALSE)
+
+subsetvarray(G, select, justcheck = FALSE)
 }
 \arguments{
 \item{rv}{A regular vine object.}
@@ -14,6 +17,8 @@ if possible. The order of the variables does not matter.}
 
 \item{justcheck}{Logical; should this function only check whether or not
 the subset exists? \code{TRUE} if so.}
+
+\item{G}{A vine array matrix.}
 }
 \value{
 If \code{justcheck} is \code{TRUE}, returns \code{TRUE} if the requested
@@ -26,7 +31,7 @@ the subset does not form a vine.
 }
 \description{
 Find the vine connecting a subset of variables from a bigger vine, if
-it exists.
+it exists. \code{subsetvarray} only finds the subset of a vine array.
 }
 \details{
 Just a technicality:
@@ -40,6 +45,8 @@ doesn't hold for this distribution).
 \examples{
 ## Setup a vine.
 G <- AtoG(CopulaModel::Dvinearray(5))
+subsetvarray(G, c(2, 4, 3))
+
 copmat <- makeuppertri(c("gum", "mtcj", "gal", "joe",
                          "frk", "gum", "bb7",
                          "bb1", "indepcop",

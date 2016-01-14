@@ -15,7 +15,7 @@
 #' @return G-vine array, with variables reordered.
 #' @examples
 #' ## Setup a vine.
-#' G <- CopulaModel::Dvinearray(5)
+#' G <- AtoG(CopulaModel::Dvinearray(5))
 #' copmat <- makeuppertri(c("gum", "mtcj", "gal", "joe",
 #'                          "frk", "gum", "bb7",
 #'                          "bb1", "indepcop",
@@ -26,8 +26,7 @@
 #'                                5, 0.5),
 #'                              len = c(1,1,1,1,1,1,2,2,0,2),
 #'                              4, 5)
-#' (rv <- rvine(G, copmat, cparmat,
-#'              list(pexp, identity, pnorm, pexp, sqrt)))
+#' (rv <- rvine(G, copmat, cparmat))
 #'
 #' ## Center it. Since it's a complete vine, the output is in natural order:
 #' center(rv)
@@ -39,7 +38,79 @@
 #' center(trunc(rv, 0))
 #' center(subset(rv, 5))
 #' center(subset(rv, integer(0)))
+#' @import CopulaModel
 #' @export
+centervarray <- function(G) {
+    ntrunc <- nrow(G) - 1
+    ## Nothing to do if it's an independence vine:
+    if (ntrunc == 0) return(G)  # Accounts for one-variable case too.
+    d <- ncol(G)
+    ## Nothing to do if there's less than 3 variables:
+    if (d <= 2) return(G)
+    ovars <- G[1, ]
+    ## If the vine is complete, just use "natural order":
+    if (ntrunc == d-1) {
+        ## Change variable names to variable order, and convert to natural order.
+        Gnew <- relabelvarray(G)
+        Gnew <- AtoG(varray2NO(GtoA(Gnew))$NOa)
+        ## Convert back to variable names:
+        vnew <- ovars[Gnew[1, ]]
+        Gnew <- relabelvarray(Gnew, vnew)
+        return(Gnew)
+    }
+    ## Initiate the final array as (ntrunc+1)x(ntrunc+1) array (call it B)
+    ##  using variables in G[, d], with G[1,d] going at the end.
+    Bvars <- G[, d]
+    B <- subsetvarray(G, Bvars)
+    rvars <- setdiff(ovars, Bvars)  # Stands for "remaining variables".
+    ## Fill in B until there's no more variables left to fill:
+    while (length(rvars) > 0) {
+        ## Which of the remaining variables are in the next layer of the vine?
+        layer <- integer(0)
+        for (col in (ntrunc+1):d) {
+            tf <- rvars %in% G[, col]
+            if (sum(tf) == 1) layer <- c(layer, rvars[tf])
+        }
+        rvars <- setdiff(rvars, layer)
+        wchremain <- sapply(rvars, function(i) which(ovars == i))
+        if (length(wchremain) > 0) Asub <- A[, -wchremain] else Asub <- A
+        if (!is.matrix(A)) A <- matrix(A, nrow = ntrunc + 1)
+        ## Add the variables in the next layer:
+        for (v in layer) {
+            nextcol <- matrix(nrow = ntrunc + 1)
+            nextcol[ntrunc + 1, ] <- v
+            Asubsub <- Asub
+            for (t in 1:ntrunc) {
+                Asubsub <- Asubsub[, -1]
+                if (!is.matrix(Asubsub)) Asubsub <- matrix(Asubsub, nrow = ntrunc + 1)
+                ## Get the possible nodes for this tree
+                nodes <- Asubsub[c(1, t+1), ]
+                if (!is.matrix(nodes)) nodes <- matrix(nodes, nrow = 2)
+                ## Make sure the conditioned variables are correct:
+                keepcols <- rep(TRUE, ncol(Asubsub))
+                if (t > 1) {
+                    condn <- Asubsub[2:t, ]
+                    if (!is.matrix(condn)) condn <- matrix(condn, nrow = t-1)
+                    keepcols <- apply(condn, 2, function(col)
+                        all(sort(col) == sort(nextcol[1:(t-1), 1])))
+                }
+                ## Find variable v and its partner.
+                wchprsnt <- (nodes == v) & matrix(keepcols, byrow = TRUE,
+                                                  ncol = ncol(Asubsub), nrow = 2)
+                nextcol[t, 1] <- nodes[wchprsnt[2:1, ]]
+            }
+            ## Add the column to B:
+            B <- cbind(B, nextcol)
+        }
+    }
+    ## Rearrange the copula and parameter matrices, and marginals:
+    AtoG(B)
+}
+
+#' @export
+center <- function(...) UseMethod("center")
+
+
 center.rvine <- function(rv) {
     G <- rv$G
     ntrunc <- nrow(G) - 1
@@ -50,18 +121,17 @@ center.rvine <- function(rv) {
     if (d == 0 | d == 2) return(rv)
     copmat <- rv$copmat
     cparmat <- rv$cparmat
-    marg <- rv$marg
     ovars <- vars(rv)
     ## If the vine is complete, just use "natural order":
     if (ntrunc == d-1) {
         ## Change variable names to variable order, and convert to natural order.
         ord2var <- vars(rv)
-        rv <- relabel(rv, 1:length(ord2var))
-        Gnew <- varray2NO(rv$G)$NOa
+        rv <- relabel(rv, 1:d)
+        Gnew <- AtoG(varray2NO(GtoA(G))$NOa)
         ## Convert back to variable names:
-        newordvars <- vars(rvine(Gnew))
+        newordvars <- Gnew[1, ]
         vnew <- ord2var[newordvars]
-        Gnew <- relabel(rvine(Gnew), vnew)$G
+        Gnew <- relabelvarray(Gnew, vnew)
         if (!is.null(copmat)) copmat <- reformcopmat(copmat, Gnew = Gnew, Gold = G)
         if (!is.null(cparmat)) cparmat <- reformcopmat(cparmat, Gnew = Gnew, Gold = G)
         vmap <- sapply(vnew, function(vnew_) which(ovars == vnew_))
@@ -116,12 +186,10 @@ center.rvine <- function(rv) {
     if (!is.null(copmat)) copmat <- reformcopmat(copmat, B, G)
     if (!is.null(cparmat)) cparmat <- reformcopmat(cparmat, B, G)
     newvars <- vars(rvine(B))
-    marg <- marg[sapply(newvars, function(v_) which(ovars == v_))]
-    rvine(B, copmat, cparmat, marg)
+    rvine(B, copmat, cparmat)
 }
 
-#' @export
-center <- function(...) UseMethod("center")
+
 
 #' Center a Vine Array
 #'
