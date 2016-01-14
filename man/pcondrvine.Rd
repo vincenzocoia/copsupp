@@ -9,7 +9,7 @@ pcondrvine(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FALSE)
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
 
-\item{rv}{Regular vine object (complete).}
+\item{rv}{Regular vine object.}
 
 \item{cond}{Integer; the variable you wish to condition on (i.e. the
 column number of \code{dat}, also present in \code{rv}).}
@@ -33,7 +33,8 @@ the quantities, then an error is thrown.
 }
 \description{
 Evaluates the conditional distribution of a variable in a regular vine
-out of all specified variables.
+out of all specified variables. As of now, will likely only work if the vine
+is regular, and truncated in the traditional sense.
 }
 \details{
 To compute the conditional distribution, the vine is subsetted to
@@ -58,7 +59,7 @@ pcondrvine(dat, rv, cond=5, verbose=T)
 ## Compute 5|4. pcondrvine just uses 'pcondcop()'.
 pcondrvine(dat, rv, cond=5, vbls=c(4,5), verbose=T)
 
-## Compute 5|2:3. Two integrals takes ~13 if maxint > 1.
+## Compute 5|2:3. Two integrals takes ~13 min if maxint > 1.
 pcondrvine(dat, rv, cond=5, vbls=c(2,3,5), maxint=1, verbose=T)
 
 ## Compute 4|(1,2,3,5). No algorithm for that.

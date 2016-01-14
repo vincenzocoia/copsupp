@@ -1,10 +1,11 @@
 #' Conditional Distribution in a Regular Vine
 #'
 #' Evaluates the conditional distribution of a variable in a regular vine
-#' out of all specified variables.
+#' out of all specified variables. As of now, will likely only work if the vine
+#' is regular, and truncated in the traditional sense.
 #'
 #' @param dat vector or matrix of observations (columns are variables).
-#' @param rv Regular vine object (complete).
+#' @param rv Regular vine object.
 #' @param cond Integer; the variable you wish to condition on (i.e. the
 #' column number of \code{dat}, also present in \code{rv}).
 #' @param vbls Vector of integers; the subset of variables you wish to consider.
@@ -40,7 +41,7 @@
 #' ## Compute 5|4. pcondrvine just uses 'pcondcop()'.
 #' pcondrvine(dat, rv, cond=5, vbls=c(4,5), verbose=T)
 #'
-#' ## Compute 5|2:3. Two integrals takes ~13 if maxint > 1.
+#' ## Compute 5|2:3. Two integrals takes ~13 min if maxint > 1.
 #' pcondrvine(dat, rv, cond=5, vbls=c(2,3,5), maxint=1, verbose=T)
 #'
 #' ## Compute 4|(1,2,3,5). No algorithm for that.
@@ -88,7 +89,7 @@ pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FAL
             return(res)
         } else {
             ## Case 1b: Subsetted vine does have 'cond' as a leaf.
-            Aleaf <- subrvleaf$A
+            Aleaf <- GtoA(subrvleaf$G)
             copmat <- subrvleaf$copmat
             cparmat <- subrvleaf$cparmat
             ## We'll need to re-arrange the data so that it's in order of the
@@ -102,15 +103,14 @@ pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FAL
                 if (verbose) cat(paste0("cond=", cond, " is one of a pair. ",
                                           "Using `pcondcop()`.\n"))
                 pcondcop <- get(paste0("pcond", copmat[1, 2]))
-                cpar <- cparmat[1, 2]
-                if (is.list(cpar)) cpar <- cpar[[1]]
+                cpar <- cparmat[1, 2][[1]]
                 return(apply(dat, 1, function(row) pcondcop(row[2], row[1], cpar)))
             } else {
                 ## Case 1bb: There are more than 2 variables in the vine.
                 if (verbose) cat(paste0("cond=", cond, " is a leaf. ",
                                           "Using `copreg::rVineTruncCondCDF()`.\n"))
                 ## Use Bo's function
-                Aleaf <- subrvleaf$A
+                Aleaf <- GtoA(subrvleaf$G)
                 ## Fill-in vine array so it's d x d
                 Aleaf <- rbind(Aleaf, matrix(0, nrow = d - nrow(Aleaf), ncol = d))
                 diag(Aleaf) <- 1:d
