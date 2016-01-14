@@ -15,7 +15,7 @@
 #' If \code{t = ncol(G)-1}, then the entered vine isn't truncated, and the
 #' first \code{t-1} variables in the outputted array are not leaves (in fact,
 #' a natural order array is outputted, since it satisfies that requirement).
-#' @return G-vine array, with variables reordered.
+#' @return G-vine array or vine, with variables reordered.
 #' @examples
 #' ## Setup a vine.
 #' G <- AtoG(CopulaModel::Dvinearray(5))

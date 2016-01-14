@@ -16,7 +16,7 @@ the traditional sense.}
 \item{rv}{Regular vine object.}
 }
 \value{
-G-vine array, with variables reordered.
+G-vine array or vine, with variables reordered.
 }
 \description{
 Converts a vine array (\code{centervarray}) or vine
