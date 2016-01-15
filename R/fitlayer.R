@@ -64,16 +64,59 @@ fitlayer <- function(dat, basevine, edges, cops = NULL, cpars = NULL,
     list(cops = c(cops, recursive = TRUE), cpars = cpars)
 }
 
-
-
-fitlayer_cnqr <- function(dats, edges, basevine, tauset, w = function(x) 1,
-                          cops = NULL, cpars = NULL,
+#' Temporary Title
+#'
+#' @param cops List with vector entries of the copula families to try fitting
+#' for each edge.
+#' @param cpars List with entries being the list of parameters you want to enforce
+#' on the copula models. \code{NULL} for no restrictions; \code{NULL} entry
+#' for no restrictions on that edge; \code{NA} in a parameter vector
+#' means that parameter needs fitting.
+#' @param QY Vectorized function of the fitted quantile function of Y.
+#' @param families Vector of copula families.
+#' For those edges in \code{cop} that don't have copula families
+#' specially selected (i.e. have \code{NULL} entries), these families are used.
+fitlayer_cnqr <- function(dats, edges, basevine, tauset, QY, stoponbest = TRUE,
+                          w = function(x) 1, cops = NULL, cpars = NULL,
                           families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
                                        "frk","joe","bb1","bb7","bb8")) {
+    ## 1. Modify and get info from input
+    dattr <- dats$tr
+    datval <- dats$val
     ## Fill-in cops if not done already.
     nfam <- length(families)
-    ## Put cpar in list form if not already:
+    nedge <- length(edges) - 1  # Number of edges
     if (is.null(cpar)) cpar <- rep(list(NULL), nfam)
+    cpar <- lapply(cpar, function(fams){
+        if (is.null(fams)) families else fams
+    })
+    ## Make cpars a list if it's not already.
+    if (!is.list(cpars)) {
+        cpars <- rep(list(NULL), nedge)
+    }
+    ## 2. Get sequential predictor cdfs
+    ucondtr <- matrix(dattr[, edges[2]], ncol = 1)
+    ucondval <- matrix(datval[, edges[2]], ncol = 1)
+    for (i in 2+seq_len(nedge - 1)) {
+        ## Training
+        nextu <- pcondrvine(dattr, basevine,
+                            cond = edges[i],
+                            vbls = edges[2:i])
+        ucondtr <- cbind(ucondtr, nextu)
+        ## Validation
+        nextu <- pcondrvine(datval, basevine,
+                            cond = edges[i],
+                            vbls = edges[2:i])
+        ucondval <- cbind(ucondval, nextu)
+    }
+    ## 3. Fit each edge, one at a time.
+    for (i in 1:nedge) {
+        ## BEGIN i'th EDGE
+    }
+
+
+
+
     ## Initiate output
     valscore <- numeric(0)
     fittedcpars <- list()

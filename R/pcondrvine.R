@@ -134,7 +134,7 @@ pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FAL
                 res <- copreg::rVineTruncCondCDF(parvec = parvec,
                                          udat = dat,
                                          A = Aleaf,
-                                         ntrunc = ntrunc,
+                                         ntrunc = min(ntrunc, nrow(Aleaf) - 1),
                                          pcondmat = pcondmat,
                                          np = np)
                 return(res)

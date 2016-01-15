@@ -37,7 +37,8 @@ rvine <- function(G, copmat, cparmat) {
     ## First -- deal with the "trivial case" of G.
     d <- ncol(G)
     if (d == 0) {
-        return(structure(list(G=G, copmat=NA, cparmat=NA), class = "rvine"))
+        return(structure(list(G=matrix(ncol=0, nrow=1), copmat=NA, cparmat=NA),
+                         class = "rvine"))
     }
     if (d == 1) {
         return(structure(list(G=G,
@@ -64,8 +65,8 @@ rvine <- function(G, copmat, cparmat) {
                                      nrow = nrow(cparmat), ncol = ncol(cparmat))
     }
     if (!is.matrix(cparmat)) {
-        cparmat <- rep(cparmat, ntrunc*d - choose(ntrunc+1, 2))
         len <- rep(length(cparmat), ntrunc*d - choose(ntrunc+1, 2))
+        cparmat <- rep(cparmat, ntrunc*d - choose(ntrunc+1, 2))
         cparmat <- makeuppertri.list(cparmat, len, nrow=ntrunc, ncol=d)
     }
     ## Output
