@@ -2,15 +2,10 @@
 % Please edit documentation in R/fitbicop.R
 \name{fitbicop_lh}
 \alias{fitbicop_lh}
-\alias{fitbicop_qcond}
 \title{Fit a Bivariate Copula Model}
 \usage{
 fitbicop_lh(u, v, families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum",
   "frk", "joe", "bb1", "bb7", "bb8"), cpar = NULL, method = "aic")
-
-fitbicop_qcond(u, v, families = c("indepcop", "bvncop", "bvtcop", "mtcj",
-  "gum", "frk", "joe", "bb1", "bb7", "bb8"), cpar = NULL, taus = 1:10/11 *
-  0.1 + 0.9)
 }
 \arguments{
 \item{u}{Vector of Unif(0,1) data.}
@@ -21,8 +16,6 @@ fitbicop_qcond(u, v, families = c("indepcop", "bvncop", "bvtcop", "mtcj",
 of each family are automatically considered.}
 
 \item{method}{Either "aic" or "bic" (case doesn't matter)}
-
-\item{taus}{Vector of quantile indices to score.}
 }
 \value{
 A list with entries \code{$cop} (the best-fitting copula family),

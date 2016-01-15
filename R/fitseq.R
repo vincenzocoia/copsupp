@@ -4,7 +4,7 @@
 #' in the order of highest to lowest partial correlation, as approximated by
 #' lm(). Intended to internal use. Use \code{fitseq_rvine} if you want
 #' the order to be chosen so that, when attached to a base rvine, you end
-#' up with an rvine still.
+#' up with an rvine still (NOT FUNCTIONAL).
 #'
 #' @param dat Matrix of data with Unif(0,1) margins
 #' @param var Integer; the variable you want to link.
@@ -22,7 +22,7 @@
 #' fitseq(dat, 1, 2:5, a=c(1,NA,4))
 #' @rdname fitseq
 #' @export
-fitseq <- function(dat, var, linkwith, a=NULL) {
+fitseq <- function(dat, var, linkwith = (1:ncol(dat))[-var], a = NULL) {
     if (!is.null(a)) linkwith <- setdiff(linkwith, a[-1])
     if (is.null(a)) a <- c(var, rep(NA, length(linkwith)))
     if (sum(is.na(a)) < length(linkwith)) a <- c(a, rep(NA, length(linkwith) - sum(is.na(a))))
@@ -52,7 +52,7 @@ fitseq <- function(dat, var, linkwith, a=NULL) {
 #' \code{a[-1]} (to ensure the order is chosen to preserve the rvine status).
 #' @rdname fitseq
 #' @export
-fitseq_rvine <- function(dat, var, linkwith, a=NULL, A) {
+fitseq_rvine <- function(dat, var, linkwith = (1:ncol(dat))[-var], a=NULL, A) {
 #     if (!is.null(a)) linkwith <- setdiff(linkwith, a[-1])
 #     if (is.null(a)) a <- c(var, rep(NA, length(linkwith)))
 #     if (sum(is.na(a)) < length(linkwith)) a <- c(a, rep(NA, length(linkwith) - sum(is.na(a))))

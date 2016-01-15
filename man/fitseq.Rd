@@ -5,9 +5,9 @@
 \alias{fitseq_rvine}
 \title{Choose sequence of variables to link}
 \usage{
-fitseq(dat, var, linkwith, a = NULL)
+fitseq(dat, var, linkwith = (1:ncol(dat))[-var], a = NULL)
 
-fitseq_rvine(dat, var, linkwith, a = NULL, A)
+fitseq_rvine(dat, var, linkwith = (1:ncol(dat))[-var], a = NULL, A)
 }
 \arguments{
 \item{dat}{Matrix of data with Unif(0,1) margins}
@@ -31,7 +31,7 @@ Chooses the sequence of variables that link up with another variable
 in the order of highest to lowest partial correlation, as approximated by
 lm(). Intended to internal use. Use \code{fitseq_rvine} if you want
 the order to be chosen so that, when attached to a base rvine, you end
-up with an rvine still.
+up with an rvine still (NOT FUNCTIONAL).
 }
 \details{
 All variables in \code{linkwith} will be linked, despite what's in \code{a}.
