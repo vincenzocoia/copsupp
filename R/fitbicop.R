@@ -33,7 +33,7 @@
 #' @rdname fitbicop
 #' @export
 fitbicop_lh <- function(u, v, families = c("indepcop", "bvncop","bvtcop","mtcj",
-                                             "gum","frk","joe","bb1","bb7","bb8"),
+                                             "gum","frk","joe","bb1", "bb7","bb8"),
                         cpar = NULL, method = "aic") {
     ## Choose copula and get starting values
     #### Remove indepcop first. BiCopSelect doesn't like that.

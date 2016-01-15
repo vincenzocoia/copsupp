@@ -4,17 +4,21 @@
 \alias{fitlayer_cnqr}
 \title{Temporary Title}
 \usage{
-fitlayer_cnqr(dats, edges, basevine, tauset, QY, stoponbest = TRUE,
-  w = function(x) 1, cops = NULL, cpars = NULL, families = c("indepcop",
-  "bvncop", "bvtcop", "mtcj", "gum", "frk", "joe", "bb1", "bb7", "bb8"))
+fitlayer_cnqr(dats, edges, basevine, QY, tauset = space_taus(10),
+  stoponbest = TRUE, showplots = TRUE, w = function(u) 1, cops = NULL,
+  cpars = NULL, families = c("bvncop", "bvtcop", "mtcj", "gum", "frk",
+  "joe", "bb1"))
 }
 \arguments{
 \item{QY}{Vectorized function of the fitted quantile function of Y.}
 
+\item{w}{NOT FUNCTIONAL YET.}
+
 \item{cops}{List with vector entries of the copula families to try fitting
 for each edge.}
 
-\item{cpars}{List with entries being the list of parameters you want to enforce
+\item{cpars}{NOT FUNCTIONAL YET.
+List with entries being the list of parameters you want to enforce
 on the copula models. \code{NULL} for no restrictions; \code{NULL} entry
 for no restrictions on that edge; \code{NA} in a parameter vector
 means that parameter needs fitting.}
@@ -25,5 +29,35 @@ specially selected (i.e. have \code{NULL} entries), these families are used.}
 }
 \description{
 Temporary Title
+}
+\examples{
+set.seed(123)
+library(CopulaModel)
+library(cnqr)
+library(ggplot2)
+
+## Get data
+rv <- rvine(AtoG(Dvinearray(5)), "frk", 3)
+dattr <- rrvine(200, rv)
+datval <- rrvine(200, rv)
+
+## Fit CNQR:
+fit1 <- fitlayer_cnqr(list(tr=dattr, val=datval), edges = 5:1,
+                      rv, QY = identity, stoponbest = FALSE)
+fit2 <- fitlayer_cnqr(list(tr=dattr, val=datval), edges = 5:1,
+                      rv, QY = identity, stoponbest = FALSE,
+                      cops = list("frk", NULL, NULL, NULL))
+
+## Compare the two fits
+#### Copulas:
+fit1$cops
+fit2$cops
+#### Score:
+plotdat <- data.frame(fit = rep(c("fit1", "fit2"), each = 5),
+                      npred = rep(0:4, 2),
+                      score = c(fit1$scores, fit2$scores))
+ggplot(plotdat, aes(npred, score, group = fit)) +
+    geom_point() +
+    geom_line(aes(colour = fit))
 }
 

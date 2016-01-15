@@ -111,7 +111,7 @@ fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
                     paste(var_all[var_all>ncol(dat)], collapse=", "),
                     " refer to columns that do not exist in 'dat'."))
     ## We now have a fitted base vine with at least one variable, and at least one other
-    ##  variable is being added. We first need to get an array, then chooose
+    ##  variable is being added. We first need to get an array, then choose
     ##  and fit copula models. We'll do so by adding one variable at a time.
     ## Setup:
     #### Truncation and vine array
@@ -224,6 +224,7 @@ fitrvine_basic <- function(dat, vars = 1:ncol(dat), ntrunc = length(vars) - 1,
     odat <- dat[, vars]
     ## Get correlation matrix and choose vine array.
     cormat <- cor(qnorm(odat))
+    library(igraph)  # Error if not present, even if igraph is under "import".
     A <- gausstrvine.mst(cormat, k-1)$RVM$VineA
 #     G <- AtoG(A)
 #     ## Fit the first two variables as the "base vine":
@@ -240,7 +241,7 @@ fitrvine_basic <- function(dat, vars = 1:ncol(dat), ntrunc = length(vars) - 1,
     names(familyset) <- NULL
     ## Now get and fit copulas. We'll use RVineCopSelect().
     ##  (use capture.output() to keep RVineCopSelect() quiet)
-    capture.output(vinefit <- RVineCopSelect(dat,
+    capture.output(vinefit <- RVineCopSelect(odat,
                                              familyset = familyset,
                                              Matrix = A,
                                              trunclevel = ntrunc))

@@ -20,6 +20,7 @@
 7. Problems with `RVineCopSelect()` in `VineCopula` (may have to write my own version):
 	* Forces you to use a pre-defined set of bivariate copula families.
 	* Doesn't let you choose the copula model matrix. It would even be nice to be able to choose _parts_ of the copula model matrix too.
+	* When you request a "bvtcop" to be fit (via familyset = 2), it can instead fit a "bvncop" (returning family = 1) even though you didn't want one to be fit.
 	* (Also with `BiCopSelect()`) Puts negative parameters on 90- or 270-degree rotated copulas, but those models actually have positive parameters. 
 	* (Also with `BiCopSelect()`) Can't seem to fit the BB6 copula properly. See this example: 
 
