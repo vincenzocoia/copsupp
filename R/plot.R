@@ -20,20 +20,20 @@
 #' fitbicop_lh(u, v, families=cop_)$cpar)
 #'
 #' ## Get plots:
-#' plotqcurve_edge(u, v, cops, cpars)
+#' plotcop_qcurve(u, v, cops, cpars)
 #'
 #' ## How about on a validation set?
 #' u <- runif(100)
 #' v <- CopulaModel::qcondgum(runif(100), u, 4)
-#' plotqcurve_edge(u, v, cops, cpars)
+#' plotcop_qcurve(u, v, cops, cpars)
 #'
 #' ## Over the entire range of quantile functions?
 #' ##  You can add ggplot layers too:
 #' library(ggplot2)
-#' plotqcurve_edge(u, v, cops, cpars, tauset = 1:19/20) +
+#' plotcop_qcurve(u, v, cops, cpars, tauset = 1:19/20) +
 #'   labs(title = "Normal Scores Plot", x = "x", y = "y")
 #' @export
-plotqcurve_edge <- function(u, v, cops, cpars, tauset = space_taus(10)) {
+plotcop_qcurve <- function(u, v, cops, cpars, tauset = space_taus(10)) {
     ## Since I want different curves to be plotted on different panes,
     ##  I'll have to make the curves myself.
     ## 1. Set-up the plotting data frame.
@@ -74,4 +74,27 @@ plotqcurve_edge <- function(u, v, cops, cpars, tauset = space_taus(10)) {
         facet_wrap(~ copula)
 }
 
-# function(w = 1, g = identity)
+#' Plot CNQR scores
+#'
+#' Plots scores of different model in descending order for easy comparison.
+#'
+#' @param cops Vector of names of the models.
+#' @param scores Vector of numeric scores of the models.
+#' @return A plot (\code{ggplot} command) of the models' scores
+#' in descending order. The labels are "copula" on the x-axis, and
+#' "CNQR score" on the y-axis, but you can change that by literally adding
+#' a layer \code{labs(x="Your label here", y="Your label here")} to the output.
+#' @examples
+#' set.seed(12)
+#' plotcop_score(LETTERS[1:5], rexp(5))
+#' @import ggplot2
+#' @export
+plotcop_score <- function(cops, scores) {
+    ord <- order(scores, decreasing = TRUE)
+    cops <- factor(cops, levels = cops[ord], ordered=TRUE)
+    plotdat <- data.frame(copula = cops[ord], score = scores[ord])
+    ggplot(plotdat, aes(copula, score)) +
+        geom_line(aes(group = 1)) +
+        geom_point() +
+        labs(y = "CNQR score")
+}
