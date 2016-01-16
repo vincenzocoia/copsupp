@@ -109,7 +109,7 @@ fitlayer <- function(dat, basevine, edges, cops = NULL, cpars = NULL,
 #'     geom_line(aes(colour = fit))
 #' @export
 fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
-                          stoponbest = TRUE, showplots = TRUE,
+                          showplots = TRUE,
                           w = function(u) 1, cops = NULL, cpars = NULL,
                           families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
                                        "frk","joe","bb1")) {
@@ -236,22 +236,22 @@ fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
         new_cop <- edge_cops[edge_best]
         new_cpar <- edge_cpars[[edge_best]]
         new_Theta <- edge_Thetas[[edge_best]]
-        ## Is this score better than before? If not, stop if asked.
-        if (new_score > fit_scores[i] & stoponbest) {
-            ## Adding this predictor does not improve the score.
-            ##  Remove this variable and downstream variables from
-            ##  the procedure, and break the loop.
-            ## (i) Reduce sequential conditional predictors
-            ucondtr <- ucondtr[, seq_len(i-1)]
-            ucondval <- ucondval[, seq_len(i-1)]
-            if (i-1 == 1) {
-                ucondtr <- matrix(ucondtr, ncol = 1)
-                ucondval <- matrix(ucondval, ncol = 1)
-            }
-            ## (ii) Reduce "edges"
-            edges <- edges[1:i]
-            break
-        }
+#         ## Is this score better than before? If not, stop if asked.
+#         if (new_score > fit_scores[i] & stoponbest) {
+#             ## Adding this predictor does not improve the score.
+#             ##  Remove this variable and downstream variables from
+#             ##  the procedure, and break the loop.
+#             ## (i) Reduce sequential conditional predictors
+#             ucondtr <- ucondtr[, seq_len(i-1)]
+#             ucondval <- ucondval[, seq_len(i-1)]
+#             if (i-1 == 1) {
+#                 ucondtr <- matrix(ucondtr, ncol = 1)
+#                 ucondval <- matrix(ucondval, ncol = 1)
+#             }
+#             ## (ii) Reduce "edges"
+#             edges <- edges[1:i]
+#             break
+#         }
         ## Add the best fit to the layer:
         fit_cops[i] <- new_cop
         fit_cpars[[i]] <- new_cpar
