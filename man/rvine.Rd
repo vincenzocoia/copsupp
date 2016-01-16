@@ -30,11 +30,11 @@ rvine(matrix(integer(0)))
 ## Independence vine:
 (rv <- rvine(matrix(4:1, ncol = 4)))
 ## Take a look at each component of the vine:
-lapply(rv, identity)
+summary(rv)
 
 G <- AtoG(CopulaModel::Dvinearray(4))
 (rv <- rvine(G, "frk", 2))
-lapply(rv, identity)
+summary(rv)
 (rv <- rvine(G, "bvtcop", c(0.4, 5)))
 
 G <- AtoG(CopulaModel::Dvinearray(4))

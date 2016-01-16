@@ -91,9 +91,9 @@ fitlayer <- function(dat, basevine, edges, cops = NULL, cpars = NULL,
 #'
 #' ## Fit CNQR:
 #' fit1 <- fitlayer_cnqr(list(tr=dattr, val=datval), edges = 5:1,
-#'                       rv, QY = identity, stoponbest = FALSE)
+#'                       rv, QY = identity)
 #' fit2 <- fitlayer_cnqr(list(tr=dattr, val=datval), edges = 5:1,
-#'                       rv, QY = identity, stoponbest = FALSE,
+#'                       rv, QY = identity,
 #'                       cops = list("frk", NULL, NULL, NULL))
 #'
 #' ## Compare the two fits

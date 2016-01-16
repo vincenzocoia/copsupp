@@ -35,3 +35,7 @@
 10. In `pcondrvine()`, I should change 'vbls' to 'cond' (or some other name), so that it's the conditioning set -- it's just more natural.
 
 11. Multivariate integration should be sped up (in, for example, `pcondrvine()`). Use gauss quadrature or something (keep in mind the bounds of integration are probably always contained in [0,1]).
+
+12. `fitlayer_cnqr()` should allow for partial specification of parameters.
+
+13. If you want to partially specify parts of a vine, like in `layeropts()` for example, it might be useful to have a function that returns the desired matrix (or whatever) with NULLs and NAs in their appropriate places. Something like `specifycop([2,3] = c("frk", "bvncop"))`.

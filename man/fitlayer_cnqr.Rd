@@ -5,9 +5,9 @@
 \title{Temporary Title}
 \usage{
 fitlayer_cnqr(dats, edges, basevine, QY, tauset = space_taus(10),
-  stoponbest = TRUE, showplots = TRUE, w = function(u) 1, cops = NULL,
-  cpars = NULL, families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum",
-  "frk", "joe", "bb1"))
+  showplots = TRUE, w = function(u) 1, cops = NULL, cpars = NULL,
+  families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum", "frk", "joe",
+  "bb1"))
 }
 \arguments{
 \item{QY}{Vectorized function of the fitted quantile function of Y.}
@@ -43,9 +43,9 @@ datval <- rrvine(200, rv)
 
 ## Fit CNQR:
 fit1 <- fitlayer_cnqr(list(tr=dattr, val=datval), edges = 5:1,
-                      rv, QY = identity, stoponbest = FALSE)
+                      rv, QY = identity)
 fit2 <- fitlayer_cnqr(list(tr=dattr, val=datval), edges = 5:1,
-                      rv, QY = identity, stoponbest = FALSE,
+                      rv, QY = identity,
                       cops = list("frk", NULL, NULL, NULL))
 
 ## Compare the two fits
