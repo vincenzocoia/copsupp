@@ -312,8 +312,8 @@ fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
          cpars = fit_cpars,
          basevine = basevine,
          QY = QY,
-         useq = list(tr = ucondtr,
-                     val = ucondval),
+         ucondtr = ucondtr,
+         ucondval = ucondval,
          scores = fit_scores)
 }
 
