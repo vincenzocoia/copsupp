@@ -6,8 +6,8 @@
 \usage{
 fitlayer_cnqr(dats, edges, basevine, QY, tauset = space_taus(10),
   stoponbest = TRUE, showplots = TRUE, w = function(u) 1, cops = NULL,
-  cpars = NULL, families = c("bvncop", "bvtcop", "mtcj", "gum", "frk",
-  "joe", "bb1"))
+  cpars = NULL, families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum",
+  "frk", "joe", "bb1"))
 }
 \arguments{
 \item{QY}{Vectorized function of the fitted quantile function of Y.}

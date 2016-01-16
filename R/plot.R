@@ -41,6 +41,7 @@ plotcop_qcurve <- function(u, v, cops, cpars, tauset = space_taus(10)) {
     y <- qnorm(v)
     ngroups <- length(cops)
     n <- length(u)
+    cops <- factor(cops, levels=unique(cops), ordered = TRUE)
     scatdat <- data.frame(copula = rep(cops, each = n),
                           qnorm_u = rep(x, ngroups),
                           qnorm_v = rep(y, ngroups))
@@ -89,12 +90,20 @@ plotcop_qcurve <- function(u, v, cops, cpars, tauset = space_taus(10)) {
 #' plotcop_score(LETTERS[1:5], rexp(5))
 #' @import ggplot2
 #' @export
-plotcop_score <- function(cops, scores) {
-    ord <- order(scores, decreasing = TRUE)
+plotcop_score <- function(cops, scores, comparewith = NULL) {
+    ord <- order(scores)
     cops <- factor(cops, levels = cops[ord], ordered=TRUE)
     plotdat <- data.frame(copula = cops[ord], score = scores[ord])
-    ggplot(plotdat, aes(copula, score)) +
-        geom_line(aes(group = 1)) +
-        geom_point() +
-        labs(y = "CNQR score")
+    if (is.null(comparewith)) {
+        comparelayer <- NULL
+        ylabel <- labs(y = "CNQR score")
+    } else {
+        comparelayer <- geom_hline(yintercept = comparewith, linetype = "dotted")
+        ylabel <- labs(y = "CNQR score (compared with previous score)")
+    }
+    ggplot(plotdat, aes(x = copula)) +
+        comparelayer +
+        geom_point(aes(y = score)) +
+        geom_linerange(aes(ymin = 0, ymax = score)) +
+        ylabel
 }

@@ -4,7 +4,7 @@
 \alias{plotcop_score}
 \title{Plot CNQR scores}
 \usage{
-plotcop_score(cops, scores)
+plotcop_score(cops, scores, comparewith = NULL)
 }
 \arguments{
 \item{cops}{Vector of names of the models.}

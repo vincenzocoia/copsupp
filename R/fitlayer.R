@@ -111,7 +111,7 @@ fitlayer <- function(dat, basevine, edges, cops = NULL, cpars = NULL,
 fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
                           stoponbest = TRUE, showplots = TRUE,
                           w = function(u) 1, cops = NULL, cpars = NULL,
-                          families = c("bvncop","bvtcop","mtcj","gum",
+                          families = c("indepcop", "bvncop","bvtcop","mtcj","gum",
                                        "frk","joe","bb1")) {
     library(ggplot2)
     ## 1. Modify and get info from input
@@ -185,21 +185,29 @@ fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
             ## Get a function that gets predictions from parameters
             yhat_fam <- function(conddat, Theta) {
                 adj_tauset <- sapply(tauset, function(tau_) {
-                    thisqcond(tau_, conddat[, i], Theta[1:ncpar])
+                    thisqcond(tau_, conddat[, i], Theta[seq_len(ncpar)])
                 })
-                QYgX(adj_tauset, conddat, Theta[-(1:ncpar)])
+                theta <- Theta[ncpar + seq_len(length(Theta) - ncpar)]
+                QYgX(adj_tauset, conddat, theta)
             }
             ## Objective function
             obj <- function(Theta)
                 scoreq(ytr, yhat_fam(ucondtr, Theta), tau = tauset)
-            ## Full parameter space
-            thisparamspace <- function(Theta)
-                cparspace(thiscop)(Theta[1:ncpar]) &
-                paramspace(Theta[-(1:ncpar)])
-            ## Get parameter estimate
-            thisTheta <- rnlm(obj, Thetastart, thisparamspace)$estimate
+            ## Get parameter estimate:
+            if (ncpar == 0) {
+                thisTheta <- numeric(0)
+            } else {
+                ## Full parameter space
+                thisparamspace <- function(Theta) {
+                    theta <- Theta[ncpar + seq_len(length(Theta) - ncpar)]
+                    cparspace(thiscop)(Theta[seq_len(ncpar)]) &
+                        paramspace(theta)
+                }
+                ## Minimize objective function
+                thisTheta <- rnlm(obj, Thetastart, thisparamspace)$estimate
+            }
             edge_Thetas[[j]] <- thisTheta
-            edge_cpars[[j]] <- thisTheta[1:ncpar]
+            edge_cpars[[j]] <- thisTheta[seq_len(ncpar)]
             ## Score on the validation set
             thisyhatval <- yhat_fam(ucondval, thisTheta)
             edge_scores[j] <- scoreq(yval, thisyhatval, tau = tauset)
@@ -207,12 +215,12 @@ fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
         ## (B) Print results of this edge, if asked.
         if (showplots) {
             ## Scores:
-            print(plotcop_score(edge_cops, edge_scores) +
+            print(plotcop_score(edge_cops, edge_scores, fit_scores[i]) +
                       labs(title = paste0("Validation Scores for Edge #", i)))
             ## Normal scores plots:
             print(plotcop_qcurve(ucondval[, i], vcondval,
-                                 cops = edge_cops,
-                                 cpars = edge_cpars,
+                                 cops = edge_cops[order(edge_scores)],
+                                 cpars = edge_cpars[order(edge_scores)],
                                  tauset = tauset) +
                       labs(title = paste0("Normal Scores Validation Plots of",
                                           " Candidate Models: Edge #", i),
@@ -223,7 +231,7 @@ fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
                                       paste(edges[1+seq_len(i-1)], collapse=", "))))
         }
         ## (C) Choose the best copula.
-        edge_best <- which(edge_scores == max(edge_scores))[1] # ([1] needed b.c. RVineCopSelect.)
+        edge_best <- which(edge_scores == min(edge_scores))[1] # ([1] needed b.c. RVineCopSelect.)
         new_score <- edge_scores[edge_best]
         new_cop <- edge_cops[edge_best]
         new_cpar <- edge_cpars[[edge_best]]
@@ -258,8 +266,8 @@ fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
         ## (D) Get ready for the next edge:
         if (i < nedge) {
             #### Condition the response again.
-            pcond <- get(paste0("qcond", new_cop))
-            pcondfit <- function(v, u) qcond(v, u, new_cpar)
+            pcond <- get(paste0("pcond", new_cop))
+            pcondfit <- function(v, u) pcond(v, u, new_cpar)
             vcondtr <- pcondfit(vcondtr, ucondtr[, i])
             vcondval <- pcondfit(vcondval, ucondval[, i])
             #### Get updated parameter space
@@ -270,8 +278,8 @@ fitlayer_cnqr <- function(dats, edges, basevine, QY, tauset = space_taus(10),
                 res <- TRUE
                 for (e in i_still) {
                     ncpar <- fit_ncpars[e]
-                    cpar <- Theta[1:ncpar]
-                    Theta <- Theta[-(1:ncpar)]
+                    cpar <- Theta[seq_len(ncpar)]
+                    Theta <- Theta[ncpar + seq_len(length(Theta) - ncpar)]
                     cop <- fit_cops[e]
                     res <- res & cparspace(cop)(cpar)
                 }

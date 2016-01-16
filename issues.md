@@ -6,7 +6,7 @@
 	* In addition to the 4 possible reflections, there's also the `U-V` flip for those -- meaning that there's 8 copula families in total. Are the latter 4 really needed?
 	* Involves being careful about what variable comes first when specifying a vine edge, and getting the copula right when the vine array is moved around (such as re-leafing).
 
-3. Package should probably be renamed "rvine".
+3. Package should probably be renamed "rvine". Or, perhaps notation should switch to "gvine", or "regvine".
 
 4. The vignette needs to be improved:
 	* It contains too much extraneous information that would only be useful for developers.
@@ -31,3 +31,7 @@
 	* Would it make sense to add components to an `"rvine"` object, such as data and corresponding measures of fit like AIC/BIC?
 
 9. Perhaps a function `edge_possibilities(i, j, G, rvine = TRUE)` or something would be useful to see what variables can possibly go in `G[i,j]`, based on the parts of `G` already specified. This way I can "fill-in" a vine array if need be, but more importantly so that, when building a new layer, I can choose variables so that the result is still a regular vine (so that I can finish coding the `fitseq_rvine()` function).
+
+10. In `pcondrvine()`, I should change 'vbls' to 'cond' (or some other name), so that it's the conditioning set -- it's just more natural.
+
+11. Multivariate integration should be sped up (in, for example, `pcondrvine()`). Use gauss quadrature or something (keep in mind the bounds of integration are probably always contained in [0,1]).
