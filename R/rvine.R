@@ -107,3 +107,19 @@ is.rvine <- function(rv) {
 summary.rvine <- function(rv) {
     lapply(rv, identity)
 }
+
+#' @export
+copmat.rvine <- function(rv) {
+    rv$copmat
+}
+
+#' @export
+copmat <- function(...) UseMethod("copmat")
+
+#' @export
+cparmat.rvine <- function(rv) {
+    rv$cparmat
+}
+
+#' @export
+cparmat <- function(...) UseMethod("cparmat")

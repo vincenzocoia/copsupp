@@ -6,7 +6,7 @@
 #' \code{"tr"} will make predictions on the training set.
 #' @param tau Vector of quantile indices to make predictions at.
 #' @export
-predict_appendy <- function(appendy, dat = "val", tau = space_taus(10)) {
+predict_appendy <- function(appendy, dat = "val", tau = appendy$tau) {
     ## Get sequential conditional preidtors.
     ucond <- NULL
     if (is.character(dat)) {

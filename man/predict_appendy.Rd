@@ -4,7 +4,7 @@
 \alias{predict_appendy}
 \title{Quantile Model Predictions}
 \usage{
-predict_appendy(appendy, dat = "val", tau = space_taus(10))
+predict_appendy(appendy, dat = "val", tau = appendy$tau)
 }
 \arguments{
 \item{appendy}{A fitted object with \code{\link{fitlayer_cnqr}}.}
