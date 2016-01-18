@@ -6,10 +6,10 @@
 #'
 #' @param dat vector or matrix of observations (columns are variables).
 #' @param rv Regular vine object.
-#' @param cond Integer; the variable you wish to condition on (i.e. the
+#' @param var Integer; the variable you wish to condition on (i.e. the
 #' column number of \code{dat}, also present in \code{rv}).
-#' @param vbls Vector of integers; the subset of variables you wish to consider.
-#' Default is all variables in \code{rv}.
+#' @param condset Vector of the conditioning variables (integers). Optional;
+#' leave blank to condition \code{var} on all other variables in \code{rv}.
 #' @param maxint Integer; maximum dimension of integration to tolerate. Put
 #' \code{Inf} if you don't want an upper limit.
 #' @param verbose Logical; should the function output how it goes about
@@ -24,8 +24,8 @@
 #' will be integrated out to find the joint density of the selected variables,
 #' from which the conditional cdf will be found.
 #' @return A vector of length = the number of observations in \code{dat},
-#' representing the evaluated conditional distribution of variable \code{cond}
-#' given the other variables in \code{vbls}.
+#' representing the evaluated conditional distribution of variable \code{var}
+#' given the other variables in \code{condset}.
 #'
 #' If integration beyond \code{maxint} dimensions is required to obtain
 #' the quantities, then an error is thrown.
@@ -36,32 +36,36 @@
 #' dat <- rrvine(10, rv)
 #'
 #' ## Compute 5|1:4. There's an algorithm for that.
-#' pcondrvine(dat, rv, cond=5, verbose=T)
+#' pcondrvine(dat, rv, var=5, verbose=T)
 #'
 #' ## Compute 5|4. pcondrvine just uses 'pcondcop()'.
-#' pcondrvine(dat, rv, cond=5, vbls=c(4,5), verbose=T)
+#' pcondrvine(dat, rv, var=5, condset=4, verbose=T)
 #'
 #' ## Compute 5|2:3. Two integrals takes ~13 min if maxint > 1.
-#' pcondrvine(dat, rv, cond=5, vbls=c(2,3,5), maxint=1, verbose=T)
+#' pcondrvine(dat, rv, var=5, condset=c(2,3), maxint=1, verbose=T)
 #'
 #' ## Compute 4|(1,2,3,5). No algorithm for that.
-#' pcondrvine(dat, rv, cond=4, verbose=T)
-#' pcondrvine(dat, rv, cond=4, maxint=0, verbose=T) # No int. tolerance
+#' pcondrvine(dat, rv, var=4, verbose=T)
+#' pcondrvine(dat, rv, var=4, maxint=0, verbose=T) # No int. tolerance
 #' @export
-pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FALSE) {
-    if (!(cond %in% vbls))
-        stop("Conditioned variable 'cond' must be part of subsetted variables 'vbls'.")
+pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
+    v <- vars(rv)
+    if (missing(condset) || is.null(condset)) {
+        condset <- setdiff(v, var)
+    }
+    if (var %in% condset)
+        stop("Conditioned variable 'var' cannot be part of conditioning variables 'condset'.")
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     ## Extract info
     A <- GtoA(rv$G)
-    d <- length(vbls)
+    d <- length(condset) + 1
+    vbls <- c(condset, var)
     ptot <- ncol(dat)
     ntrunc <- nrow(A) - 1
-    v <- vars(rv)
     ikeep <- sapply(vbls, function(vbl) which(v == vbl))
-    ## Case 0: vbls = cond. Just return the cdf of cond.
+    ## Case 0: vbls = var. Just return the cdf of var.
     if (d == 1) {
-        return(dat[, vbls])
+        return(dat[, var])
     }
     ## Can I subset the vine?
     subrv <- subset(rv, vbls)
@@ -69,26 +73,26 @@ pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FAL
         ## Case 1: Vine can be subsetted to 'vbls'.
         if (verbose) cat(paste0("Vine subsetted to requested variables ",
                                  paste(vbls, collapse = ", "), "\n"))
-        ## Is cond a leaf? If so, get the vine array with it as a leaf.
-        subrvleaf <- releaf(subrv, leaf = cond)
+        ## Is var a leaf? If so, get the vine array with it as a leaf.
+        subrvleaf <- releaf(subrv, leaf = var)
         if (is.null(subrvleaf)) {
-            ## Case 1a: Subsetted vine doesn't have 'cond' as a leaf.
-            if (verbose) cat(paste0("cond=", cond, " is not a leaf."))
+            ## Case 1a: Subsetted vine doesn't have 'var' as a leaf.
+            if (verbose) cat(paste0("var=", var, " is not a leaf."))
             if (maxint == 0)
                 stop(paste("Computing 'pcondrvine' requires 1 integral.",
                             "Raise integration tolerance through 'maxint' argument."))
             if (verbose) cat("Obtaining conditional distribution by integration.\n")
             res <- apply(dat, 1, function(row) {
-                dens <- function(xcond){  # Accepts uniform variable 'cond'.
+                dens <- function(xcond){  # Accepts uniform variable 'var'.
                     x <- row
-                    x[cond] <- xcond
+                    x[var] <- xcond
                     drvine(x, subrv)
                 }
-                integrate.mv(dens, 0, row[cond]) / integrate.mv(dens, 0, 1)
+                integrate.mv(dens, 0, row[var]) / integrate.mv(dens, 0, 1)
             })
             return(res)
         } else {
-            ## Case 1b: Subsetted vine does have 'cond' as a leaf.
+            ## Case 1b: Subsetted vine does have 'var' as a leaf.
             Aleaf <- GtoA(subrvleaf$G)
             copmat <- subrvleaf$copmat
             cparmat <- subrvleaf$cparmat
@@ -100,14 +104,14 @@ pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FAL
             if (ncol(dat) == 2) {
                 ## Case 1ba: There's only two variables in the vine.
                 ## (rVineTruncCondCDF() won't accept a vine with 2 variables)
-                if (verbose) cat(paste0("cond=", cond, " is one of a pair. ",
+                if (verbose) cat(paste0("var=", var, " is one of a pair. ",
                                           "Using `pcondcop()`.\n"))
                 pcondcop <- get(paste0("pcond", copmat[1, 2]))
                 cpar <- cparmat[1, 2][[1]]
                 return(apply(dat, 1, function(row) pcondcop(row[2], row[1], cpar)))
             } else {
                 ## Case 1bb: There are more than 2 variables in the vine.
-                if (verbose) cat(paste0("cond=", cond, " is a leaf. ",
+                if (verbose) cat(paste0("var=", var, " is a leaf. ",
                                           "Using `copreg::rVineTruncCondCDF()`.\n"))
                 ## Use Bo's function
                 Aleaf <- GtoA(subrvleaf$G)
@@ -181,12 +185,12 @@ pcondrvine <- function(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FAL
         }
         ## Get conditional distribution
         res <- apply(dat, 1, function(row) {
-            dens <- function(xcond){  # Accepts uniform variable 'cond'.
+            dens <- function(xcond){  # Accepts uniform variable 'var'.
                 x <- row
-                x[cond] <- xcond
+                x[var] <- xcond
                 fX(x)
             }
-            integrate.mv(dens, 0, row[cond]) / integrate.mv(dens, 0, 1)
+            integrate.mv(dens, 0, row[var]) / integrate.mv(dens, 0, 1)
         })
         return(res)
     }

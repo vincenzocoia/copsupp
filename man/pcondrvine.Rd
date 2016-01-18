@@ -4,18 +4,18 @@
 \alias{pcondrvine}
 \title{Conditional Distribution in a Regular Vine}
 \usage{
-pcondrvine(dat, rv, cond, vbls = vars(rv), maxint = 2, verbose = FALSE)
+pcondrvine(dat, rv, var, condset, maxint = 2, verbose = FALSE)
 }
 \arguments{
 \item{dat}{vector or matrix of observations (columns are variables).}
 
 \item{rv}{Regular vine object.}
 
-\item{cond}{Integer; the variable you wish to condition on (i.e. the
+\item{var}{Integer; the variable you wish to condition on (i.e. the
 column number of \code{dat}, also present in \code{rv}).}
 
-\item{vbls}{Vector of integers; the subset of variables you wish to consider.
-Default is all variables in \code{rv}.}
+\item{condset}{Vector of the conditioning variables (integers). Optional;
+leave blank to condition \code{var} on all other variables in \code{rv}.}
 
 \item{maxint}{Integer; maximum dimension of integration to tolerate. Put
 \code{Inf} if you don't want an upper limit.}
@@ -25,8 +25,8 @@ finding the conditional distribution?}
 }
 \value{
 A vector of length = the number of observations in \code{dat},
-representing the evaluated conditional distribution of variable \code{cond}
-given the other variables in \code{vbls}.
+representing the evaluated conditional distribution of variable \code{var}
+given the other variables in \code{condset}.
 
 If integration beyond \code{maxint} dimensions is required to obtain
 the quantities, then an error is thrown.
@@ -54,16 +54,16 @@ rv <- rvine(G, "bvncop", makeuppertri(c(1:7/10), 2, 5, byRow = FALSE))
 dat <- rrvine(10, rv)
 
 ## Compute 5|1:4. There's an algorithm for that.
-pcondrvine(dat, rv, cond=5, verbose=T)
+pcondrvine(dat, rv, var=5, verbose=T)
 
 ## Compute 5|4. pcondrvine just uses 'pcondcop()'.
-pcondrvine(dat, rv, cond=5, vbls=c(4,5), verbose=T)
+pcondrvine(dat, rv, var=5, condset=4, verbose=T)
 
 ## Compute 5|2:3. Two integrals takes ~13 min if maxint > 1.
-pcondrvine(dat, rv, cond=5, vbls=c(2,3,5), maxint=1, verbose=T)
+pcondrvine(dat, rv, var=5, condset=c(2,3), maxint=1, verbose=T)
 
 ## Compute 4|(1,2,3,5). No algorithm for that.
-pcondrvine(dat, rv, cond=4, verbose=T)
-pcondrvine(dat, rv, cond=4, maxint=0, verbose=T) # No int. tolerance
+pcondrvine(dat, rv, var=4, verbose=T)
+pcondrvine(dat, rv, var=4, maxint=0, verbose=T) # No int. tolerance
 }
 
