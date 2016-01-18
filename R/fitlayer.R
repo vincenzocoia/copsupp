@@ -57,7 +57,7 @@ fitlayer <- function(dat, basevine, edges, cops = NULL, cpars = NULL,
         if (i+1 < length(edges)) {
             pcond <- get(paste0("pcond", thisfit$cop))
             v <- pcond(v, u, cpars[[i]])
-            u <- pcondrvine(dat, basevine, cond = edges[i+2], vbls = edges[2:(i+2)])
+            u <- pcondrvine(dat, basevine, var = edges[i+2], condset = edges[1 + seq_len(i+1)])
         }
     }
     ## Output fits

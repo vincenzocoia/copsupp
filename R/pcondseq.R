@@ -24,8 +24,6 @@
 #' @export
 pcondseq <- function(dat, ord, rv) {
     sapply(1:length(ord), function(i) {
-        pcondrvine(dat, rv,
-                   cond = ord[i],
-                   vbls = ord[1:i])
+        pcondrvine(dat, rv, var = ord[i], condset = ord[seq_len(i-1)])
     })
 }
