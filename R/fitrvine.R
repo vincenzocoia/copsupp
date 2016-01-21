@@ -183,7 +183,7 @@ fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
 #' Only fits a regular vine, not a generalized vine.
 #'
 #' @param dat Data matrix with uniform scores.
-#' @param vars Vector of variables (column numbers in \code{dat}) to fit a model to.
+#' @param vbls Vector of variables (column numbers in \code{dat}) to fit a model to.
 #' @param ntrunc Truncation level of vine.
 #' @param families Copula families to fit. Sorry, no 'indepcop'.
 #' @examples
@@ -194,34 +194,34 @@ fitrvine <- function(dat, layer=layeropts(1:ncol(dat)), basevine = NULL, ...) {
 #' fitrvine_basic(dat, integer(0))
 #' @import igraph CopulaModel VineCopula
 #' @export
-fitrvine_basic <- function(dat, vars = 1:ncol(dat), ntrunc = length(vars) - 1,
+fitrvine_basic <- function(dat, vbls = 1:ncol(dat), ntrunc = length(vbls) - 1,
                            families = c("bvncop","bvtcop","mtcj","gum",
                                         "frk","joe","bb1","bb7","bb8")) {
     ## Temporary function -- don't allow for a basevine to be fit. Just fit everything.
     if (ntrunc == 0) {
-        res <- rvine(matrix(vars, nrow = 1))
+        res <- rvine(matrix(vbls, nrow = 1))
         return(res)
     }
-    k <- length(vars)
+    k <- length(vbls)
     d <- k # Don't feel like changing it.
     if (k == 0) {
         res <- rvine(matrix(0,0,0))
         return(rvine2fitrvine(dat, res))
     }
     if (k == 1) {
-        res <- rvine(matrix(vars))
+        res <- rvine(matrix(vbls))
         return(rvine2fitrvine(dat, res))
     }
     if (k == 2) {
-        v1 <- vars[1]
-        v2 <- vars[2]
+        v1 <- vbls[1]
+        v2 <- vbls[2]
         res <- fitbicop_lh(dat[, v1], dat[, v2])
         res <- rvine(makevinemat(v1, c(v2, v1)),
                      copmat = res$cop, cparmat = res$cpar)
         return(rvine2fitrvine(dat, res))
     }
     ## Order data
-    odat <- dat[, vars]
+    odat <- dat[, vbls]
     ## Get correlation matrix and choose vine array.
     cormat <- cor(qnorm(odat))
     library(igraph)  # Error if not present, even if igraph is under "import".
@@ -288,15 +288,18 @@ fitrvine_basic <- function(dat, vars = 1:ncol(dat), ntrunc = length(vars) - 1,
         }
     }
     ## Return fit:
-    rvine(AtoG(A)[1:(ntrunc+1), ], copmat, cparmat)
+    G <- AtoG(A)[1:(ntrunc+1), ]
+    newvbls <- G[1, ]
+    G <- relabelvarray(G, vbls[newvbls])
+    rvine(G, copmat, cparmat)
 }
 
 #' @export
 print.fitrvine <- function(rv) {
-    d <- ncol(rv$A)
+    d <- ncol(rv$G)
     if (d == 0) return(cat("Empty fitted vine: no variables."))
     v <- var(rv)
-    ntrunc <- nrow(rv$A) - 1
+    ntrunc <- nrow(rv$G) - 1
     if (ntrunc == 0) {
         trunctext <- "Independent 'fitted'"
     } else {

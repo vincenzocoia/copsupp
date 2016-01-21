@@ -39,3 +39,5 @@
 12. `fitlayer_cnqr()` should allow for partial specification of parameters.
 
 13. If you want to partially specify parts of a vine, like in `layeropts()` for example, it might be useful to have a function that returns the desired matrix (or whatever) with NULLs and NAs in their appropriate places. Something like `specifycop([2,3] = c("frk", "bvncop"))`.
+
+14. `fitrvine_basic()`, and probably many others, throw an error when the data is a data frame (must be matrix). Fix this to allow for data frames.
