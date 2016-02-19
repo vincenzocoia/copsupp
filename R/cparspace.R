@@ -24,7 +24,7 @@
 #' @export
 cparspace <- function(cop, fn = TRUE) {
     ## Get default bounds:
-    bnds <- list(frk = list(left = -Inf, right = Inf),
+    bnds <- list(frk = list(left = -30, right = 30),
                  gum = list(left = 1, right = 20),
                  gumu = list(left = 1, right = 20),
                  gumv = list(left = 1, right = 20),

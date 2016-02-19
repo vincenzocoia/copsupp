@@ -105,7 +105,29 @@ is.rvine <- function(rv) {
 
 #' @export
 summary.rvine <- function(rv) {
-    lapply(rv, identity)
+    ## Goal: Combine the copula parameter matrix with copula matrix.
+    ## 1. Make parameter matrix a character matrix.
+    cparmat <- rv$cparmat
+    cparmat <- apply(cparmat, 1:2, function(l) {
+        l <- l[[1]]
+        if (is.null(l)) {
+            res <- ""
+        } else {
+            res <- paste(signif(l, 3), collapse=", ")
+        }
+        if (res != "") res <- paste0("(", res, ")")
+        res
+    })
+    ## 2. Combine matrices
+    summat <- rv$copmat
+    for (i in 1:nrow(cparmat)) for (j in 1:ncol(cparmat)) {
+        summat[i, j] <- paste0(summat[i, j], cparmat[i, j])
+    }
+    ## 3. Print.
+    cat("Vine Array:\n")
+    print(rv$G)
+    cat("\nCopulas:\n")
+    print(summat)
 }
 
 #' @export

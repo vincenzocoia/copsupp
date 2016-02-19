@@ -41,3 +41,11 @@
 13. If you want to partially specify parts of a vine, like in `layeropts()` for example, it might be useful to have a function that returns the desired matrix (or whatever) with NULLs and NAs in their appropriate places. Something like `specifycop([2,3] = c("frk", "bvncop"))`.
 
 14. `fitrvine_basic()`, and probably many others, throw an error when the data is a data frame (must be matrix). Fix this to allow for data frames.
+
+15. It would be nice if `summary.rvine()` combined the copmat and cparmat by making the entries like "frk(0.8)" and "bvtcop(0.7, 4)" (this way you can see all parameters in case there are more than 1)
+
+16. Speed-up multivariate integration by using a more appropriate method than nested "integrate".
+	* cubature package.
+	* Or, check the suite of packages for this purpose on [this page](https://cran.r-project.org/web/views/NumericalMathematics.html) of CRAN task view.
+
+17. Instead of making flipped copulas by appending "u", "v", and "r", perhaps make functionals like `pcopu()` and `qcondcopu()` that take a function (like `pfrk()` and `qcondgum()`) and returns the same type of function, but flipped accordingly. This way, when defining their own, people don't have to make these flipped versions. Also, it makes programming easier.
