@@ -40,8 +40,6 @@
 
 14. `fitrvine_basic()`, and probably many others, throw an error when the data is a data frame (must be matrix). Fix this to allow for data frames.
 
-15. It would be nice if `summary.rvine()` combined the copmat and cparmat by making the entries like "frk(0.8)" and "bvtcop(0.7, 4)" (this way you can see all parameters in case there are more than 1)
-
 16. Speed-up multivariate integration by using a more appropriate method than nested "integrate".
 	* cubature package.
 	* Or, check the suite of packages for this purpose on [this page](https://cran.r-project.org/web/views/NumericalMathematics.html) of CRAN task view.
