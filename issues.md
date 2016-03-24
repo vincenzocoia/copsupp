@@ -32,8 +32,6 @@
 
 9. Perhaps a function `edge_possibilities(i, j, G, rvine = TRUE)` or something would be useful to see what variables can possibly go in `G[i,j]`, based on the parts of `G` already specified. This way I can "fill-in" a vine array if need be, but more importantly so that, when building a new layer, I can choose variables so that the result is still a regular vine (so that I can finish coding the `fitseq_rvine()` function).
 
-10. In `pcondrvine()`, I should change 'vbls' to 'cond' (or some other name), so that it's the conditioning set -- it's just more natural.
-
 11. Multivariate integration should be sped up (in, for example, `pcondrvine()`). Use gauss quadrature or something (keep in mind the bounds of integration are probably always contained in [0,1]).
 
 12. `fitlayer_cnqr()` should allow for partial specification of parameters.
@@ -49,3 +47,6 @@
 	* Or, check the suite of packages for this purpose on [this page](https://cran.r-project.org/web/views/NumericalMathematics.html) of CRAN task view.
 
 17. Instead of making flipped copulas by appending "u", "v", and "r", perhaps make functionals like `pcopu()` and `qcondcopu()` that take a function (like `pfrk()` and `qcondgum()`) and returns the same type of function, but flipped accordingly. This way, when defining their own, people don't have to make these flipped versions. Also, it makes programming easier.
+
+18. Make documentation `rvine.object()` that describes the "rvine" object and explains how to look at it. Should first look at the purpose of such documentation. For an example, see 
+`rqss.object()` in {quantreg}.

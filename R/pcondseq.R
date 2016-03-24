@@ -1,3 +1,4 @@
+
 #' Find sequential predictors
 #'
 #' For internal use.
