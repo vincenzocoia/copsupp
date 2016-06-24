@@ -298,7 +298,7 @@ fitrvine_basic <- function(dat, vbls = 1:ncol(dat), ntrunc = length(vbls) - 1,
 print.fitrvine <- function(rv) {
     d <- ncol(rv$G)
     if (d == 0) return(cat("Empty fitted vine: no variables."))
-    v <- var(rv)
+    v <- vars(rv)
     ntrunc <- nrow(rv$G) - 1
     if (ntrunc == 0) {
         trunctext <- "Independent 'fitted'"
