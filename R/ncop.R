@@ -69,7 +69,9 @@ phiinv <- function(theta, w, mxiter=20,eps=1.e-6,bd=5){
       iter=0
       diff=1
       while(iter<mxiter & max(abs(diff))>eps){
-        ## "g" should be zero if tt is the solution.
+        ## "g" should be zero if tt is the solution
+        ## (to see this, multiply the equation phi=v by the denominator
+        ##   of phi, then subtract the numerator of phi to get g=0).
         tth <- tt ^ (-theta)
         lt <- log(tt)
         g <- 1 - tth - theta * v * tt * lt
