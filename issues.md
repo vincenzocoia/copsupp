@@ -51,3 +51,5 @@
 
 19. Vectorize `pnew()` and others over `cpar`:
 	* For example, `pnew(u, v, cpar)` should vectorize over cpar if `u,v` are not vectors. Vectorizing `phiinv()` should accomplish this -- but that involves vectorizing that algorithm for finding inverse. Maybe I should just use `Vectorize()` instead.
+
+20. This code results in an error (2016-07-28): `summary(rvine(matrix(1)))`

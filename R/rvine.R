@@ -120,7 +120,7 @@ summary.rvine <- function(rv) {
     })
     ## 2. Combine matrices
     summat <- rv$copmat
-    for (i in 1:nrow(cparmat)) for (j in 1:ncol(cparmat)) {
+    for (i in seq_len(nrow(cparmat))) for (j in seq_len(ncol(cparmat))) {
         summat[i, j] <- paste0(summat[i, j], cparmat[i, j])
     }
     ## 3. Print.
