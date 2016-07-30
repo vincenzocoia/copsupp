@@ -105,9 +105,51 @@ is.rvine <- function(rv) {
 
 #' @export
 summary.rvine <- function(rv) {
-    ## Goal: Combine the copula parameter matrix with copula matrix.
+    summat <- combine_copmat(rv)
+    cat("Vine Array:\n")
+    print(rv$G)
+    cat("\nCopulas:\n")
+    print(summat)
+}
+
+#' Combine Copula and Parameter Matrices
+#'
+#' Combines a copula matrix and a parameter matrix, so that specific
+#' copulas are indicated.
+#'
+#' @param rv Object of type "rvine"
+#' @param copmat Matrix of copula families, as in an "rvine" object.
+#' @param cparmat Matrix of copula parameters, as in an "rvine" object.
+#' @note \code{copmat} and \code{cparmat} are not needed if \code{rv} is specified,
+#' and vice-versa.
+#' @return Just see an example, but here's a description:
+#' Character matrix with entries starting with that in \code{copmat},
+#' followed by the corresponding parameter values in \code{cparmat}
+#' separated by commas, housed in parentheses.
+#' @examples
+#' G <- AtoG(CopulaModel::Dvinearray(4))
+#'
+#' ## Example 1
+#' rv <- rvine(G, "frk", 2)
+#' combine_copmat(rv)
+#' combine_copmat(copmat=rv$copmat, cparmat=rv$cparmat)
+#'
+#' ## Example 2
+#' rv <- rvine(G, "bvtcop", c(0.4, 5))
+#' combine_copmat(rv)
+#'
+#' ## Example 3
+#' rv <- rvine(matrix(4:1, ncol = 4))
+#' combine_copmat(rv)
+#' @export
+combine_copmat <- function(rv, copmat, cparmat) {
+    if (!missing(rv)) {
+        summat <- rv$copmat
+        cparmat <- rv$cparmat
+    } else {
+        summat <- copmat
+    }
     ## 1. Make parameter matrix a character matrix.
-    cparmat <- rv$cparmat
     cparmat <- apply(cparmat, 1:2, function(l) {
         l <- l[[1]]
         if (is.null(l)) {
@@ -119,15 +161,10 @@ summary.rvine <- function(rv) {
         res
     })
     ## 2. Combine matrices
-    summat <- rv$copmat
     for (i in seq_len(nrow(cparmat))) for (j in seq_len(ncol(cparmat))) {
         summat[i, j] <- paste0(summat[i, j], cparmat[i, j])
     }
-    ## 3. Print.
-    cat("Vine Array:\n")
-    print(rv$G)
-    cat("\nCopulas:\n")
-    print(summat)
+    summat
 }
 
 #' @export
