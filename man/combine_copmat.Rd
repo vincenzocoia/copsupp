@@ -4,7 +4,7 @@
 \alias{combine_copmat}
 \title{Combine Copula and Parameter Matrices}
 \usage{
-combine_copmat(rv, copmat, cparmat)
+combine_copmat(rv, copmat, cparmat, digits = 3)
 }
 \arguments{
 \item{rv}{Object of type "rvine"}
@@ -12,6 +12,8 @@ combine_copmat(rv, copmat, cparmat)
 \item{copmat}{Matrix of copula families, as in an "rvine" object.}
 
 \item{cparmat}{Matrix of copula parameters, as in an "rvine" object.}
+
+\item{digits}{Number of significant digits to round parameter values to.}
 }
 \value{
 Just see an example, but here's a description:

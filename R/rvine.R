@@ -120,6 +120,7 @@ summary.rvine <- function(rv) {
 #' @param rv Object of type "rvine"
 #' @param copmat Matrix of copula families, as in an "rvine" object.
 #' @param cparmat Matrix of copula parameters, as in an "rvine" object.
+#' @param digits Number of significant digits to round parameter values to.
 #' @note \code{copmat} and \code{cparmat} are not needed if \code{rv} is specified,
 #' and vice-versa.
 #' @return Just see an example, but here's a description:
@@ -142,7 +143,7 @@ summary.rvine <- function(rv) {
 #' rv <- rvine(matrix(4:1, ncol = 4))
 #' combine_copmat(rv)
 #' @export
-combine_copmat <- function(rv, copmat, cparmat) {
+combine_copmat <- function(rv, copmat, cparmat, digits=3) {
     if (!missing(rv)) {
         summat <- rv$copmat
         cparmat <- rv$cparmat
@@ -155,7 +156,7 @@ combine_copmat <- function(rv, copmat, cparmat) {
         if (is.null(l)) {
             res <- ""
         } else {
-            res <- paste(signif(l, 3), collapse=", ")
+            res <- paste(signif(l, digits), collapse=", ")
         }
         if (res != "") res <- paste0("(", res, ")")
         res
