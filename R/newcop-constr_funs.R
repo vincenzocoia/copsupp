@@ -1,20 +1,19 @@
 #' Construction ('phi') function for the new copula
 #'
-#' phi[theta,k](t) = ell[k](theta * log(t)) / t
+#' H[k](t;theta) = cnstr_ell[k](theta * log(t)) / t
 #'
-#' @param theta Real number for the "shape" parameter of the function. Can't
-#' be a vector.
+#' @param param Vector of length two: c(theta, k)
 #' @param t Vector of real numbers >= 1 to evaluate the function at.
 #' @examples
-#' cnstr(1:10, c(4,4))
-#' cnstr(2:10, c(4,4))
-#' cnstr(1, c(4,4))
-#' cnstr(1:10, c(0,4))
-#' cnstr(1:10, c(4,1))
+#' cnstr_H(1:10, c(4,4))
+#' cnstr_H(2:10, c(4,4))
+#' cnstr_H(1, c(4,4))
+#' cnstr_H(1:10, c(0,4))
+#' cnstr_H(1:10, c(4,1))
 #' ## As long as k doesn't go to 1 before theta goes to 0, we have:
-#' cnstr(1:10, c(0,1))
+#' cnstr_H(1:10, c(0,1))
 #' @export
-cnstr_H <- function(t, cpar){
+cnstr_H <- function(t, param){
     ## Which of the inputted t's =1?
     ones <- t == 1
     ## In order to accomodate possible NA's in the t vector, need to convert
@@ -26,11 +25,11 @@ cnstr_H <- function(t, cpar){
     ## Set up
     res <- rep(NA, length(t))
     res[whichones] <- 1
-    if (cpar[1] == 0){
+    if (param[1] == 0){
         res[whichnotones] <- 1/t[whichnotones]
     } else {
         tt <- t[whichnotones]
-        res[whichnotones] <- ell(cpar[1] * log(tt), cpar[2]) / tt
+        res[whichnotones] <- cnstr_ell(param[1] * log(tt), param[2]) / tt
     }
     res
 }

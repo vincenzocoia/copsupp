@@ -4,24 +4,23 @@
 \alias{cnstr_H}
 \title{Construction ('phi') function for the new copula}
 \usage{
-cnstr_H(t, cpar)
+cnstr_H(t, param)
 }
 \arguments{
 \item{t}{Vector of real numbers >= 1 to evaluate the function at.}
 
-\item{theta}{Real number for the "shape" parameter of the function. Can't
-be a vector.}
+\item{param}{Vector of length two: c(theta, k)}
 }
 \description{
-phi[theta,k](t) = ell[k](theta * log(t)) / t
+H[k](t;theta) = cnstr_ell[k](theta * log(t)) / t
 }
 \examples{
-cnstr(1:10, c(4,4))
-cnstr(2:10, c(4,4))
-cnstr(1, c(4,4))
-cnstr(1:10, c(0,4))
-cnstr(1:10, c(4,1))
+cnstr_H(1:10, c(4,4))
+cnstr_H(2:10, c(4,4))
+cnstr_H(1, c(4,4))
+cnstr_H(1:10, c(0,4))
+cnstr_H(1:10, c(4,1))
 ## As long as k doesn't go to 1 before theta goes to 0, we have:
-cnstr(1:10, c(0,1))
+cnstr_H(1:10, c(0,1))
 }
 
