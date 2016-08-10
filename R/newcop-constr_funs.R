@@ -13,7 +13,8 @@
 #' cnstr(1:10, c(4,1))
 #' ## As long as k doesn't go to 1 before theta goes to 0, we have:
 #' cnstr(1:10, c(0,1))
-cnstr <- function(t, cpar){
+#' @export
+cnstr_H <- function(t, cpar){
     ## Which of the inputted t's =1?
     ones <- t == 1
     ## In order to accomodate possible NA's in the t vector, need to convert

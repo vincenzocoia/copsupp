@@ -5,7 +5,7 @@
 #' ell(0:10, k=99999)
 #' @rdname const_fun
 #' @export
-ell <- function(t, k) {
+cnstr_ell <- function(t, k) {
     ## t's that are zero should evaluate to 1.
     whichzeroes <- t==0
     res <- rep(NA, length(t))
@@ -18,12 +18,12 @@ ell <- function(t, k) {
 
 #' @rdname const_fun
 #' @export
-ellp <- function(k, t) {
+cnstr_ellp <- function(k, t) {
     -(k-1)/t^2 * pgamma(t, k)
 }
 
 #' @rdname const_fun
 #' @export
-ellp2 <- function(k, t) {
+cnstr_ellp2 <- function(k, t) {
     (k-1) * (2*(k-1)/t^3 * pgamma(t,k) - t^(k-3)*exp(-t)/gamma(k-1))
 }
