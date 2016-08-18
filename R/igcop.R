@@ -1,11 +1,21 @@
-
-
-
-
-
-
-
-
+#' IG Copula Family Functions
+#'
+#' Functions related to the IG copula family, denoted  by \code{'igcop'}.
+#'
+#' @param u,v Vectors of values in [0,1] representing values of the first
+#' and second copula variables.
+#' @param tau Vector of quantile levels in [0,1] to evaluate a quantile function
+#' at.
+#' @param cpar Vector of length 2 corresponding to the copula
+#' parameters \code{theta>0} and \code{k>1}, respectively.
+#' @note Inputting two vectors greater than length 1 is allowed, if they're
+#' the same length.
+#' Also, \code{qcondigcop21} and \code{pcondigcop21} are the same as
+#' \code{qcondigcop} and \code{pcondigcop} -- their the distributions of
+#' variable 2 given 1.
+#' @return Numeric vector of length equal to the length of the input vector(s).
+#' @rdname igcop
+#' @export
 pcondigcop <- function(v, u, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
@@ -13,6 +23,8 @@ pcondigcop <- function(v, u, cpar) {
     1 - pgamma(theta * (1-u) * log(Hkinv), k-1, lower.tail=FALSE) / Hkinv
 }
 
+#' @rdname igcop
+#' @export
 qcondigcop <- function(tau, u, cpar) {
     ## Make tau and u of the same length
     n_tau <- length(tau)
@@ -28,54 +40,53 @@ qcondigcop <- function(tau, u, cpar) {
     })
 }
 
-#' @rdname cnstr_Psi
-#' @export
-qcondigcop <- function(tau, u, cpar, mxiter=20,eps=1.e-6,bd=5){
-    ## Work with non-NA, non-1, non-0 values.
-    NAs <- is.na(tau)
-    ones <- (tau == 1)  # T/F. Has NA's too.
-    whichones <- which(ones)
-    zeroes <- (tau == 0) # T/F. Has NA's too.
-    whichzeroes <- which(zeroes)
-    clean_tau <- na.omit(tau[!(ones | zeroes)])
-    ## Go ahead with the algorithm
-    theta <- cpar[1]
-    k <- cpar[2]
-    if (length(clean_tau) > 0){
-        ## Just use the identity function as a starting value.
-        tt <- clean_tau
-        iter <- 0
-        diff <- 1
-        ## Begin Newton-Raphson algorithm
-        while(iter<mxiter & max(abs(diff))>eps){
-            ## Helpful quantities
-            Hkinv <- cnstr_Hinv(1-tt, theta, k)
-            arg <- theta * (1-u) * log(Hkinv)
-            der <- cnstr_DH(Hkinv, theta, k)
-            dgam <- dgamma(arg, k-1) * theta * (1-u)
-            ## Evaluate functions
-            g <- dgam/der/Hkinv + (1-tau)/der
-            gp <- 1/der * (dgam/Hkinv + 1 - tau)
-            diff <- g/gp
-            tt <- tt-diff
-            while(max(abs(diff))>bd | any(tt<=0))
-            { diff <- diff/2; tt <- tt+diff }
-            iter <- iter+1
-            #cat(iter,diff,tt,"\n")
-        }
-    } else {
-        tt <- numeric(0)
-    }
 
-    ## Set up vector to be returned (start off with NA's)
-    res <- rep(NA, max(length(tau), length(u)))
-    special_indices <- c(which(NAs), whichones, whichzeroes)
-    if (length(special_indices > 0)){
-        res[-special_indices] <- tt
-        res[whichones] <- 1
-        res[whichzeroes] <- 0
-    } else {
-        res <- tt
-    }
-    res
-}
+# qcondigcop <- function(tau, u, cpar, mxiter=20,eps=1.e-6,bd=5){
+#     ## Work with non-NA, non-1, non-0 values.
+#     NAs <- is.na(tau)
+#     ones <- (tau == 1)  # T/F. Has NA's too.
+#     whichones <- which(ones)
+#     zeroes <- (tau == 0) # T/F. Has NA's too.
+#     whichzeroes <- which(zeroes)
+#     clean_tau <- na.omit(tau[!(ones | zeroes)])
+#     ## Go ahead with the algorithm
+#     theta <- cpar[1]
+#     k <- cpar[2]
+#     if (length(clean_tau) > 0){
+#         ## Just use the identity function as a starting value.
+#         tt <- clean_tau
+#         iter <- 0
+#         diff <- 1
+#         ## Begin Newton-Raphson algorithm
+#         while(iter<mxiter & max(abs(diff))>eps){
+#             ## Helpful quantities
+#             Hkinv <- cnstr_Hinv(1-tt, theta, k)
+#             arg <- theta * (1-u) * log(Hkinv)
+#             der <- cnstr_D1H(Hkinv, theta, k)
+#             dgam <- dgamma(arg, k-1) * theta * (1-u)
+#             ## Evaluate functions
+#             g <- dgam/der/Hkinv + (1-tau)/der
+#             gp <- 1/der * (dgam/Hkinv + 1 - tau)
+#             diff <- g/gp
+#             tt <- tt-diff
+#             while(max(abs(diff))>bd | any(tt<=0))
+#             { diff <- diff/2; tt <- tt+diff }
+#             iter <- iter+1
+#             #cat(iter,diff,tt,"\n")
+#         }
+#     } else {
+#         tt <- numeric(0)
+#     }
+#
+#     ## Set up vector to be returned (start off with NA's)
+#     res <- rep(NA, max(length(tau), length(u)))
+#     special_indices <- c(which(NAs), whichones, whichzeroes)
+#     if (length(special_indices > 0)){
+#         res[-special_indices] <- tt
+#         res[whichones] <- 1
+#         res[whichzeroes] <- 0
+#     } else {
+#         res <- tt
+#     }
+#     res
+# }

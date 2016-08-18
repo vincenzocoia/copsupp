@@ -1,8 +1,23 @@
+#' Construction Function for the IG Copula Family
+#'
+#' \code{cnstr_H} is the function itself, and \code{cnstr_Hinv} is
+#' its inverse; \code{cnstr_D1H} is the first-argument
+#' derivative.
+#'
+#' @param t Vector of values >=1 to evaluate the function at.
+#' @param theta Value of second argument of H_{k}, >0. This is allowed
+#' to be a vector, except in \code{cnstr_Hinv()}.
+#' @param k Single numeric >1 corresponding to the \code{k} parameter
+#' of the function.
+#' @rdname cnstr_H
+#' @export
 cnstr_H <- function(t, theta, k) {
     cnstr_Psi(1/(theta * log(t)), k) / t
 }
 
-cnstr_DH <- function(t, theta, k) {
+#' @rdname cnstr_H
+#' @export
+cnstr_D1H <- function(t, theta, k) {
     ## Deal with t=1 separately -- its limit depends on k.
     ones <- (t == 1)  # T/F. Has NA's too.
     whichones <- which(ones)
@@ -31,10 +46,10 @@ cnstr_DH <- function(t, theta, k) {
 }
 
 #' @param w Vector of values in [0,1] to evaluate the inverse function at.
-#' @param theta,k Parameters of the construction function. Needs
-#' \code{theta>0} and \code{k>1}. Each can only be a single numeric.
 #' @param silent Logical; should the message output by \code{pcinterpolate()}
 #' be silenced?
+#' @rdname cnstr_H
+#' @export
 cnstr_Hinv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
     ## Work with non-1 and non-0 values of w.
     ones <- (w == 1)  # T/F. Has NA's too.
