@@ -1,66 +1,16 @@
-#' This function has problems when both theta and k are large.
-ig_helper_inv <- function(w, theta, k, mxiter=20,eps=1.e-6,bd=5){
-    ## Work with non-1 and non-0 values of w.
-    ones <- (w == 1)  # T/F. Has NA's too.
-    whichones <- which(ones)
-    zeroes <- (w == 0) # T/F. Has NA's too.
-    whichzeroes <- which(zeroes)
-    clean_w <- na.omit(w[!(ones | zeroes)])
-    ## which values are NA:
-    NAs_th <- is.na(theta)
-    NAs_w <- is.na(w)
-    NAs <- unique(NAs_th, NAs_w)
-    ## Go ahead with the algorithm
-    if (length(clean_w) > 0){
-        v <- clean_w
-        ## Empirically, it looks like this tt is a good start:
-        tt <- (1-v)^(-1/(theta+1))
-        iter <- 0
-        diff <- 1
-        ## Begin Newton-Raphson algorithm
-        while(iter<mxiter & max(abs(diff))>eps){
-            ## Helpful quantities
-            thlogt <- theta * log(tt)
-            ## Evaluate functions
-            g <- tt * (1-v) - pgamma(thlogt, k-1, lower.tail=FALSE)
-            gp <- 1 - v + dgamma(thlogt, k-1) * theta / tt
-            diff <- g/gp
-            tt <- pmax(1, tt-diff)
-            while(max(abs(diff))>bd | any(tt<=0))
-            { diff <- diff/2; tt <- tt+diff }
-            iter <- iter+1
-            #cat(iter,diff,tt,"\n")
-        }
-    } else {
-        tt <- numeric(0)
-    }
 
-    ## Set up vector to be returned (start off with NA's)
-    res <- rep(NA, length(w))
-    special_indices <- c(which(NAs), whichones, whichzeroes)
-    if (length(special_indices > 0)){
-        res[-special_indices] <- tt
-        res[whichones] <- Inf
-        res[whichzeroes] <- 1
-    } else {
-        res <- tt
-    }
-    res
-}
 
-#' @param cpar c(theta, k)
-qcondigcop <- function(tau, u, cpar) {
-    theta <- cpar[1]
-    k <- cpar[2]
-    inv <- ig_helper_inv(tau, theta * (1-u), k)
-    1 - cnstr_H(inv, theta, k)
-}
+
+
+
+
+
 
 pcondigcop <- function(v, u, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
     Hkinv <- cnstr_Hinv(1-v, theta, k)
-    1 - pgamma(theta * (1-u) * log(Hkinv)) / Hkinv
+    1 - pgamma(theta * (1-u) * log(Hkinv), k-1, lower.tail=FALSE) / Hkinv
 }
 
 qcondigcop <- function(tau, u, cpar) {
@@ -76,4 +26,56 @@ qcondigcop <- function(tau, u, cpar) {
         # v0 <- 1 - cnstr_H((1-tau[i])^(-1/(theta+1)), theta, k)
         uniroot(f, c(0, 1))$root
     })
+}
+
+#' @rdname cnstr_Psi
+#' @export
+qcondigcop <- function(tau, u, cpar, mxiter=20,eps=1.e-6,bd=5){
+    ## Work with non-NA, non-1, non-0 values.
+    NAs <- is.na(tau)
+    ones <- (tau == 1)  # T/F. Has NA's too.
+    whichones <- which(ones)
+    zeroes <- (tau == 0) # T/F. Has NA's too.
+    whichzeroes <- which(zeroes)
+    clean_tau <- na.omit(tau[!(ones | zeroes)])
+    ## Go ahead with the algorithm
+    theta <- cpar[1]
+    k <- cpar[2]
+    if (length(clean_tau) > 0){
+        ## Just use the identity function as a starting value.
+        tt <- clean_tau
+        iter <- 0
+        diff <- 1
+        ## Begin Newton-Raphson algorithm
+        while(iter<mxiter & max(abs(diff))>eps){
+            ## Helpful quantities
+            Hkinv <- cnstr_Hinv(1-tt, theta, k)
+            arg <- theta * (1-u) * log(Hkinv)
+            der <- cnstr_DH(Hkinv, theta, k)
+            dgam <- dgamma(arg, k-1) * theta * (1-u)
+            ## Evaluate functions
+            g <- dgam/der/Hkinv + (1-tau)/der
+            gp <- 1/der * (dgam/Hkinv + 1 - tau)
+            diff <- g/gp
+            tt <- tt-diff
+            while(max(abs(diff))>bd | any(tt<=0))
+            { diff <- diff/2; tt <- tt+diff }
+            iter <- iter+1
+            #cat(iter,diff,tt,"\n")
+        }
+    } else {
+        tt <- numeric(0)
+    }
+
+    ## Set up vector to be returned (start off with NA's)
+    res <- rep(NA, max(length(tau), length(u)))
+    special_indices <- c(which(NAs), whichones, whichzeroes)
+    if (length(special_indices > 0)){
+        res[-special_indices] <- tt
+        res[whichones] <- 1
+        res[whichzeroes] <- 0
+    } else {
+        res <- tt
+    }
+    res
 }

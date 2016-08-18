@@ -2,76 +2,40 @@ cnstr_H <- function(t, theta, k) {
     cnstr_Psi(1/(theta * log(t)), k) / t
 }
 
-cnstr_Hinv <- function(w, theta, k, mxiter=20,eps=1.e-6,bd=5){
-    ## Work with non-1 and non-0 values of w.
-    ones <- (w == 1)  # T/F. Has NA's too.
+cnstr_DH <- function(t, theta, k) {
+    ## Deal with t=1 separately -- its limit depends on k.
+    ones <- (t == 1)  # T/F. Has NA's too.
     whichones <- which(ones)
-    zeroes <- (w == 0) # T/F. Has NA's too.
-    whichzeroes <- which(zeroes)
-    clean_w <- na.omit(w[!(ones | zeroes)])
-    ## which values are NA:
-    NAs_th <- is.na(theta)
-    NAs_w <- is.na(w)
-    NAs <- unique(NAs_th, NAs_w)
-    ## Go ahead with the algorithm
-    if (length(clean_w) > 0){
-        v <- clean_w
-        ## Starting point (half-way between 1 and 1/v, since 1/v is the upper bound).
-        tt <- (1/v - 1)/2 + 1
-        iter <- 0
-        diff <- 1
-        ## Begin Newton-Raphson algorithm
-        while(iter<mxiter & max(abs(diff))>eps){
-            ## Helpful quantities
-            logt <- log(tt)
-            arg <- 1/(theta * logt)
-            ## Evaluate functions
-            g <- cnstr_Psi(arg, k) - tt * v
-            gp <- - arg/logt * cnstr_DPsi(arg, k) - v
-            ## Check that there are no NaN's which would result from Inf*0 in gp
-            ##  (could use is.nan, but I'd rather ensure that the reason gp is NaN
-            ##   is due to t being 1)
-            gpnan <- tt==1
-            if (any(gpnan)) {
-                ## Replace the NaN's with the limit of gp, which depends on k.
-                if (k > 2) {
-                    gp[gpnan] <- -v[gpnan]
-                } else if (k == 2) {
-                    gp[gpnan] <- -theta/2 - v[gpnan]
-                } else {
-                    gp[gpnan] <- rep(-Inf, sum(gpnan))
-                }
-            }
-            diff <- g/gp
-            tt <- pmax(1, tt-diff)
-            # cat("-------\n", iter,"\n",diff, "\n",tt,"\n")
-            while(max(abs(diff))>bd | any(tt<=0))
-            { diff <- diff/2; tt <- tt+diff }
-            iter <- iter+1
-
+    t1 <- t[!ones]
+    ## Compute, except for the 1's:
+    logt <- log(t1)
+    arg <- 1/theta/logt
+    coeff <- 1/theta/logt^2
+    res1 <- -t1^(-2) * (cnstr_Psi(arg,k) + coeff * cnstr_DPsi(arg,k))
+    ## Put in the ones:
+    res <- rep(NA, max(length(t), length(theta)))
+    if (length(whichones) > 0) {
+        ## There are 1's inputted.
+        res[-whichones] <- res1
+        if (k > 2) {
+            res[whichones] <- -1
+        } else if (k == 2) {
+            res[whichones] <- -(1 + theta/2)
+        } else {
+            res[whichones] <- -Inf
         }
     } else {
-        tt <- numeric(0)
+        res <- res1
     }
-
-    ## Set up vector to be returned (start off with NA's)
-    res <- rep(NA, length(w))
-    special_indices <- c(which(NAs), whichones, whichzeroes)
-    if (length(special_indices > 0)){
-        res[-special_indices] <- tt
-        res[whichones] <- 1
-        res[whichzeroes] <- Inf
-    } else {
-        res <- tt
-    }
-    res
+    return(res)
 }
 
-
-
-
-
-cnstr_Hinv <- function(w, theta, k, ngrid=1000) {
+#' @param w Vector of values in [0,1] to evaluate the inverse function at.
+#' @param theta,k Parameters of the construction function. Needs
+#' \code{theta>0} and \code{k>1}. Each can only be a single numeric.
+#' @param silent Logical; should the message output by \code{pcinterpolate()}
+#' be silenced?
+cnstr_Hinv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
     ## Work with non-1 and non-0 values of w.
     ones <- (w == 1)  # T/F. Has NA's too.
     whichones <- which(ones)
@@ -79,9 +43,7 @@ cnstr_Hinv <- function(w, theta, k, ngrid=1000) {
     whichzeroes <- which(zeroes)
     clean_w <- na.omit(w[!(ones | zeroes)])
     ## which values are NA:
-    NAs_th <- which(is.na(theta))
-    NAs_w <- which(is.na(w))
-    NAs <- unique(NAs_th, NAs_w)
+    NAs <- which(is.na(w))
     ## Main Idea: -----
     ## Get values to evaluate cnstr_H at, by using an approximation function
     ##  that can be inverted. We'll invert that function on a grid in (0,1)
@@ -101,8 +63,20 @@ cnstr_Hinv <- function(w, theta, k, ngrid=1000) {
     ##  the tgrid values become the evaluated cnstr_Hinv function.
     ## Use the pcinterpolate function to evaluate at w.
     der <- pcderiv(fn, tgrid)
-    ## Evaluate at the requested NA-free w's:
-    res1 <- pcinterpolate(fn, tgrid, der, clean_w)[, 1]
+    ## Evaluate at the requested NA-free w's
+    if (silent) {
+        ## The only way I can find to silent a cat() call is to use sink,
+        ##  but send it to a non-existing file. Got answer from Stack
+        ##  Overflow by cbielow:
+        ## http://stackoverflow.com/questions/6177629/how-to-silence-the-output-from-this-r-package
+        f <- file()
+        sink(file=f)
+        res1 <- pcinterpolate(fn, tgrid, der, clean_w)[, 1]
+        sink()
+        close(f)
+    } else {
+        res1 <- pcinterpolate(fn, tgrid, der, clean_w)[, 1]
+    }
     ## Put back onto (1,oo) domain:
     res1 <- exp(exp(res1))
     ## Put in NA's where they were found:

@@ -8,6 +8,18 @@
 #' @param w Vector of values to evaluate the inverse function at, between
 #' 0 and 1 (inclusive)
 #' @param k Single numeric >1. Parameter of the function.
+#' @examples
+#' ## Some examples of evaluating the functions.
+#' arg <- c(0, 0.5, 3, Inf, NA)
+#' cnstr_Psi(arg, k=2)
+#' cnstr_DPsi(arg, k=1.2)
+#' cnstr_DPsi(arg, k=2)
+#' cnstr_DPsi(arg, k=3)
+#' cnstr_Psiinv(c(0, 0.5, 1), k=1.5)
+#'
+#' ## Visual
+#' foo <- function(u) cnstr_Psiinv(u, k=1.5)
+#' curve(foo)
 #' @rdname cnstr_Psi
 #' @export
 cnstr_Psi <- function(t, k) {
