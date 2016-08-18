@@ -11,9 +11,7 @@ igamma <- function(k, t) {
     gamma(k) * (1 - pgamma(t, k))
 }
 
-cnstr_Psi <- function(k, t) {
-    1 - pgamma(t, k-1) + (k-1)/t*pgamma(t, k)
-}
+
 
 cnstr_Psiinv <- function(w, k, mxiter=20,eps=1.e-6,bd=5){
     ## Work with non-NA, non-1, non-0 values.

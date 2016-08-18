@@ -34,19 +34,6 @@ cnstr_H <- function(t, param){
     res
 }
 
-#' Inverse of the construction function -- old version with uniroot.
-#'
-#' Inverse of function 'phi'.
-#' @param theta Real number for the "shape" parameter of the function. Can't
-#' be a vector.
-#' @param w Number in (0,1] to find the inverse at. Cannot be a vector.
-phiinvold <- function(theta, w){
-    ## Since phi is bounded above by 1/t, use that (shifted right by 0.5) as
-    ##  the upper endpoint of the search interval.
-    upper <- 1/w + 0.5
-    uniroot(function(t) phi(theta, t) - w, c(1, upper))$root
-}
-
 #' Inverse of the construction function
 #'
 #' Uses 'newer' version suggested by Harry. It's possible that this
