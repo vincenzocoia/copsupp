@@ -1,41 +1,72 @@
+#' IG Copula helper function
+#'
+#' These functions are useful for computing the 2|1
+#' distribution of the IG copula family. We have
+#' C_{2|1}(v|u) = igcop_helper(log(log(x)), theta*(1-u), k), where
+#' x=cnstr_Hinv(1-v, theta, k),
+#' so that the quantile function can be written in terms of
+#' \code{igcop_helper_inv}. The inverse is found using
+#' interpolation, for which \code{get_grid_helper} finds a grid of
+#' \code{t} values such that \code{igcop_helper} evaluates to points
+#' that contain the \code{w}'s input into \code{igcop_helper_inv}.
+#'
+#' @param t Numeric vector to evaluate \code{igcop_helper} at. Real.
+#' @param w Numeric vector to evaluate the inverse function at,
+#' \code{igcop_helper_inv}. In [0,1].
+#' @param clean_w Like \code{w}, but should only be in (0,1), and should not
+#' contain \code{NA}s.
+#' @param theta Single numeric >0.
+#' @param k Single numeric >1.
+#' @param silent Logical; should the message output by \code{pcinterpolate()}
+#' be silenced?
+#' @param ngrid Positive integer; how many points at a time should the
+#' interpolation grid be expanded by?
+#' @note Since an interpolation is used to invert \code{igcop_helper},
+#' which is a different function for each \code{theta},
+#' \code{igcop_helper_inv} only allows one theta.
+#' @return \code{igcop_helper} and \code{igcop_helper_inv} both return
+#' vectors of length equal to the length of their first argument, representing
+#' the function evaluations. \code{get_grid_helper} returns a matrix with
+#' 2 columns: column one contains values of \code{t}, and column two
+#' contains \code{igcop_helper} evaluated at those \code{t} values (which
+#' should "engulf" \code{clean_w}).
+#' @rdname igcop_helper
+#' @export
 igcop_helper <- function(t, theta, k) {
-    1 - pgamma(theta*exp(t), k-1, lower.tail=FALSE) * exp(-exp(t))
+    et <- exp(t)
+    1 - pgamma(theta*et, k-1, lower.tail=FALSE) * exp(-et)
 }
 
-#' Inverse of the helper function
-#'
-#' @param theta Single numeric >0.
-#' @note Since an interpolation is used to invert the function, and
-#' there's a different function for each \code{theta}, this function
-#' only allows one theta.
-get_grid_helper <- function(clean_w, theta, k, ngrid.min=1000) {
+#' @rdname igcop_helper
+#' @export
+get_grid_helper <- function(clean_w, theta, k, ngrid=1000) {
     ## Get grid on domain of phi:
     minw <- min(clean_w)
     maxw <- max(clean_w)
-    wgridmin <- max(minw - 1/ngrid.min, minw/2)
-    wgridmax <- min(maxw + 1/ngrid.min, (1+maxw)/2)
-    wgrid <- seq(wgridmin, wgridmax, length.out=ngrid.min)
+    wgridmin <- max(minw - 1/ngrid, minw/2)
+    wgridmax <- min(maxw + 1/ngrid, (1+maxw)/2)
+    wgrid <- seq(wgridmin, wgridmax, length.out=ngrid)
     tgrid <- log(k/theta*log(1/(1-wgrid)))
     ## Evaluate phi at that grid:
     fn <- igcop_helper(tgrid, theta, k)
     ## Does this cover the w values? If not, it ought to: expand the tgrid
-    ##  so that it does.
+    ##  so that it does. First, extend the tgrid to the left.
     fnlist <- list(fn)
     tlist <- list(tgrid)
     fnmin <- min(fn)
     fnmax <- max(fn)
     wpair <- fn[1:2]
     tpair <- tgrid[1:2]
-    incr <- 1/ngrid.min
+    incr <- 1/ngrid
     i <- 1
-    while(fnmin > minw) {  # Can do this because minw > 0 (w=0 is treated specially)
+    while(fnmin > minw) {  # Can do this because minw > 0 since clean_w > 0.
         i <- i + 1
         ## Estimate most recent slope
-        slope <- max(diff(wpair) / diff(tpair), 0.01)
+        slope <- max(diff(wpair) / diff(tpair), 0.1)
         ## Fill-in the gap between the desired lower wgrid value and the actual
         ##  lower grid value (fnmin) with a new grid of values. But fnmin
         ##  can be 1 sometimes, so take wgridmax in that case.
-        wnew <- seq(wgridmin, min(fnmin, wgridmax), length.out=ngrid.min)
+        wnew <- seq(wgridmin, min(fnmin, wgridmax), length.out=ngrid)
         ## Interpolate using the slope to find the t values that would evaluate
         ##  to wnew on the linear approximation.
         tnew <- tpair[1] - (fnmin - wnew) / slope
@@ -49,25 +80,21 @@ get_grid_helper <- function(clean_w, theta, k, ngrid.min=1000) {
         tlist[[i]] <- tnew
     }
     ## Switch the order of t values and function values.
-    tgrid <- tgrid[i:1]
-    fn <- fn[i:1]
-    ## Continue if coverage above does not occur:
-    fnlist <- list(fn)
-    tlist <- list(tgrid)
-    fnmin <- min(fn)
-    fnmax <- max(fn)
-    wpair <- tail(fn[[i]], 2)
-    tpair <- tail(tgrid[[i]], 2)
+    tlist <- tlist[i:1]
+    fnlist <- fnlist[i:1]
+    ## Continue if we need tgrid to reach further right.
+    wpair <- tail(fnlist[[i]], 2)
+    tpair <- tail(tlist[[i]], 2)
     while(fnmax < maxw) {
         i <- i + 1
         ## Estimate most recent slope
-        slope <- max(diff(wpair) / diff(tpair), 0.01)
+        slope <- max(diff(wpair) / diff(tpair), 0.1)
         ## Fill-in the gap between the desired upper wgrid value and the actual
         ##  upper grid value (fnmax) with a new grid of values.
-        wnew <- seq(fnmax, wgridmax, length.out=ngrid.min)
+        wnew <- seq(fnmax, wgridmax, length.out=ngrid)
         ## Interpolate using the slope to find the t values that would evaluate
         ##  to wnew on the linear approximation.
-        tnew <- tpair[2] + (fnmax - wnew) / slope
+        tnew <- tpair[2] + (wnew - fnmax) / slope
         ## Evaluate the actual igcop_helper function at these tnew values
         fnnew <- igcop_helper(tnew, theta, k)
         ## Calculate the minimum, and append these new values to the grid.
@@ -82,58 +109,9 @@ get_grid_helper <- function(clean_w, theta, k, ngrid.min=1000) {
     matrix(c(tgrid, fn), ncol=2)
 }
 
-#' #' "Swallow" w.
-#' #' @param n.init How many points should the algorithm begin with?
-#' #' @param n.add How many points should the algorithm add to each iteration?
-#' get_grid_helper <- function(clean_w, theta, k, n.add=1000, n.init=1000) {
-#'     ## Get initial grid on the domain of 'helper' (note, clean_w might be length 1):
-#'     approx_inv <- function(w) log(k/theta*log(1/(1-w)))
-#'     wgrid_init <- ((1:n.init)*2-1)/(2*n.init)
-#'     tgrid <- list(approx_inv(wgrid_init))
-#'     ## Evaluate the function at the tgrid
-#'     fn <- list(igcop_helper(tgrid[[1]], theta, k))
-#'     ## Does the t grid cover the spread of inputted w's? We'll need these values
-#'     ##  to find out:
-#'     minw <- min(clean_w)
-#'     maxw <- max(clean_w)
-#'     minfn <- min(fn[[1]])
-#'     maxfn <- max(fn[[1]])
-#'     ## --Algorithm 1--
-#'     ## Set up the algorithm to keep casting values to the *left* of tgrid until
-#'     ##  the tgrid covers all w values.
-#'     wpair <- fn[[1]][1:2]
-#'     tpair <- tgrid[[1]][1:2]
-#'     i <- 1
-#'     while (minfn > minw) {
-#'         i <- i + 1
-#'         ## Estimate most recent slope
-#'         slope <- max(diff(wpair) / diff(tpair), 0.01)
-#'         ## Fill-in the gap between the desired lower wgrid value and the actual
-#'         ##  lower grid value (minfn) with a new grid of values.
-#'         wnew <- ((1:n.add)*2 - 2) / (2*n.add) * minfn # spread btwn (0, minfn).
-#'         ## Interpolate using the slope to find the t values that would evaluate
-#'         ##  to wnew on the linear approximation.
-#'         tnew <- tpair[1] - (minfn - wnew) / slope
-#'         ## Evaluate the actual igcop_helper function at these tnew values
-#'         fnnew <- igcop_helper(tnew, theta, k)
-#'         ## Calculate the minimum, and append these new values to the grid.
-#'         wpair <- fnnew[1:2]
-#'         tpair <- tnew[1:2]
-#'         minfn <- wpair[1]
-#'         fn[[i]] <- fnnew
-#'         tgrid[[i]] <- tnew
-#'     }
-#'     ## Combine the fn and t values
-#'     tgrid <- c(tgrid[i:1], recursive=TRUE)
-#'     fn <- c(fn[i:1], recursive=TRUE)
-#'     matrix(c(tgrid, fn), ncol=2)
-#' }
-
-
-#' @param theta Single numeric >0.
-#' @param silent Logical; should the message output by \code{pcinterpolate()}
-#' be silenced?
-igcop_helper_inv <- function(w, theta, k, ngrid.min=1000, silent=TRUE) {
+#' @rdname igcop_helper
+#' @export
+igcop_helper_inv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
     if (length(w) == 0) return(numeric(0))
     if (theta == 0) return(log(log(1/(1-w))))
     ## Work with non-1 and non-0 values of w.
@@ -153,7 +131,7 @@ igcop_helper_inv <- function(w, theta, k, ngrid.min=1000, silent=TRUE) {
     ##  so we'll do that.
     ## ----------------
     ## Get grid and function evaluations:
-    grideval <- get_grid_helper(clean_w, theta, k)
+    grideval <- get_grid_helper(clean_w, theta, k, ngrid = ngrid)
     tgrid <- grideval[, 1]
     fn <- grideval[, 2]
     ## The evaluated cnstr_H become the domain values of cnstr_Hinv, and

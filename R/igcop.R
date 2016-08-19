@@ -4,8 +4,6 @@
 #'
 #' @param u,v Vectors of values in [0,1] representing values of the first
 #' and second copula variables.
-#' @param tau Vector of quantile levels in [0,1] to evaluate a quantile function
-#' at.
 #' @param cpar Vector of length 2 corresponding to the copula
 #' parameters \code{theta>0} and \code{k>1}, respectively.
 #' @note Inputting two vectors greater than length 1 is allowed, if they're
@@ -23,6 +21,17 @@ pcondigcop <- function(v, u, cpar) {
     1 - pgamma(theta * (1-u) * log(Hkinv), k-1, lower.tail=FALSE) / Hkinv
 }
 
+
+
+#' @param tau Vector of quantile levels in [0,1] to evaluate a quantile function
+#' at.
+#' @note Of all the methods of computing qcondigcop() that I tried,
+#' this is the only one that appears to work (validated
+#' visually with the old qcondnew()
+#' function for theta=3 and 30). This version uses the inverse of the
+#' helper function, \code{\link{igcop_helper_inv}}, but deliberately
+#' inefficiently by evaluating each helper function at all the taus, just
+#' because the inverse seems to work better that way.
 #' @rdname igcop
 #' @export
 qcondigcop <- function(tau, u, cpar) {
@@ -66,9 +75,9 @@ qcondigcop <- function(tau, u, cpar) {
             clean_param <- param
         }
         ## Get inverse helper function for each param value.
-        arg <- mapply(function(tau_, param_) {
-            exp(exp(igcop_helper_inv(tau_, param_, k)))
-        }, clean_tau, clean_param)
+        arg <- sapply(1:length(clean_tau), function(i){
+            exp(exp(igcop_helper_inv(clean_tau, clean_param[i], k)[i]))
+        })
         ## And the "clean" quantile values:
         res1 <- 1 - cnstr_H(arg, theta, k)
     }
@@ -84,64 +93,3 @@ qcondigcop <- function(tau, u, cpar) {
         return(res)
     }
 }
-
-
-# qcondigcop <- function(tau, u, cpar, mxiter=20,eps=1.e-6,bd=5){
-#     ## Make tau and u of the same length
-#     n_tau <- length(tau)
-#     n_u <- length(u)
-#     n <- max(n_tau, n_u)
-#     if (n_tau == 1) tau <- rep(tau, n)
-#     if (n_u == 1) u <- rep(u, n)
-#     # ## Work with non-NA, non-1, non-0 values.
-#     # NAs_tau <- is.na(tau)
-#     # NAs_u <- is.na(u)
-#     # NAs <-
-#     # ones <- (tau == 1)  # T/F. Has NA's too.
-#     # whichones <- which(ones)
-#     # zeroes <- (tau == 0) # T/F. Has NA's too.
-#     # whichzeroes <- which(zeroes)
-#     # clean_tau <- na.omit(tau[!(ones | zeroes)])
-#     clean_tau <- tau
-#     ## Go ahead with the algorithm
-#     theta <- cpar[1]
-#     k <- cpar[2]
-#     if (length(clean_tau) > 0){
-#         ## Use halfway between independence and comonotonicity.
-#         tt <- (clean_tau + u)/2
-#         iter <- 0
-#         diff <- 1
-#         ## Begin Newton-Raphson algorithm
-#         while(iter<mxiter & max(abs(diff))>eps){
-#             ## Helpful quantities
-#             Hkinv <- cnstr_Hinv(1-tt, theta, k)
-#             arg <- theta * (1-u) * log(Hkinv)
-#             der <- cnstr_D1H(Hkinv, theta, k)
-#             dgam <- dgamma(arg, k-1) * theta * (1-u)
-#             ## Evaluate functions
-#             g <- dgam/der/Hkinv + (1-tau)/der
-#             gp <- 1/der * (dgam/Hkinv + 1 - tau)
-#             diff <- g/gp
-#             tt <- tt-diff
-#             while(max(abs(diff))>bd | any(tt<=0))
-#             { diff <- diff/2; tt <- tt+diff }
-#             iter <- iter+1
-#             #cat(iter,diff,tt,"\n")
-#         }
-#     } else {
-#         tt <- numeric(0)
-#     }
-#
-#     # ## Set up vector to be returned (start off with NA's)
-#     # res <- rep(NA, max(length(tau), length(u)))
-#     # special_indices <- c(which(NAs), whichones, whichzeroes)
-#     # if (length(special_indices > 0)){
-#     #     res[-special_indices] <- tt
-#     #     res[whichones] <- 1
-#     #     res[whichzeroes] <- 0
-#     # } else {
-#     #     res <- tt
-#     # }
-#     # res
-#     return(tt)
-# }
