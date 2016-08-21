@@ -49,6 +49,7 @@ cnstr_D1H <- function(t, theta, k) {
 #' @param silent Logical; should the message output by \code{pcinterpolate()}
 #' be silenced?
 #' @rdname cnstr_H
+#' @import CopulaModel
 #' @export
 cnstr_Hinv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
     ## Work with non-1 and non-0 values of w.

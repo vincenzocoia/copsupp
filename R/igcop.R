@@ -93,3 +93,8 @@ qcondigcop <- function(tau, u, cpar) {
         return(res)
     }
 }
+
+digcop <- function(u, v, cpar) {
+    theta <- cpar[1]
+    k <- cpar[2]
+}
