@@ -43,57 +43,29 @@ qcondigcop <- function(tau, u, cpar) {
     n_tau <- length(tau)
     ## Was only one tau input? If so, repeat it to match the length of u.
     if (n_tau == 1) tau <- rep(tau, n_u)
-    ## Which taus are 0 and 1? Treat them specially. u is allowed to be 1,
-    ##  because igcop_helper_inv can handle theta=0. u=0 results in evaluating
-    ##  its theta parameter at (1-u)*theta=theta, so no problem there.
-    zeroes <- tau == 0  # Keeps NAs
-    ones <- tau == 1  # Keeps NAs
-    whichzeroes <- which(zeroes)  # NAs not included.
-    whichones <- which(ones)  # NAs not included.
-    ## Which are NA? This goes for both tau and u!
-    NAs <- is.na(tau) | is.na(u)
-    which_NA <- which(NAs)
-    ## Only consider non-NA values of tau in (0,1). Even if this subsets
-    ##  to an empty vector, the following procedure should still work.
-    rmv <- union(which_NA, c(whichzeroes, whichones))
-    if (length(rmv) > 0) {
-        clean_tau <- tau[-rmv]  # Note tau[-integer(0)] = numeric(0)
-    } else {
-        clean_tau <- tau
-    }
     ## If u is of length 1, then we can use vectorized property of
     ##  igcop_helper_inv().
     if (n_u == 1) {
-        arg <- exp(exp(igcop_helper_inv(clean_tau, param, k)))
-        res1 <- 1 - cnstr_H(arg, theta, k)
-    } else {
-        ## u (and param) is not of length 1. Suppose it's of length tau.
-        ## Now subset param to match those of clean_tau.
-        if (length(rmv) > 0) {
-            clean_param <- param[-rmv]  # Note tau[-integer(0)] = numeric(0)
-        } else {
-            clean_param <- param
+        fun <- function(tau) {
+            arg <- exp(exp(igcop_helper_inv(tau, param, k)))
+            1 - cnstr_H(arg, theta, k)
         }
-        ## Get inverse helper function for each param value.
-        arg <- sapply(1:length(clean_tau), function(i){
-            exp(exp(igcop_helper_inv(clean_tau, clean_param[i], k)[i]))
-        })
-        ## And the "clean" quantile values:
-        res1 <- 1 - cnstr_H(arg, theta, k)
-    }
-    ## Lastly, put NAs where they belong, and replace tau=0 and tau=1
-    ##  with quantiles of 0 and 1.
-    if (length(rmv) == 0) {
-        return(res1)
+        eval_lims(fun, tau, replx=c(0,1), replf=c(0,1))
     } else {
-        res <- rep(NA, length(tau))
-        res[whichzeroes] <- 0
-        res[whichones] <- 1
-        res[-rmv] <- res1
-        return(res)
+        ## There's a cdf for each u that needs inverting. Loop through and
+        ##  invert them one-by-one.
+        mapply(function(tau_, param_) {
+            fun <- function(tau_) {
+                arg <- exp(exp(igcop_helper_inv(tau_, param_, k)))
+                1 - cnstr_H(arg, theta, k)
+            }
+            eval_lims(fun, tau_, replx=c(0,1), replf=c(0,1))
+        }, tau, param)
     }
 }
 
+#' @rdname igcop
+#' @export
 digcop <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
