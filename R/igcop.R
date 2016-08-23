@@ -17,6 +17,7 @@
 pcondigcop <- function(v, u, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
+    if (theta == Inf) return(pcondiglcop(v, u, k))
     Hkinv <- cnstr_Hinv(1-v, theta, k)
     1 - pgamma(theta * (1-u) * log(Hkinv), k-1, lower.tail=FALSE) / Hkinv
 }
@@ -38,6 +39,7 @@ qcondigcop <- function(tau, u, cpar) {
     ## Get "parameters" useful for this function.
     theta <- cpar[1]
     k <- cpar[2]
+    if (theta == Inf) return(qcondiglcop(tau, u, k))
     param <- (1 - u) * theta
     n_u <- length(u)
     n_tau <- length(tau)
@@ -69,6 +71,7 @@ qcondigcop <- function(tau, u, cpar) {
 digcop <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
+    if (theta == Inf) return(diglcop(u, v, k))
     negu <- 1-u
     t <- cnstr_Hinv(1-v, theta, k)
     x <- theta * negu * log(t)
