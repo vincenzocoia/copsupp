@@ -1,8 +1,8 @@
-#' 'Clean' a vector for function evaluation
+#' Evaluate a function at limit points
 #'
 #'  Sometimes evaluating a function in R at limit points does not give
-#'  what you want (such as a limit). This function manually inputs the
-#'  desired function values at those points, and evaluates the function
+#'  the proper limit. \code{eval_lims} manually evaluates the
+#'  desired function values at those limit points, and evaluates the function
 #'  normally otherwise.
 #'
 #'  @param fun Vectorized univariate function that you want to evaluate. Need not
@@ -29,7 +29,7 @@
 #'  eval_clean(fun, numeric(0), replx=0, replf=0)
 #'  eval_clean(fun, NaN, replx=0, replf=0)
 #'  @export
-eval_clean <- function(fun, arg, replx, replf) {
+eval_lims <- function(fun, arg, replx, replf) {
     ## Which of arg correspond to values in replx?
     ind <- lapply(replx, function(replx_) {
         which(arg == replx_)
