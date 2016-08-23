@@ -45,6 +45,9 @@ cnstr_D1H <- function(t, theta, k) {
     return(res)
 }
 
+
+
+
 #' @param w Vector of values in [0,1] to evaluate the inverse function at.
 #' @param silent Logical; should the message output by \code{pcinterpolate()}
 #' be silenced?
@@ -60,6 +63,8 @@ cnstr_Hinv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
     clean_w <- na.omit(w[!(ones | zeroes)])
     ## which values are NA:
     NAs <- which(is.na(w))
+    ## Initiate output vector
+    res <- rep(NA, length(w))
     ## Main Idea: -----
     ## Get values to evaluate cnstr_H at, by using an approximation function
     ##  that can be inverted. We'll invert that function on a grid in (0,1)
@@ -68,33 +73,39 @@ cnstr_Hinv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
     ##  the domain from (1,oo) to (-oo,oo) by taking a log transform twice,
     ##  so we'll do that.
     ## ----------------
-    ## Get grid on domain of H:
-    wmin <- min(0.001, min(clean_w)/2)
-    wmax <- max(0.999, (1+max(clean_w))/2)
-    wgrid <- seq(wmin, wmax, length.out=ngrid)
-    tgrid <- -log(-log(1-wgrid)) - log(1 + theta/k)
-    ## Evaluate H at that grid:
-    fn <- cnstr_H(exp(exp(tgrid)), theta, k)
-    ## The evaluated cnstr_H become the domain values of cnstr_Hinv, and
-    ##  the tgrid values become the evaluated cnstr_Hinv function.
-    ## Use the pcinterpolate function to evaluate at w.
-    der <- pcderiv(fn, tgrid)
-    ## Evaluate at the requested NA-free w's
-    if (silent) {
-        ## The only way I can find to silent a cat() call is to use sink,
-        ##  but send it to a non-existing file. Got answer from Stack
-        ##  Overflow by cbielow:
-        ## http://stackoverflow.com/questions/6177629/how-to-silence-the-output-from-this-r-package
-        f <- file()
-        sink(file=f)
-        res1 <- pcinterpolate(fn, tgrid, der, clean_w)[, 1]
-        sink()
-        close(f)
+    if (length(clean_w) > 0) {
+        ## Get grid on domain of H:
+        wmin <- min(0.001, min(clean_w)/2)
+        wmax <- max(0.999, (1+max(clean_w))/2)
+        wgrid <- seq(wmin, wmax, length.out=ngrid)
+        tgrid <- -log(-log(1-wgrid)) - log(1 + theta/k)
+        ## Evaluate H at that grid:
+        fn <- cnstr_H(exp(exp(tgrid)), theta, k)
+        ## The evaluated cnstr_H become the domain values of cnstr_Hinv, and
+        ##  the tgrid values become the evaluated cnstr_Hinv function.
+        ## Use the pcinterpolate function to evaluate at w.
+        der <- pcderiv(fn, tgrid)
+        ## Evaluate at the requested NA-free w's
+        if (silent) {
+            ## The only way I can find to silent a cat() call is to use sink,
+            ##  but send it to a non-existing file. Got answer from Stack
+            ##  Overflow by cbielow:
+            ## http://stackoverflow.com/questions/6177629/how-to-silence-the-output-from-this-r-package
+            f <- file()
+            sink(file=f)
+            res1 <- pcinterpolate(fn, tgrid, der, clean_w)[, 1]
+            sink()
+            close(f)
+        } else {
+            res1 <- pcinterpolate(fn, tgrid, der, clean_w)[, 1]
+        }
+        ## Put back onto (1,oo) domain:
+        res1 <- exp(exp(res1))
+        res[!(ones | zeroes)]
     } else {
-        res1 <- pcinterpolate(fn, tgrid, der, clean_w)[, 1]
+        res1 <- numeric(0)
     }
-    ## Put back onto (1,oo) domain:
-    res1 <- exp(exp(res1))
+
     ## Put in NA's where they were found:
     if (length(NAs) > 1) {
         res <- rep(NA, length(w))

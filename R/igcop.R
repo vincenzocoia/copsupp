@@ -97,4 +97,9 @@ qcondigcop <- function(tau, u, cpar) {
 digcop <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
+    negu <- 1-u
+    t <- cnstr_Hinv(1-v, theta, k)
+    x <- theta * negu * log(t)
+    -(dgamma(x, k-1) * theta + pgamma(x, k-1, lower.tail=FALSE)) / t^2 /
+        cnstr_D1H(t, theta, k)
 }
