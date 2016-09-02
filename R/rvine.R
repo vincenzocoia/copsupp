@@ -10,7 +10,7 @@
 #' @return An object of class `rvine`, which is a named list of the arguments.
 #' @examples
 #' ## Empty vine:
-#' rvine(matrix(integer(0)))
+#' rvine(matrix(nrow=0, ncol=0))
 #'
 #' ## Independence vine:
 #' (rv <- rvine(matrix(4:1, ncol = 4)))
@@ -22,16 +22,18 @@
 #' summary(rv)
 #' (rv <- rvine(G, "bvtcop", c(0.4, 5)))
 #'
-#' G <- AtoG(CopulaModel::Dvinearray(4))
+#' G <- AtoG(CopulaModel::Dvinearray(5))
 #' copmat <- makevinemat("gum",
 #'                       c("bvtcop", "frk"),
 #'                       c("mtcj", "frk", "indepcop"),
-#'                       c("bvncop", "joe", "mtcj", "frk"), zerocol = TRUE)
+#'                       c("bvncop", "joe", "mtcj", "frk"),
+#'                       zerocol = TRUE)
 #' cparmat <- makevinemat(3.1,
 #'                        list(c(0.5, 4), 2.3),
 #'                        list(4.2, 3.5, numeric(0)),
 #'                        c(0.5, 2.2, 2.5, 1.6), zerocol = TRUE)
 #' rv <- rvine(G, copmat, cparmat)
+#' summary(rv)
 #' @export
 rvine <- function(G, copmat, cparmat) {
     ## First -- deal with the "trivial case" of G.
