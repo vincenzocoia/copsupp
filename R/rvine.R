@@ -39,7 +39,9 @@ rvine <- function(G, copmat, cparmat) {
     ## First -- deal with the "trivial case" of G.
     d <- ncol(G)
     if (d == 0) {
-        return(structure(list(G=matrix(ncol=0, nrow=1), copmat=NA, cparmat=NA),
+        return(structure(list(G=matrix(ncol=0, nrow=1),
+                              copmat=matrix(ncol=0, nrow=0),
+                              cparmat=matrix(ncol=0, nrow=0)),
                          class = "rvine"))
     }
     if (d == 1) {
