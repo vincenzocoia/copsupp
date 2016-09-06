@@ -2,7 +2,7 @@
 % Please edit documentation in R/pcondseq.R
 \name{pcondseq}
 \alias{pcondseq}
-\title{Find sequential predictors}
+\title{Compute Conditional Probabilities Sequentially}
 \usage{
 pcondseq(dat, ord, rv)
 }
@@ -11,18 +11,33 @@ pcondseq(dat, ord, rv)
 
 \item{ord}{order of variables}
 
-\item{rv}{A regular vine, supposedly fitted to \code{dat}.}
+\item{rv}{A regular vine, supposedly describing the joint
+distribution of \code{dat}.}
 }
 \value{
-Matrix with rows being observations, and columns being
-X[ord[1]]; X[ord[2]]|X[ord[1]]; X[ord[3]]|X[ord[1:2]]; etc.
+Matrix with rows being observations in \code{dat}, and columns being
+\code{U[ord[1]]}; \code{U[ord[2]]|U[ord[1]]};
+\code{U[ord[3]]|U[ord[1:2]]}; etc.
 }
 \description{
-For internal use.
+Given a vine describing the joint distribution of some uniform data, this
+function sequentially evaluates conditional distributions given previous
+variables in a specified order. See details.
 }
-\note{
-Expecting smart input: ord must be at least of length 1, with
-variables in the specified rvine.
+\details{
+Suppose \code{Ui} denotes random variable \code{i}.
+If you specify \code{ord=c(5, 2, 3, 1)}, you'll get the cdfs of
+\code{U5}; \code{U2|U5}; \code{U3|(U2,U5)}; and \code{U1|(U3,U2,U5)},
+evaluated at the data.
+
+In general, this function computes:
+
+\itemize{
+     \item \code{U[ord[1]]}
+     \item \code{U[ord[2]]|U[ord[1]]}
+     \item \code{U[ord[3]]|U[ord[1:2]]}
+     \item ...
+}
 }
 \examples{
 ## Make a vine
