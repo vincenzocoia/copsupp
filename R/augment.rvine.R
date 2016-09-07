@@ -4,12 +4,12 @@
 #' including adding a new column altogether.
 #'
 #' @param obj The object of type \code{rvine} with which to augment.
-#' @param col The column of the vine to add to (i.e., the common column
-#' of the vine array, and copula and parameter matrices). Could be one more
-#' than the total number of columns in the rvine, if a new column is to be added.
 #' @param a Vector of vine array indices to append to the vine array column.
 #' @param cop Vector of copula families to append to the copula matrix column.
 #' @param cpar List of copula parameters to append to the parameter matrix column.
+#' @param col The column of the vine to add to (i.e., the common column
+#' of the vine array, and copula and parameter matrices). \code{NULL} (default)
+#' if you want to add a new column to the vine.
 #' @note If you're adding a new column with only one variable, there's no
 #' need to specify the \code{cop} and \code{cpar} arguments.
 #'
@@ -20,29 +20,31 @@
 #' ## Add to an empty vine:
 #' rv <- rvine(matrix(nrow=0, ncol=0))
 #' summary(rv)
-#' rv2 <- augment(rv, col=1, a=4)
+#' rv2 <- augment(rv, a=4, col=1)
 #' summary(rv2)
 #'
 #' ## Add to an independence vine:
 #' rv <- rvine(matrix(4:1, ncol = 4))
 #' summary(rv)
-#' rv2 <- augment(rv, col=3, a=c(4,3),
+#' rv2 <- augment(rv, a=c(4,3),
 #'                cop=c("bvtcop", "bvncop"),
-#'                cpar=list(c(0.5, 3), -0.7))
+#'                cpar=list(c(0.5, 3), -0.7),
+#'                col=3)
 #' summary(rv2)
-#' summary(augment(rv2, a=integer(0)))
+#' summary(augment(rv2, integer(0)))
 #'
 #' ## You can't do some illegal things.
 #' \dontrun{
-#' augment(rv, col=5, a=1)
-#' augment(rv, col=2, a=3:4, cop=c("frk", "frk"), cpar=list(4,3))
-#' augment(rv, col=5, a=5:1, cop="frk", cpar=list(4))
+#' augment(rv, a=1)
+#' augment(rv, a=3:4, cop=c("frk", "frk"),
+#'         cpar=list(4,3), col=2)
+#' augment(rv, a=5:1, cop="frk", cpar=list(4))
 #' }
 #' ## But you can do some:
-#' rv2 <- augment(rv, col=5, a=c(5,5), cop="frk", cpar=list(4))
+#' rv2 <- augment(rv, a=c(5,5), cop="frk", cpar=list(4))
 #' summary(rv2)
 #' @export
-augment.rvine <- function(obj, col, a, cop, cpar) {
+augment.rvine <- function(obj, a, cop, cpar, col=NULL) {
     if (length(a) == 0) return(obj)
     ## Extract the items
     G <- obj$G
@@ -50,6 +52,7 @@ augment.rvine <- function(obj, col, a, cop, cpar) {
     cparmat <- obj$cparmat
     ## Append.
     ## First, check whether a new column is being requested to add.
+    if (is.null(col)) col <- ncol(G) + 1
     if (col == ncol(G) + 1) {
         ## Yes. Add a column of blanks.
         ## Note: use `rep(0, nrow(G))` instead of just `0` because there might
