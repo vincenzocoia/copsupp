@@ -64,8 +64,8 @@ rrvine <- function(n, rv, iprint=FALSE){
     ##  a copula family with parameter that gives independence copula.
     for (i in 1:ntrunc) for (j in (i+1):d) {
         if (copmat[i, j] == "indepcop") {
-            copmat[i, j] <- "new"
-            cparmat[i, j][[1]] <- 0
+            copmat[i, j] <- "gum"
+            cparmat[i, j][[1]] <- 1
         }
     }
     ## np: Dimension of the copula parameters
