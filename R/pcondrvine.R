@@ -118,6 +118,11 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
                 ## Fill-in vine array so it's d x d
                 Aleaf <- rbind(Aleaf, matrix(0, nrow = d - nrow(Aleaf), ncol = d))
                 diag(Aleaf) <- 1:d
+                ## Has problems with the independence copula: trick the function
+                ##  by putting in a Gumbel(1) copula.
+                indep_ent <- copmat == "indepcop"
+                copmat[indep_ent] <- "gum"
+                cparmat[indep_ent] <- list(1)
                 ## parvec
                 # parvec <- c(t(cparmat), recursive = TRUE)
                 if (is.list(cparmat[1,1])) {
