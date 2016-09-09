@@ -146,6 +146,12 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
                                          ntrunc = min(ntrunc, nrow(Aleaf) - 1),
                                          pcondmat = pcondmat,
                                          np = np)
+                # res <- rvinepcond(parvec = parvec,
+                #                                  udat = dat,
+                #                                  A = Aleaf,
+                #                                  ntrunc = min(ntrunc, nrow(Aleaf) - 1),
+                #                                  pcondmat = pcondmat,
+                #                                  np = np)
                 return(res)
             }
         }

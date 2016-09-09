@@ -55,3 +55,5 @@
 20. This code results in an error (2016-07-28): `summary(rvine(matrix(1)))`
 
 21. Add bibtex citation to the package
+
+22. When rearranging a vine (with `releaf()`, for example), the copulas should also be permutation-reflected where necessary (probably if an upstream variable switches places with a downstream variable, but would need to figure out exactly when to permute which copulas).

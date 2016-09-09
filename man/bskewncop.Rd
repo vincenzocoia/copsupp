@@ -56,4 +56,7 @@ qcond21 = bskewn copula with  y1=qsn(u), y2=qsn(v)
 
 qcond12 = bskewn copula with  y1=qsn(u), y2=qsn(v)
 }
+\author{
+Harry Joe
+}
 

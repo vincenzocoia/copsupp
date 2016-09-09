@@ -10,6 +10,7 @@
 #'
 #' param=c(rho,ga1,ga2), constraint is that
 #' correlation matrix with these parameters should be positive definite
+#' @author Harry Joe
 #' @rdname bskewncop
 #' @import sn CopulaModel
 #' @export
