@@ -1,54 +1,49 @@
-## ----- U-Flipped / V-axis reflection / Horizontal reflection -----
+## ----- Permutation-reflected -----
 
 ## Distribution
 
-#' Bivariate Skew Normal Copula: supplement
+#' Skew normal copula: supplement
 #'
 #' @rdname bskewncop_supp
 #' @export
-pbskewncopu <- function(u, v, cpar) v - pbskewncop(1-u, v, cpar)
+pbskewncopp <- function(u, v, cpar) pbskewncop(v, u, cpar)
 
 ## Density
 
 #' @rdname bskewncop_supp
 #' @export
-dbskewncopu <- function(u, v, cpar) dbskewncop(1-u, v, cpar)
+dbskewncopp <- function(u, v, cpar) dbskewncop(v, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
-logdbskewncopu <- function(u, v, cpar) logdbskewncop(1-u, v, cpar)
+logdbskewncopv <- function(u, v, cpar) logdbskewncop(v, u, cpar)
 
 ## Conditional distribution
 
 #' @rdname bskewncop_supp
 #' @export
-pcondbskewncopu <- function(v, u, cpar) pcondbskewncop(v, 1-u, cpar)
+pcondbskewncopp21 <- function(v, u, cpar) pcondbskewncop12(v, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
-qcondbskewncopu <- function(p, u, cpar) qcondbskewncop(p, 1-u, cpar)
-
-## ----- V-Flipped / U-axis reflection / Vertical reflection -----
-
-## Distribution
-
+qcondbskewncopp21 <- function(p, u, cpar) qcondbskewncopp12(p, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
-pbskewncopv <- function(u, v, cpar) u - pbskewncop(u, 1-v, cpar)
-
-## Density
-
+pcondbskewncopp <- function(v, u, cpar) pcondbskewncop12(v, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
-dbskewncopv <- function(u, v, cpar) dbskewncop(u, 1-v, cpar)
+qcondbskewncopp <- function(p, u, cpar) qcondbskewncopp12(p, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
-logdbskewncopv <- function(u, v, cpar) logdbskewncop(u, 1-v, cpar)
+pcondbskewncopp12 <- function(u, v, cpar) pcondbskewncop21(u, v, cpar)
+#' @rdname bskewncop_supp
+#' @export
+qcondbskewncopp12 <- function(p, v, cpar) qcondbskewncopp21(p, v, cpar)
 
-## Conditional distribution
+
+## ---- Regular ----
 
 #' @rdname bskewncop_supp
 #' @export
-pcondbskewncopv <- function(v, u, cpar) 1 - pcondbskewncop(1-v, u, cpar)
+pcondbskewncop <- function(v, u, cpar) pcondbskewncop21(v, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
-qcondbskewncopv <- function(p, u, cpar) 1 - qcondbskewncop(1-p, u, cpar)
-
+qcondbskewncop <- function(p, u, cpar) qcondbskewncop21(p, u, cpar)

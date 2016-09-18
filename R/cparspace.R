@@ -56,10 +56,8 @@ cparspace <- function(cop, fn = TRUE) {
                  bb8u = list(left = c(1, 0), right = c(Inf, 1)),
                  bb8v = list(left = c(1, 0), right = c(Inf, 1)),
                  bb8r = list(left = c(1, 0), right = c(Inf, 1)),
-                 bskewncop = list(left = -c(1,1,1), right=-c(1,1,1)),
-                 bskewncopu = list(left = -c(1,1,1), right=-c(1,1,1)),
-                 bskewncopv = list(left = -c(1,1,1), right=-c(1,1,1)),
-                 bskewncopr = list(left = -c(1,1,1), right=-c(1,1,1)),
+                 bskewncop = list(left = -c(1,1,1), right=c(1,1,1)),
+                 bskewncopp = list(left = -c(1,1,1), right=c(1,1,1)),
                  igcop = list(left = c(0, 1), right=c(Inf, Inf)),
                  igcopu = list(left = c(0, 1), right=c(Inf, Inf)),
                  igcopv = list(left = c(0, 1), right=c(Inf, Inf)),
@@ -83,9 +81,12 @@ cparspace <- function(cop, fn = TRUE) {
     right <- do.call(c, lapply(thesebounds, function(l) l$right))
     names(right) <- NULL
     if (fn) {
+        if (cop %in% c("bskewncop", "bskewncopp"))
+            return(function(cpar) all(cpar > left) & all(cpar < right) &
+                       1-cpar[2]^2-cpar[3]^2-cpar[1]^2+2*cpar[2]*cpar[3]*cpar[1]>0)
         return(function(cpar) all(cpar > left) & all(cpar < right))
     } else {
-        if (cop %in% c("bskewncop", "bskewncopu", "bskewncopv", "bskewncopr"))
+        if (cop %in% c("bskewncop", "bskewncopp"))
             warning(paste("The parameter space for the skew normal copula is",
                           "not rectangular, an is a subset of this rectangle."))
         return(list(lower=left, upper=right))
