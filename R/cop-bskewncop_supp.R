@@ -24,7 +24,7 @@ logdbskewncopv <- function(u, v, cpar) logdbskewncop(v, u, cpar)
 pcondbskewncopp21 <- function(v, u, cpar) pcondbskewncop12(v, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
-qcondbskewncopp21 <- function(p, u, cpar) qcondbskewncopp12(p, u, cpar)
+qcondbskewncopp21 <- function(p, u, cpar) qcondbskewncop12(p, u, cpar)
 #' @rdname bskewncop_supp
 #' @export
 pcondbskewncopp <- function(v, u, cpar) pcondbskewncop12(v, u, cpar)
