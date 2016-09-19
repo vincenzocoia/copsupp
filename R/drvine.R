@@ -40,6 +40,12 @@ logdrvine <- function(dat, rv) {
     ntrunc <- nrowA - 1
     copmat <- rv$copmat
     cparmat <- rv$cparmat
+    ## rvinellkv.trunc2() won't always accept the independence copula. Trick
+    ##  it by using the Gumbel(1) copula instead.
+    if (any(copmat == "indepcop")) {
+        cparmat[copmat == "indepcop"] <- 1
+        copmat[copmat  == "indepcop"] <- "gum"
+    }
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     if (ncolA == 2) {
         logdcop <- get(paste0("logd", copmat[1, 2]))
