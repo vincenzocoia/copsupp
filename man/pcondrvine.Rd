@@ -7,7 +7,7 @@
 pcondrvine(dat, rv, var, condset, maxint = 2, verbose = FALSE)
 }
 \arguments{
-\item{dat}{vector or matrix of observations (columns are variables).}
+\item{dat}{vector or matrix of uniform observations (columns are variables).}
 
 \item{rv}{Regular vine object.}
 

@@ -4,7 +4,7 @@
 #' out of all specified variables. As of now, will likely only work if the vine
 #' is regular, and truncated in the traditional sense.
 #'
-#' @param dat vector or matrix of observations (columns are variables).
+#' @param dat vector or matrix of uniform observations (columns are variables).
 #' @param rv Regular vine object.
 #' @param var Integer; the variable you wish to condition on (i.e. the
 #' column number of \code{dat}, also present in \code{rv}).
@@ -63,8 +63,9 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
     ptot <- ncol(dat)
     ntrunc <- nrow(A) - 1
     ikeep <- sapply(vbls, function(vbl) which(v == vbl))
-    ## Case 0: vbls = var. Just return the cdf of var.
-    if (d == 1) {
+    ## Case 0: not conditioning on anything, or random variables are independent.
+    ##  Just return the cdf of var.
+    if (d == 1 | nrow(rv$G) == 1) {
         return(dat[, var])
     }
     ## Can I subset the vine?

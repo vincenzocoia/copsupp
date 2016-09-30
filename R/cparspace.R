@@ -88,7 +88,7 @@ cparspace <- function(cop, fn = TRUE) {
     } else {
         if (cop %in% c("bskewncop", "bskewncopp"))
             warning(paste("The parameter space for the skew normal copula is",
-                          "not rectangular, an is a subset of this rectangle."))
+                          "not rectangular, and is a subset of this rectangle."))
         return(list(lower=left, upper=right))
     }
 }
