@@ -63,8 +63,8 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
     ptot <- ncol(dat)
     ntrunc <- nrow(A) - 1
     ikeep <- sapply(vbls, function(vbl) which(v == vbl))
-    ## Case 0: not conditioning on anything, or random variables are independent.
-    ##  Just return the cdf of var.
+    ## Case 0: not conditioning on anything, or the vine is independent.
+    ##  Just return the variable itself.
     if (d == 1 | nrow(rv$G) == 1) {
         return(dat[, var])
     }
@@ -74,6 +74,10 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
         ## Case 1: Vine can be subsetted to 'vbls'.
         if (verbose) cat(paste0("Vine subsetted to requested variables ",
                                  paste(vbls, collapse = ", "), "\n"))
+        ## If the vine is independent, just return the variable itself.
+        if (nrow(subrv$G) == 1) {
+            return(dat[, var])
+        }
         ## Is var a leaf? If so, get the vine array with it as a leaf.
         subrvleaf <- releaf(subrv, leaf = var)
         if (is.null(subrvleaf)) {
