@@ -57,7 +57,8 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
         stop("Conditioned variable 'var' cannot be part of conditioning variables 'condset'.")
     if (is.vector(dat)) dat <- matrix(dat, nrow = 1)
     ## Extract info
-    A <- GtoA(rv$G)
+    G <- rv$G
+    A <- GtoA(G)
     d <- length(condset) + 1
     vbls <- c(condset, var)
     ptot <- ncol(dat)
@@ -65,7 +66,7 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
     ikeep <- sapply(vbls, function(vbl) which(v == vbl))
     ## Case 0: not conditioning on anything, or the vine is independent.
     ##  Just return the variable itself.
-    if (d == 1 | nrow(rv$G) == 1) {
+    if (d == 1 | nrow(G) == 1) {
         return(dat[, var])
     }
     ## Can I subset the vine?
@@ -75,7 +76,8 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
         if (verbose) cat(paste0("Vine subsetted to requested variables ",
                                  paste(vbls, collapse = ", "), "\n"))
         ## If the vine is independent, just return the variable itself.
-        if (nrow(subrv$G) == 1) {
+        subrvG <- subrv$G
+        if (nrow(subrvG) == 1) {
             return(dat[, var])
         }
         ## Is var a leaf? If so, get the vine array with it as a leaf.
@@ -120,11 +122,14 @@ pcondrvine <- function(dat, rv, var, condset, maxint = 2, verbose = FALSE) {
                                           "Using `copreg::rVineTruncCondCDF()`.\n"))
                 ## Use Bo's function
                 Aleaf <- GtoA(subrvleaf$G)
+                ntrunc <- nrow(Aleaf) - 1
                 ## Fill-in vine array so it's d x d
                 Aleaf <- rbind(Aleaf, matrix(0, nrow = d - nrow(Aleaf), ncol = d))
                 diag(Aleaf) <- 1:d
                 ## Has problems with the independence copula: trick the function
-                ##  by putting in a Gumbel(1) copula.
+                ##  by putting in a Gumbel(1) copula. Also, it sometimes has
+                ##  problems with truncated vines (possibly only a d-2 truncated
+                ##  vine)
                 indep_ent <- copmat == "indepcop"
                 copmat[indep_ent] <- "gum"
                 cparmat[indep_ent] <- list(1)

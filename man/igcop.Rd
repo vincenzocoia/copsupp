@@ -2,7 +2,9 @@
 % Please edit documentation in R/igcop.R
 \name{pcondigcop}
 \alias{digcop}
+\alias{logdigcop}
 \alias{pcondigcop}
+\alias{pigcop}
 \alias{qcondigcop}
 \title{IG Copula Family Functions}
 \usage{
@@ -11,6 +13,10 @@ pcondigcop(v, u, cpar)
 qcondigcop(tau, u, cpar)
 
 digcop(u, v, cpar)
+
+logdigcop(u, v, cpar)
+
+pigcop(u, v, cpar)
 }
 \arguments{
 \item{u, v}{Vectors of values in [0,1] representing values of the first

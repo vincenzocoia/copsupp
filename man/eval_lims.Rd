@@ -4,7 +4,7 @@
 \alias{eval_lims}
 \title{Evaluate a function at limit points}
 \usage{
-eval_lims(fun, arg, replx, replf)
+eval_lims(fun, arg, replx, replf, ...)
 }
 \arguments{
 \item{fun}{Vectorized univariate function that you want to evaluate. Need not
@@ -16,6 +16,10 @@ evaluate to anything at points \code{replx}.}
 \code{fun} at.}
 
 \item{replf}{Vector of values for which you want \code{replx} to evaluate to.}
+
+\item{...}{Other arguments to pass to the function \code{fun}.
+Expecting these arguments to be vectors or lists. Any
+vectorization in these arguments is preserved (see details to see how).}
 }
 \value{
 Vector of evaluations of the function \code{fun} at \code{arg}.
@@ -26,23 +30,34 @@ the proper limit. \code{eval_lims} manually evaluates the
 desired function values at those limit points, and evaluates the function
 normally otherwise.
 }
+\details{
+To preserve vectorization over the \code{...} arguments, the vectors/lists
+input here that match the length of \code{arg} are subsetted to match those
+arguments in \code{arg} that are not the special values \code{replx}.
+}
 \note{
 Any \code{NA}'s that appear in \code{arg} will be returned as
 \code{NA}.
 }
 \examples{
 ## The function we want to evaluate, and some arguments:
-fun <- function(x) exp(-1/x)/x
+fun <- function(x, alpha=1) exp(-1/x)/x^alpha
 arg <- c(0:5, NA)
 
 ## Should have fun(0)=0, but we get NaN:
 fun(arg)
 
 ## Manually evaluate:
-eval_clean(fun, arg, replx=0, replf=0)
+eval_lims(fun, arg, replx=0, replf=0)
+
+## Try other alpha values:
+fun(arg, alpha=5)
+eval_lims(fun, arg, replx=0, replf=0, alpha=5)
+fun(arg, alpha=1:7)
+eval_lims(fun, arg, replx=0, replf=0, alpha=1:7)
 
 ## NaN and numeric(0) work as arguments too:
-eval_clean(fun, numeric(0), replx=0, replf=0)
-eval_clean(fun, NaN, replx=0, replf=0)
+eval_lims(fun, numeric(0), replx=0, replf=0)
+eval_lims(fun, NaN, replx=0, replf=0)
 }
 
