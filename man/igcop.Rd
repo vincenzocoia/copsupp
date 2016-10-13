@@ -40,13 +40,5 @@ the same length.
 Also, \code{qcondigcop21} and \code{pcondigcop21} are the same as
 \code{qcondigcop} and \code{pcondigcop} -- their the distributions of
 variable 2 given 1.
-
-Of all the methods of computing qcondigcop() that I tried,
-this is the only one that appears to work (validated
-visually with the old qcondnew()
-function for theta=3 and 30). This version uses the inverse of the
-helper function, \code{\link{igcop_helper_inv}}, but deliberately
-inefficiently by evaluating each helper function at all the taus, just
-because the inverse seems to work better that way.
 }
 
