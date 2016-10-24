@@ -48,7 +48,7 @@ eval_lims <- function(fun, arg, replx, replf, ...) {
         which(arg == replx_)
     })
     allind <- c(ind, recursive=TRUE)
-    if (length(allind) == 0) return(fun(arg))
+    if (length(allind) == 0) return(fun(arg, ...))
     ## Evaluate fun at the non-special arg values, and put them in the
     ##  results vector in the appropriate place:
     n <- length(arg)
