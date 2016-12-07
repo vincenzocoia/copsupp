@@ -61,3 +61,12 @@ piglcop <- function(u, v, cpar) {
     pkinv <- igl_geninv(1-v, cpar)
     u + v - 1 + (1-u) * igl_gen(pkinv / (1-u), cpar)
 }
+
+#' @rdname igcop
+#' @export
+riglcop <- function(n, cpar) {
+    u <- runif(n)
+    tau <- runif(n)
+    v <- qcondiglcop(tau, u, cpar)
+    matrix(c(u, v), ncol=2)
+}

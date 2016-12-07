@@ -133,3 +133,12 @@ pigcop <- function(u, v, cpar) {
     Hinv <- ig_geninv(1-v, theta, k)
     u + v - 1 + (1-u) * ig_gen(Hinv, theta * (1-u), k)
 }
+
+#' @rdname igcop
+#' @export
+rigcop <- function(n, cpar) {
+    u <- runif(n)
+    tau <- runif(n)
+    v <- qcondigcop(tau, u, cpar)
+    matrix(c(u, v), ncol=2)
+}
