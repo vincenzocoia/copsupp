@@ -95,50 +95,94 @@ Vincenzo Coia
 \end_layout
 
 \begin_layout Standard
-This document describes in detail what the 
-\family sans
-igcond
-\family default
- and 
-\family sans
-igcondinv
-\family default
- functions are in the 
+This document provides details of the functions for the IG and IGL copula
+ family, found in the 
 \family sans
 copsupp
 \family default
  package.
 \end_layout
 
-\begin_layout Subsubsection*
-IG Copula Family Definition
+\begin_layout Standard
+Section
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+~
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:ig_geninv"
+
+\end_inset
+
+ describes the copula families and their functions in 
+\family sans
+copsupp
+\family default
+; Section
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+~
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:igcondinv"
+
+\end_inset
+
+ describes a useful way to compute the IG 2|1 quantile function; Section
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+~
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:ig_geninv"
+
+\end_inset
+
+ decribes computing the IG 2|1 distribution function, by inverting the IG
+ generating function.
+\end_layout
+
+\begin_layout Section
+IG and IGL Copula Families
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:ig_igl"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-The IG copula family is defined as 
+The IGL copula family can be defined as 
 \begin_inset Formula 
-\begin{equation}
-C\left(u,v;\theta,k\right)=u+v-1+\left(1-u\right)H_{k}\left(H_{k}^{\leftarrow}\left(1-v;\theta\right);\theta\left(1-u\right)\right),\label{eq:IG-C}
-\end{equation}
-
-\end_inset
-
-where the parameter space is 
-\begin_inset Formula $\left(\theta,k\right)\in\left[0,\infty\right)\times\left(1,\infty\right)$
-\end_inset
-
-, and 
-\begin_inset Formula $H_{k}\left(\cdot;\theta\right):\left[1,\infty\right)\rightarrow\left(0,1\right]$
-\end_inset
-
- is defined by 
-\begin_inset Formula 
-\begin{equation}
-H_{k}\left(y;\theta\right)=\begin{cases}
-\frac{1}{y}\Psi_{k}\left(\frac{1}{\theta\log y}\right), & y>1;\\
-1, & y=1,
-\end{cases}\label{eq:cnstr-H}
-\end{equation}
+\[
+C_{IGL}\left(u,v;k\right)=u\Psi_{k}\left(u^{-1}\Psi_{k}^{\leftarrow}\left(v\right)\right),
+\]
 
 \end_inset
 
@@ -157,7 +201,7 @@ y\frac{\Gamma\left(k\right)-\Gamma^{*}\left(k,y^{-1}\right)}{\Gamma\left(k-1\rig
 
 \end_inset
 
-where 
+and 
 \begin_inset Formula $\Gamma$
 \end_inset
 
@@ -166,7 +210,68 @@ where
 \end_inset
 
  are the gamma and (upper) incomplete gamma functions, respectively.
- Note that 
+ The parameter space is 
+\begin_inset Formula $k>1$
+\end_inset
+
+.
+ The copula family is denoted 
+\family sans
+iglcop
+\family default
+ in 
+\family sans
+copsupp
+\family default
+.
+ The function 
+\begin_inset Formula $\Psi_{k}$
+\end_inset
+
+ is called the IGL copula 
+\emph on
+generating function
+\emph default
+, and its name in 
+\family sans
+copsupp
+\family default
+ is 
+\family sans
+igl_gen
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+The IG copula family can be defined as 
+\begin_inset Formula 
+\begin{equation}
+C_{IG}\left(u,v;\theta,k\right)=u+v-1+\left(1-u\right)H_{k}\left(H_{k}^{\leftarrow}\left(1-v;\theta\right);\theta\left(1-u\right)\right),\label{eq:IG-C}
+\end{equation}
+
+\end_inset
+
+where the parameter space is 
+\begin_inset Formula $\left(\theta,k\right)\in\left[0,\infty\right)\times\left(1,\infty\right)$
+\end_inset
+
+, and 
+\begin_inset Formula $H_{k}\left(\cdot;\theta\right):\left[1,\infty\right)\rightarrow\left(0,1\right]$
+\end_inset
+
+ is defined by 
+\begin_inset Formula 
+\begin{equation}
+H_{k}\left(y;\theta\right)=\begin{cases}
+\frac{1}{y}\Psi_{k}\left(\frac{1}{\theta\log y}\right), & y>1;\\
+1, & y=1.
+\end{cases}\label{eq:cnstr-H}
+\end{equation}
+
+\end_inset
+
+Note that 
 \begin_inset Formula $H_{k}\left(\cdot;\theta\right)$
 \end_inset
 
@@ -187,10 +292,85 @@ where
 \end_inset
 
 .
+ The copula family is denoted 
+\family sans
+igcop
+\family default
+ in 
+\family sans
+copsupp
+\family default
+.
+ The function 
+\begin_inset Formula $H_{k}$
+\end_inset
+
+ is called the IG copula 
+\emph on
+generating function
+\emph default
+, and its name in 
+\family sans
+copsupp
+\family default
+ is 
+\family sans
+ig_gen
+\family default
+.
 \end_layout
 
-\begin_layout Subsubsection*
-2|1 Distribution Function
+\begin_layout Section
+
+\family sans
+igcond
+\family default
+ and 
+\family sans
+igcondinv
+\family default
+ functions
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:igcondinv"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The computation of the IGL 2|1 quantile function is simple.
+ But, computing the IGL 2|1 quantile function in a 
+\begin_inset Quotes eld
+\end_inset
+
+direct
+\begin_inset Quotes erd
+\end_inset
+
+ way first requires computing an inverse.
+ This section describes a way to avoid this 
+\begin_inset Quotes eld
+\end_inset
+
+nested inverse
+\begin_inset Quotes erd
+\end_inset
+
+ with functions in 
+\family sans
+copsupp
+\family default
+ called 
+\family sans
+igcond
+\family default
+ and 
+\family sans
+igcondinv
+\family default
+.
 \end_layout
 
 \begin_layout Standard
@@ -205,7 +385,7 @@ The 2|1 distribution function of the IG copula for some
  is
 \begin_inset Formula 
 \begin{align}
-C_{2|1}\left(v|u;\theta,k\right) & =1-\frac{\bar{F}_{k-1}\left(\theta\left(1-u\right)\log H_{k}^{\leftarrow}\left(1-v;\theta\right)\right)}{H_{k}^{\leftarrow}\left(1-v;\theta\right)}\label{eq:C2g1}\\
+C_{IGL,2|1}\left(v|u;\theta,k\right) & =1-\frac{\bar{F}_{k-1}\left(\theta\left(1-u\right)\log H_{k}^{\leftarrow}\left(1-v;\theta\right)\right)}{H_{k}^{\leftarrow}\left(1-v;\theta\right)}\label{eq:C2g1}\\
  & =1-\varphi_{k}\left(H_{k}^{\leftarrow}\left(1-v;\theta\right);\theta\left(1-u\right)\right),\nonumber 
 \end{align}
 
@@ -251,13 +431,50 @@ for
 :
 \begin_inset Formula 
 \begin{equation}
-C_{2|1}^{\leftarrow}\left(\tau|u;\theta,k\right)=1-H_{k}\left(\varphi_{k}^{\leftarrow}\left(1-\tau;\theta\left(1-u\right)\right);\theta\right),\label{eq:C2g1inv}
+C_{IGL,2|1}^{\leftarrow}\left(\tau|u;\theta,k\right)=1-H_{k}\left(\varphi_{k}^{\leftarrow}\left(1-\tau;\theta\left(1-u\right)\right);\theta\right),\label{eq:C2g1inv}
 \end{equation}
 
 \end_inset
 
 
 \begin_inset Formula $\tau\in\left(0,1\right)$
+\end_inset
+
+.
+ Without this 
+\begin_inset Formula $\varphi_{k}$
+\end_inset
+
+ function, one would first need to compute 
+\begin_inset Formula $H_{k}^{\leftarrow}\left(1-v;\theta\right)$
+\end_inset
+
+ to compute 
+\begin_inset Formula $C_{IGL,2|1}^{\leftarrow}\left(v|u;\theta,k\right)$
+\end_inset
+
+, and this may lead to inaccuracies due to error amplification.
+\end_layout
+
+\begin_layout Standard
+In the 
+\family sans
+copsupp
+\family default
+ package, 
+\family sans
+igcond
+\family default
+ is 
+\begin_inset Formula $\varphi_{k}$
+\end_inset
+
+, and 
+\family sans
+igcondinv
+\family default
+ is 
+\begin_inset Formula $\varphi_{k}^{\leftarrow}$
 \end_inset
 
 .
@@ -389,31 +606,6 @@ ggplot(data.frame(x=c(1,10)), aes(x)) +
 \end_layout
 
 \begin_layout Standard
-In the 
-\family sans
-copsupp
-\family default
- package, 
-\family sans
-igcond
-\family default
- is 
-\begin_inset Formula $\varphi_{k}$
-\end_inset
-
-, and 
-\family sans
-igcondinv
-\family default
- is 
-\begin_inset Formula $\varphi_{k}^{\leftarrow}$
-\end_inset
-
-.
- 
-\end_layout
-
-\begin_layout Standard
 To compute 
 \family sans
 igcondinv
@@ -468,6 +660,181 @@ roots
 .
  The starting point is taken to be immediately to the left of this upper
  bound.
+\end_layout
+
+\begin_layout Section
+
+\family sans
+ig_geninv
+\family default
+ function
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:ig_geninv"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Although computing 
+\begin_inset Formula $H_{k}^{\leftarrow}$
+\end_inset
+
+ can be bypassed when computing the IG 2|1 quantile function, it is needed
+ when computing the IG 2|1 
+\emph on
+distribution
+\emph default
+ function – see Equation
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+~
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:C2g1"
+
+\end_inset
+
+.
+ This inverse is called 
+\family sans
+ig_geninv
+\family default
+ in 
+\family sans
+copsupp
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+To compute 
+\begin_inset Formula $H_{k}^{\leftarrow}\left(p,\theta\right)$
+\end_inset
+
+ for 
+\begin_inset Formula $p\in\left(0,1\right)$
+\end_inset
+
+ and some 
+\begin_inset Formula $\theta>0$
+\end_inset
+
+, Newton-Raphson can be used to solve 
+\begin_inset Formula $h\left(x\right)=0$
+\end_inset
+
+ for 
+\begin_inset Formula $x$
+\end_inset
+
+, where
+\begin_inset Formula 
+\[
+h\left(x\right)=xp-\Psi_{k}\left(\frac{1}{\theta\log x}\right).
+\]
+
+\end_inset
+
+This function has derivative
+\begin_inset Formula 
+\[
+h'\left(x\right)=p+\frac{1}{\theta x\left(\log x\right)^{2}}\Psi_{k}'\left(\frac{1}{\theta\log x}\right).
+\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+To get a good starting value for the algorithm, note that the function 
+\begin_inset Formula $H_{k}$
+\end_inset
+
+ is a product of two survival functions, just like 
+\begin_inset Formula $\varphi_{k}$
+\end_inset
+
+ is (as described in Section
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+~
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:igcondinv"
+
+\end_inset
+
+).
+ And like inverting 
+\begin_inset Formula $\varphi_{k}$
+\end_inset
+
+, the inverse 
+\begin_inset Formula $H_{k}^{\leftarrow}\left(p;\theta\right)$
+\end_inset
+
+ for some 
+\begin_inset Formula $\theta>0$
+\end_inset
+
+ has an upper bound that's the minimum of the roots of the individual survival
+ functions:
+\begin_inset Formula 
+\[
+\min\left\{ \frac{1}{p},\exp\left(\frac{1}{\theta\Psi_{k}^{\leftarrow}\left(p\right)}\right)\right\} ,
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $\Psi_{k}$
+\end_inset
+
+ is defined in Equation
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+~
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:cnstr-Psi"
+
+\end_inset
+
+.
+ Computing the inverse 
+\begin_inset Formula $\Psi_{k}^{\leftarrow}$
+\end_inset
+
+ should not be problematic in terms of accuracy (though possibly compuation
+ speed), since this computation is only used to determine a starting value.
 \end_layout
 
 \end_body
