@@ -92,6 +92,24 @@ qcondigcop <- function(tau, u, cpar) {
 
 #' @rdname igcop
 #' @export
+qcondigcop21 <- qcondigcop
+
+#' @rdname igcop
+#' @export
+pcondigcop21 <- pcondigcop
+
+#' @rdname igcop
+#' @export
+pcondigcop12 <- function(v, u, cpar) {
+    theta <- cpar[1]
+    k <- cpar[2]
+    if (theta == Inf) return(pcondiglcop12(v, u, k))
+    Hkinv <- ig_geninv(1-v, theta, k)
+    1 - (1-u) * ig_D1gen(Hkinv, theta*(1-u), k) / ig_D1gen(Hkinv, theta, k)
+}
+
+#' @rdname igcop
+#' @export
 digcop <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
@@ -113,5 +131,5 @@ pigcop <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
     Hinv <- ig_geninv(1-v, theta, k)
-    u + v - 1 + (1-u) * ig_gen(Hinv, theta * (1-u))
+    u + v - 1 + (1-u) * ig_gen(Hinv, theta * (1-u), k)
 }

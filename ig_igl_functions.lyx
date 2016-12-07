@@ -79,15 +79,9 @@ knitr
 \begin_body
 
 \begin_layout Title
-
+IG and IGL Copula Families: Functions in 
 \family sans
-igcond
-\family default
- and 
-\family sans
-igcondinv
-\family default
- functions
+copsupp
 \end_layout
 
 \begin_layout Author
@@ -118,7 +112,7 @@ status open
 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:ig_geninv"
+reference "sec:ig_igl"
 
 \end_inset
 
@@ -162,8 +156,7 @@ reference "sec:ig_geninv"
 
 \end_inset
 
- decribes computing the IG 2|1 distribution function, by inverting the IG
- generating function.
+ describes computing the inverse of the IG generating function.
 \end_layout
 
 \begin_layout Section
@@ -683,30 +676,13 @@ Although computing
 \end_inset
 
  can be bypassed when computing the IG 2|1 quantile function, it is needed
- when computing the IG 2|1 
-\emph on
-distribution
-\emph default
- function – see Equation
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-~
-\end_layout
-
+ when computing other copula quantities, such as the copula distribution
+ function.
+ The inverse 
+\begin_inset Formula $H_{k}^{\leftarrow}$
 \end_inset
 
-
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:C2g1"
-
-\end_inset
-
-.
- This inverse is called 
+ is called 
 \family sans
 ig_geninv
 \family default
@@ -833,8 +809,8 @@ reference "eq:cnstr-Psi"
 \begin_inset Formula $\Psi_{k}^{\leftarrow}$
 \end_inset
 
- should not be problematic in terms of accuracy (though possibly compuation
- speed), since this computation is only used to determine a starting value.
+ should not be problematic in terms of accuracy of the final result, since
+ this computation is only used to determine a starting value.
 \end_layout
 
 \end_body

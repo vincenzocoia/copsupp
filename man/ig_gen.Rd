@@ -6,16 +6,16 @@
 \alias{ig_geninv}
 \title{Generating Function for the IG Copula Family}
 \usage{
-ig_gen(t, theta, k)
+ig_gen(t, eta, k)
 
-ig_D1gen(t, theta, k)
+ig_D1gen(t, eta, k)
 
 ig_geninv(p, eta, k, mxiter = 40, eps = 1e-06, bd = 5)
 }
 \arguments{
 \item{t}{Vector of values >=1 to evaluate the function at.}
 
-\item{theta}{Value of second argument of H_{k}, >0. This is allowed
+\item{eta}{Value of second argument of H_{k}, >0. This is allowed
 to be a vector, except in \code{ig_geninv()}.}
 
 \item{k}{Single numeric >1 corresponding to the \code{k} parameter

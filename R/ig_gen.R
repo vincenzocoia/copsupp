@@ -5,30 +5,30 @@
 #' derivative.
 #'
 #' @param t Vector of values >=1 to evaluate the function at.
-#' @param theta Value of second argument of H_{k}, >0. This is allowed
+#' @param eta Value of second argument of H_{k}, >0. This is allowed
 #' to be a vector, except in \code{ig_geninv()}.
 #' @param k Single numeric >1 corresponding to the \code{k} parameter
 #' of the function.
 #' @rdname ig_gen
 #' @export
-ig_gen <- function(t, theta, k) {
-    igl_gen(1/(theta * log(t)), k) / t
+ig_gen <- function(t, eta, k) {
+    igl_gen(1/(eta * log(t)), k) / t
 }
 
 #' @rdname ig_gen
 #' @export
-ig_D1gen <- function(t, theta, k) {
+ig_D1gen <- function(t, eta, k) {
     fun <- function(t) {
         logt <- log(t)
-        arg <- 1/theta/logt
-        coeff <- 1/theta/logt^2
+        arg <- 1/eta/logt
+        coeff <- 1/eta/logt^2
         -t^(-2) * (igl_gen(arg,k) + coeff * igl_Dgen(arg,k))
     }
     ## Deal with t=1 separately -- its limit depends on k.
     if (k > 2) {
         replf <- -1
     } else if (k == 2) {
-        replf <- -(1 + theta/2)
+        replf <- -(1 + eta/2)
     } else {
         replf <- -Inf
     }
@@ -48,6 +48,7 @@ ig_geninv <- function(p, eta, k, mxiter=40, eps=1.e-6, bd=5) {
         xp2 <- exp(1/eta/igl_geninv(p, k))
         xpm <- pmin(xp1,xp2)
         tt <- pmax(xpm - eps, 1 + (xpm-1)/2) # xpm-eps might overshoot left of 1.
+        tt <- pmax(1 + eps, tt)  # tt might be 1.
         iter <- 0
         diff <- 1
         ## Begin Newton-Raphson algorithm
