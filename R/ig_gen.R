@@ -1,28 +1,28 @@
-#' Construction Function for the IG Copula Family
+#' Generating Function for the IG Copula Family
 #'
-#' \code{cnstr_H} is the function itself, and \code{cnstr_Hinv} is
-#' its inverse; \code{cnstr_D1H} is the first-argument
+#' \code{ig_gen} is the function itself, and \code{ig_geninv} is
+#' its inverse; \code{ig_D1gen} is the first-argument
 #' derivative.
 #'
 #' @param t Vector of values >=1 to evaluate the function at.
 #' @param theta Value of second argument of H_{k}, >0. This is allowed
-#' to be a vector, except in \code{cnstr_Hinv()}.
+#' to be a vector, except in \code{ig_geninv()}.
 #' @param k Single numeric >1 corresponding to the \code{k} parameter
 #' of the function.
-#' @rdname cnstr_H
+#' @rdname ig_gen
 #' @export
-cnstr_H <- function(t, theta, k) {
-    cnstr_Psi(1/(theta * log(t)), k) / t
+ig_gen <- function(t, theta, k) {
+    igl_gen(1/(theta * log(t)), k) / t
 }
 
-#' @rdname cnstr_H
+#' @rdname ig_gen
 #' @export
-cnstr_D1H <- function(t, theta, k) {
+ig_D1gen <- function(t, theta, k) {
     fun <- function(t) {
         logt <- log(t)
         arg <- 1/theta/logt
         coeff <- 1/theta/logt^2
-        -t^(-2) * (cnstr_Psi(arg,k) + coeff * cnstr_DPsi(arg,k))
+        -t^(-2) * (igl_gen(arg,k) + coeff * igl_Dgen(arg,k))
     }
     ## Deal with t=1 separately -- its limit depends on k.
     if (k > 2) {
@@ -39,12 +39,12 @@ cnstr_D1H <- function(t, theta, k) {
 #' @param w Vector of values in [0,1] to evaluate the inverse function at.
 #' @param silent Logical; should the message output by \code{pcinterpolate()}
 #' be silenced?
-#' @rdname cnstr_H
+#' @rdname ig_gen
 #' @import CopulaModel
 #' @export
-cnstr_Hinv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
+ig_geninv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
     ## Main Idea: -----
-    ## Get values to evaluate cnstr_H at, by using an approximation function
+    ## Get values to evaluate ig_gen at, by using an approximation function
     ##  that can be inverted. We'll invert that function on a grid in (0,1)
     ##  to get a grid on the domain of H.
     ## It seems to be easier to find an approximation function by transforming
@@ -58,9 +58,9 @@ cnstr_Hinv <- function(w, theta, k, ngrid=1000, silent=TRUE) {
         wgrid <- seq(wmin, wmax, length.out=ngrid)
         tgrid <- -log(-log(1-wgrid)) - log(1 + theta/k)
         ## Evaluate H at that grid:
-        fn <- cnstr_H(exp(exp(tgrid)), theta, k)
-        ## The evaluated cnstr_H become the domain values of cnstr_Hinv, and
-        ##  the tgrid values become the evaluated cnstr_Hinv function.
+        fn <- ig_gen(exp(exp(tgrid)), theta, k)
+        ## The evaluated ig_gen become the domain values of ig_geninv, and
+        ##  the tgrid values become the evaluated ig_geninv function.
         ## Use the pcinterpolate function to evaluate at w.
         der <- pcderiv(fn, tgrid)
         ## Evaluate at the requested NA-free w's

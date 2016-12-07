@@ -74,7 +74,7 @@ pcondigcop <- function(v, u, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
     if (theta == Inf) return(pcondiglcop(v, u, k))
-    Hkinv <- cnstr_Hinv(1-v, theta, k)
+    Hkinv <- ig_geninv(1-v, theta, k)
     1 - igcond(Hkinv, k, theta * (1-u))
 }
 
@@ -87,7 +87,7 @@ qcondigcop <- function(tau, u, cpar) {
     k <- cpar[2]
     if (theta == Inf) return(qcondiglcop(tau, u, k))
     inv <- igcondinv(1-tau, k, theta*(1-u))
-    1 - cnstr_H(inv, theta, k)
+    1 - ig_gen(inv, theta, k)
 }
 
 #' @rdname igcop
@@ -97,10 +97,10 @@ digcop <- function(u, v, cpar) {
     k <- cpar[2]
     if (theta == Inf) return(diglcop(u, v, k))
     negu <- 1-u
-    t <- cnstr_Hinv(1-v, theta, k)
+    t <- ig_geninv(1-v, theta, k)
     x <- theta * negu * log(t)
     -(dgamma(x, k-1) * theta + pgamma(x, k-1, lower.tail=FALSE)) / t^2 /
-        cnstr_D1H(t, theta, k)
+        ig_D1gen(t, theta, k)
 }
 
 #' @rdname igcop
@@ -112,6 +112,6 @@ logdigcop <- function(u, v, cpar) log(digcop(u, v, cpar))
 pigcop <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
-    Hinv <- cnstr_Hinv(1-v, theta, k)
-    u + v - 1 + (1-u) * cnstr_H(Hinv, theta * (1-u))
+    Hinv <- ig_geninv(1-v, theta, k)
+    u + v - 1 + (1-u) * ig_gen(Hinv, theta * (1-u))
 }

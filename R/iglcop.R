@@ -17,13 +17,13 @@
 #' @rdname iglcop
 #' @export
 qcondiglcop <- function(tau, u, cpar) {
-    1 - cnstr_Psi((1 - u)/qgamma(tau, cpar-1), cpar)
+    1 - igl_gen((1 - u)/qgamma(tau, cpar-1), cpar)
 }
 
 #' @rdname iglcop
 #' @export
 pcondiglcop <- function(v, u, cpar) {
-    pgamma((1 - u) / cnstr_Psiinv(1 - v, cpar), cpar - 1)
+    pgamma((1 - u) / igl_geninv(1 - v, cpar), cpar - 1)
 }
 
 #' @rdname iglcop
@@ -37,27 +37,27 @@ pcondiglcop21 <- pcondiglcop
 #' @rdname iglcop
 #' @export
 pcondiglcop12 <- function(u, v, cpar) {
-    pkinv <- cnstr_Psiinv(1 - v, cpar)
+    pkinv <- igl_geninv(1 - v, cpar)
     1 - pgamma((1 - u) / pkinv, cpar) / pgamma(1 / pkinv, cpar)
 }
 
 #' @rdname iglcop
 #' @export
 qcondiglcop12 <- function(tau, v, cpar) {
-    pkinv <- cnstr_Psiinv(1 - v, cpar)
+    pkinv <- igl_geninv(1 - v, cpar)
     1 - pkinv * qgamma((1 - tau) * pgamma(1/pkinv, cpar), cpar)
 }
 
 #' @rdname iglcop
 #' @export
 diglcop <- function(u, v, cpar) {
-    pkinv <- cnstr_Psiinv(1 - v, cpar)
+    pkinv <- igl_geninv(1 - v, cpar)
     (1-u)^(cpar-1) / pkinv^k * exp(-(1-u)/pkinv) / (gamma(k) * pgamma(1/pkinv, cpar))
 }
 
 #' @rdname iglcop
 #' @export
 piglcop <- function(u, v, cpar) {
-    pkinv <- cnstr_Psiinv(1-v, cpar)
-    u + v - 1 + (1-u) * cnstr_Psi(pkinv / (1-u), cpar)
+    pkinv <- igl_geninv(1-v, cpar)
+    u + v - 1 + (1-u) * igl_gen(pkinv / (1-u), cpar)
 }
