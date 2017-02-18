@@ -9,6 +9,7 @@
 \alias{pcondbb1skp}
 \alias{pcondbb1skp12}
 \alias{dbb1skp}
+\alias{logdbb1skp}
 \title{Skew BB1skp Copula Family}
 \usage{
 qcondbb1skp21(p, u, cparsk, eps = 1e-08, mxiter = 30, iprint = F)
@@ -26,6 +27,8 @@ pcondbb1skp(v, u, cparsk)
 pcondbb1skp12(u, v, cparsk)
 
 dbb1skp(u, v, cparsk)
+
+logdbb1skp(u, v, cparsk)
 }
 \arguments{
 \item{cparsk}{copula parameter vector, third component in [0,1]}

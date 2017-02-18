@@ -25,3 +25,6 @@ pcondbb1skp12=function(u,v,cparsk) pcondbb1sk21(u, v, cparsk)
 #' @export
 dbb1skp=function(u,v,cparsk) dbb1sk(v, u, cparsk)
 
+#' @rdname bb1skp
+#' @export
+logdbb1skp=function(u,v,cparsk) log(dbb1skp(v, u, cparsk))
