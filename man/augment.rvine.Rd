@@ -59,4 +59,3 @@ augment(rv, a=5:1, cop="frk", cpar=list(4))
 rv2 <- augment(rv, a=c(5,5), cop="frk", cpar=list(4))
 summary(rv2)
 }
-

@@ -93,4 +93,3 @@ dat <- fvinesim(100, A0, copmat0, cparmat0)
 fit.rvine(dat, ntrunc=ntrunc)
 fit.rvine(dat, c(4, 2, 3))
 }
-

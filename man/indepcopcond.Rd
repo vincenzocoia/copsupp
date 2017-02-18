@@ -2,8 +2,8 @@
 % Please edit documentation in R/cop-indepcop-supp.R
 \name{pcondindepcop}
 \alias{pcondindepcop}
-\alias{qcondindep}
 \alias{qcondindepcop}
+\alias{qcondindep}
 \title{Conditional Independence Copula}
 \usage{
 pcondindepcop(v, u, cpar = 0)
@@ -15,4 +15,3 @@ qcondindep(tau, u, cpar = 0)
 \description{
 These are just the identity functions with respect to the first argument.
 }
-

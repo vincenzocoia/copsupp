@@ -42,4 +42,3 @@ dat <- matrix(runif(50), ncol=5)
 fitseq(dat, 1, 3:5)
 fitseq(dat, 1, 2:5, a=c(1,NA,4))
 }
-

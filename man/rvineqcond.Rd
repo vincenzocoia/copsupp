@@ -57,4 +57,3 @@ iinv=F, get quantiles C_{d|1:(d-1)}(p|u[1:(d-1)]) based on last column of
 \author{
 Harry Joe
 }
-

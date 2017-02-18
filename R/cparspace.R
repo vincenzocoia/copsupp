@@ -66,8 +66,9 @@ cparspace <- function(cop, fn = TRUE) {
                  iglcopu = list(left=1, right=Inf),
                  iglcopv = list(left=1, right=Inf),
                  iglcopr = list(left=1, right=Inf),
-                 bb1rsk = list(left = c(1, 0, 0), right = c(Inf, 1, 1)),
-                 bb1sk = list(left = c(1, 0, 0), right = c(Inf, 1, 1)))
+                 bb1rsk = list(left = c(0, 1, 0), right = c(Inf, Inf, 1)),
+                 bb1sk = list(left = c(0, 1, 0), right = c(Inf, Inf, 1)),
+                 bb1vsk = list(left = c(0, 1, 0), right = c(Inf, Inf, 1)))
     ## Extract bounds:
     thesebounds <- bnds[cop]
     absent <- sapply(thesebounds, is.null)

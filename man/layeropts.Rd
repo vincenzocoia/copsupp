@@ -42,4 +42,3 @@ When fitting a new layer(s) to a vine, use this function to specify
 \note{
 The arrays here use the newer form, where variables go in row 1.
 }
-

@@ -47,4 +47,3 @@ v <- runif(100)
 fitbicop_lh(u, v)
 fitbicop_lh(u, v, families = "indepcop")
 }
-

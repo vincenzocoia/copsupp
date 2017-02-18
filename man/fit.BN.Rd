@@ -79,4 +79,3 @@ xdat <- dat[, -1]
 ## Fit the model:
 fit.BN(y, xdat)
 }
-

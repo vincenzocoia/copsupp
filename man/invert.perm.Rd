@@ -29,4 +29,3 @@ perminv[perm]
 ## The zero case:
 invert.perm(integer(0))
 }
-

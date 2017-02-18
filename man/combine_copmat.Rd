@@ -45,4 +45,3 @@ combine_copmat(rv)
 rv <- rvine(matrix(4:1, ncol = 4))
 combine_copmat(rv)
 }
-

@@ -48,4 +48,3 @@ least 2, and that edges[-1] are variables in \code{basevine}, and that
 \code{cpars} are only specified when there's only one copula family to
 choose from.
 }
-

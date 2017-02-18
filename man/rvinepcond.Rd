@@ -29,4 +29,3 @@ return C_{2|1}(u2|u1), C_{3|12}(u3|u1,u2), ...  C_{d|1..d-1}(ud|u1,...u[d-1])
 \author{
 Harry Joe
 }
-

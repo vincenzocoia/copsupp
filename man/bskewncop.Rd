@@ -4,10 +4,10 @@
 \alias{dbskewn}
 \alias{dbskewncop}
 \alias{pbskewncop}
-\alias{pcondbskewncop12}
 \alias{pcondbskewncop21}
-\alias{qcondbskewncop12}
+\alias{pcondbskewncop12}
 \alias{qcondbskewncop21}
+\alias{qcondbskewncop12}
 \title{Skew Normal Copula Functions}
 \usage{
 dbskewn(y1, y2, param)
@@ -59,4 +59,3 @@ qcond12 = bskewn copula with  y1=qsn(u), y2=qsn(v)
 \author{
 Harry Joe
 }
-

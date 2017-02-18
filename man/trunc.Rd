@@ -37,4 +37,3 @@ lapply(rv1, identity)
 rv2 <- trunc(rv, c(4, 4, 4, 1, 2, 4))
 identical(rv1, rv2)
 }
-

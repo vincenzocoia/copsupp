@@ -35,4 +35,3 @@ cparspace(c("frk", "bvtcop", "bvtcop", "gum"))
 cparspace("bvncop")(0.8)
 cparspace("thiscopuladoesnotexist")("89")
 }
-

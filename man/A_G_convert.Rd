@@ -31,4 +31,3 @@ These converters are intended to be used internally.
 This form of array is "convenient" because truncated vines can
 be respresented by truncating the bottom rows of the matrix.
 }
-

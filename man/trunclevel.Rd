@@ -21,4 +21,3 @@ G <- truncvinemat(G, c(0, 1, 2, 1, 2, 4))
 trunclevel(G)
 trunclevel(G, TRUE)
 }
-

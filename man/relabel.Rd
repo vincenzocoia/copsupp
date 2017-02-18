@@ -40,4 +40,3 @@ relabel(rv, c(3, 2, 1, 5, 4))
 relabelvarray(G, c(54, 234, 1, 35, 42))
 relabel(rv, c(54, 234, 1, 35, 42))
 }
-

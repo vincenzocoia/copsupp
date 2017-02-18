@@ -73,4 +73,3 @@ subset(trunc(rv, 0), c(4, 1))
 ## Select variables not present?
 subset(rv, c(2, 4, 17))
 }
-

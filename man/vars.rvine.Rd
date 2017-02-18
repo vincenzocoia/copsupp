@@ -24,4 +24,3 @@ vars(rv)
 rv <- trunc(rv, 2)
 vars(rv)
 }
-

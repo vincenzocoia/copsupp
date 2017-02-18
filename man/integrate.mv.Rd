@@ -55,4 +55,3 @@ pdf <- function(x) prod(dnorm(x))
 integrate.mv(pdf, -Inf, Inf)
 integrate.mv(pdf, c(-Inf, -Inf), c(Inf, Inf))
 }
-

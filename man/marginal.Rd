@@ -61,4 +61,3 @@ Some noteworthy options for \code{eqf.type} are: 1 = inverse
 empirical cdf (default of \code{marginal}); 7 = default of
 \code{\link{quantile}}, a continuous function.
 }
-

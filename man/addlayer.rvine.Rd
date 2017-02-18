@@ -23,4 +23,3 @@ Object of type 'rvine' with the new layer(s) added.
 \description{
 Add Layers to a Regular Vine
 }
-

@@ -56,4 +56,3 @@ M[1, 3]   # Another list of length one.
 (M <- makeuppertri.list(1:3, rep(1,3), 3, 3))
 M[1, 2]   # Still a list of length one.
 }
-

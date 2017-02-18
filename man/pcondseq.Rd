@@ -52,4 +52,3 @@ dat <- rrvine(10, rv)
 pcondseq(dat, c(4, 3, 2), rv)
 pcondseq(dat, 1, rv)
 }
-

@@ -60,4 +60,3 @@ eval_lims(fun, arg, replx=0, replf=0, alpha=1:7)
 eval_lims(fun, numeric(0), replx=0, replf=0)
 eval_lims(fun, NaN, replx=0, replf=0)
 }
-

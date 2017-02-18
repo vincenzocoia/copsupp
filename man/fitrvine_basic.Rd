@@ -29,4 +29,3 @@ fitrvine_basic(dat)
 fitrvine_basic(dat, 3)
 fitrvine_basic(dat, integer(0))
 }
-

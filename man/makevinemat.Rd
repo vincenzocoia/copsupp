@@ -66,4 +66,3 @@ makevinemat(zerocol = TRUE)
 makevinemat(list(2.4, 3.8, c(0.6, 7)), c(4.5, 2.3), bylayer=F, zerocol=T)
 makevinemat(1:3, 4:5, bylayer=F, zerocol=T)
 }
-

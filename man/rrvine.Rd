@@ -47,4 +47,3 @@ rrvine(10, subset(rv, 1))
 ## Vine variables outside of the set 1,2,3,...?
 rrvine(10, relabel(rv, c(3, 8, 1, 6, 2)))
 }
-

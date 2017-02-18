@@ -66,4 +66,3 @@ pcondrvine(dat, rv, var=5, condset=c(2,3), maxint=1, verbose=T)
 pcondrvine(dat, rv, var=4, verbose=T)
 pcondrvine(dat, rv, var=4, maxint=0, verbose=T) # No int. tolerance
 }
-

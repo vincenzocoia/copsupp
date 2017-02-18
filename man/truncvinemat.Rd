@@ -25,4 +25,3 @@ truncvinemat(G, 3)
 copmat <- makevinemat("frk", rep("frk", 2), rep("frk", 3), rep("frk", 4), zerocol=T)
 truncvinemat(copmat, c(0, 1, 0, 3, 1), varray=FALSE, zero="")
 }
-

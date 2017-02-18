@@ -31,4 +31,3 @@ steps larger than this will be reduced.}
 \description{
 Functions for IG copula 2|1 computations
 }
-

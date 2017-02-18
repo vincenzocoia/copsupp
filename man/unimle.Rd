@@ -49,4 +49,3 @@ unimle(x, dnbinom)  # No defaults, so must specify inits
 unimle(x, dnbinom, c(1, 0.3))
 unimle(x, dnbinom, list(size = 1, mu = 5))
 }
-

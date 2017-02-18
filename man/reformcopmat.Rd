@@ -48,4 +48,3 @@ Gnew <- subsetvarray(G[1:2, ], 1:3)
 reformcopmat(copmat, Gnew, G)
 reformcopmat(cparmat, Gnew, G)
 }
-

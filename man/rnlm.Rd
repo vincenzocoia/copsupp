@@ -29,4 +29,3 @@ running afterwards).}
 A wrapper for \code{\link{nlm}} that puts a very large number wherever the
 objective function does not exist.
 }
-

@@ -19,4 +19,3 @@ Converts a fully specified regular vine into a fitted regular vine after
 specifying data. Since the original regular vine is a fully specified
 distribution, there are no fitted parameters.
 }
-

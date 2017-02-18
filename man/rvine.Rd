@@ -50,4 +50,3 @@ cparmat <- makevinemat(3.1,
 rv <- rvine(G, copmat, cparmat)
 summary(rv)
 }
-

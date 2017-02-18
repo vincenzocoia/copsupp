@@ -17,4 +17,3 @@ Object of type "rvine".
 \description{
 Remove Upper Layers in a Vine
 }
-
