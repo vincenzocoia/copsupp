@@ -9,6 +9,13 @@ Description: Makes it easy to work with vine copula models.
 License: MIT
 LazyData: TRUE
 Suggests:
-    knitr
+    knitr,
+    testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.0.0
+RoxygenNote: 6.1.1
+Imports: 
+    VineCopula,
+    sn,
+    CopulaModel,
+    igraph
+Remotes: vincenzocoia/CopulaModel

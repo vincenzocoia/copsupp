@@ -4,8 +4,9 @@
 \alias{fitbicop_lh}
 \title{Fit a Bivariate Copula Model}
 \usage{
-fitbicop_lh(u, v, families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum",
-  "frk", "joe", "bb1", "bb7", "bb8"), cpar = NULL, method = "aic")
+fitbicop_lh(u, v, families = c("indepcop", "bvncop", "bvtcop", "mtcj",
+  "gum", "frk", "joe", "bb1", "bb7", "bb8"), cpar = NULL,
+  method = "aic")
 }
 \arguments{
 \item{u}{Vector of Unif(0,1) data.}

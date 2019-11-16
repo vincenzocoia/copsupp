@@ -5,8 +5,8 @@
 \title{Fit a Vine to Data}
 \usage{
 fitrvine_basic(dat, vbls = 1:ncol(dat), ntrunc = length(vbls) - 1,
-  families = c("bvncop", "bvtcop", "mtcj", "gum", "frk", "joe", "bb1", "bb7",
-  "bb8"))
+  families = c("bvncop", "bvtcop", "mtcj", "gum", "frk", "joe", "bb1",
+  "bb7", "bb8"))
 }
 \arguments{
 \item{dat}{Data matrix with uniform scores.}

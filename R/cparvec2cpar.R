@@ -11,7 +11,6 @@
 #' entries in \code{len}.
 #' @examples
 #' cparvec2cpar(-3:3/2, len = c(1, 2, 1, 0, 2, 1, 0))
-#' cparvec2cpar(c(0.5, 1.2), len = c(1, 2))  # Error
 #' @export
 cparvec2cpar <- function(cparvec, len) {
     if (sum(len) != length(cparvec))
