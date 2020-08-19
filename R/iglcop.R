@@ -52,7 +52,7 @@ qcondiglcop12 <- function(tau, v, cpar) {
 #' @export
 diglcop <- function(u, v, cpar) {
     pkinv <- igl_geninv(1 - v, cpar)
-    (1-u)^(cpar-1) / pkinv^k * exp(-(1-u)/pkinv) / (gamma(k) * pgamma(1/pkinv, cpar))
+    (1-u)^(cpar-1) / pkinv^cpar * exp(-(1-u)/pkinv) / (gamma(cpar) * pgamma(1/pkinv, cpar))
 }
 
 #' @rdname iglcop

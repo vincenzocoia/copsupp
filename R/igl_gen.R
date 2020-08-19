@@ -45,7 +45,7 @@ igl_DDgen <- function(t, k) {
 
 #' @rdname igl_gen
 #' @export
-igl_geninv <- function(w, k, mxiter=20,eps=1.e-6,bd=5){
+igl_geninv <- function(w, k, mxiter=20,eps=1.e-12,bd=5){
     ## Compute gamma(k-1) and gamma(k)
     gkm1 <- gamma(k-1)
     gk <- (k-1) * gkm1

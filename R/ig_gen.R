@@ -40,7 +40,7 @@ ig_D1gen <- function(t, eta, k) {
 #' @rdname ig_gen
 #' @import CopulaModel
 #' @export
-ig_geninv <- function(p, eta, k, mxiter=40, eps=1.e-6, bd=5) {
+ig_geninv <- function(p, eta, k, mxiter=40, eps=1.e-12, bd=5) {
     ## Algorithm:
     fun <- function(p, eta) {
         ## Get starting values
