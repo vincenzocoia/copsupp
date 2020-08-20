@@ -4,9 +4,15 @@
 \alias{fitlayer}
 \title{Fit a new layer}
 \usage{
-fitlayer(dat, basevine, edges, cops = NULL, cpars = NULL,
-  families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum", "frk",
-  "joe", "bb1", "bb7", "bb8"))
+fitlayer(
+  dat,
+  basevine,
+  edges,
+  cops = NULL,
+  cpars = NULL,
+  families = c("indepcop", "bvncop", "bvtcop", "mtcj", "gum", "frk", "joe", "bb1",
+    "bb7", "bb8")
+)
 }
 \arguments{
 \item{dat}{Data matrix with Uniform margins.}

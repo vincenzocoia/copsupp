@@ -10,7 +10,7 @@ ig_gen(t, eta, k)
 
 ig_D1gen(t, eta, k)
 
-ig_geninv(p, eta, k, mxiter = 40, eps = 1e-06, bd = 5)
+ig_geninv(p, eta, k, mxiter = 40, eps = 1e-12, bd = 5)
 }
 \arguments{
 \item{t}{Vector of values >=1 to evaluate the function at.}

@@ -5,11 +5,28 @@
 \alias{makeuppertri.list}
 \title{Make an upper triangular matrix}
 \usage{
-makeuppertri(entries, row, col, blanks = 0, byRow = TRUE,
-  incDiag = FALSE, nrow = NULL, ncol = NULL)
+makeuppertri(
+  entries,
+  row,
+  col,
+  blanks = 0,
+  byRow = TRUE,
+  incDiag = FALSE,
+  nrow = NULL,
+  ncol = NULL
+)
 
-makeuppertri.list(entries, len, row, col, blanks = list(),
-  byRow = TRUE, incDiag = FALSE, nrow = NULL, ncol = NULL)
+makeuppertri.list(
+  entries,
+  len,
+  row,
+  col,
+  blanks = list(),
+  byRow = TRUE,
+  incDiag = FALSE,
+  nrow = NULL,
+  ncol = NULL
+)
 }
 \arguments{
 \item{entries}{Vector of entries for the upper triangular part of the matrix.}

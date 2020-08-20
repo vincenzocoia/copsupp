@@ -4,9 +4,14 @@
 \alias{layeropts}
 \title{Fitting options for a new Vine Layer}
 \usage{
-layeropts(var = NULL, G = NULL, ntrunc = NULL, cops = NULL,
-  cpar = NULL, families = c("bvncop", "bvtcop", "mtcj", "gum", "frk",
-  "joe", "bb1", "bb7", "bb8"))
+layeropts(
+  var = NULL,
+  G = NULL,
+  ntrunc = NULL,
+  cops = NULL,
+  cpar = NULL,
+  families = c("bvncop", "bvtcop", "mtcj", "gum", "frk", "joe", "bb1", "bb7", "bb8")
+)
 }
 \arguments{
 \item{ntrunc}{Truncation level. Could be a vector corresponding to the

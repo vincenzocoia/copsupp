@@ -4,8 +4,7 @@
 \alias{rnlm}
 \title{Restricted \code{\link{nlm}}}
 \usage{
-rnlm(f, p, in.range = NULL, lrg.number = 99999999, ign.error = FALSE,
-  ...)
+rnlm(f, p, in.range = NULL, lrg.number = 99999999, ign.error = FALSE, ...)
 }
 \arguments{
 \item{f}{Function to minimize}

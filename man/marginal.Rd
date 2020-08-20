@@ -4,8 +4,15 @@
 \alias{marginal}
 \title{Estimate Marginal distribution}
 \usage{
-marginal(x, dist.name = NULL, ecdf.split = NULL, init.val = NULL,
-  in.range = NULL, soften.cdf = TRUE, eqf.type = 1)
+marginal(
+  x,
+  dist.name = NULL,
+  ecdf.split = NULL,
+  init.val = NULL,
+  in.range = NULL,
+  soften.cdf = TRUE,
+  eqf.type = 1
+)
 }
 \arguments{
 \item{x}{Vector representing the univariate sample drawn from the

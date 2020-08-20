@@ -4,9 +4,16 @@
 \alias{fit.BN}
 \title{Fit a Bayesian Network model}
 \usage{
-fit.BN(y, xdat, ymarg = identity, xmargs = identity, xord = NULL,
-  cops = NULL, families = c("bvncop", "bvtcop", "mtcj", "gum", "frk",
-  "joe", "bb1", "bb7", "bb8"), ...)
+fit.BN(
+  y,
+  xdat,
+  ymarg = identity,
+  xmargs = identity,
+  xord = NULL,
+  cops = NULL,
+  families = c("bvncop", "bvtcop", "mtcj", "gum", "frk", "joe", "bb1", "bb7", "bb8"),
+  ...
+)
 }
 \arguments{
 \item{y}{Vector of response observations.}

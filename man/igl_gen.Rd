@@ -13,7 +13,7 @@ igl_Dgen(t, k)
 
 igl_DDgen(t, k)
 
-igl_geninv(w, k, mxiter = 20, eps = 1e-06, bd = 5)
+igl_geninv(w, k, mxiter = 20, eps = 1e-12, bd = 5)
 }
 \arguments{
 \item{t}{Vector of values to evaluate the function at, >=0.}

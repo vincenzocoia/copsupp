@@ -12,6 +12,13 @@
 \alias{logdigcopv}
 \alias{pcondigcopv}
 \alias{qcondigcopv}
+\alias{pcondigcopr}
+\alias{qcondigcopr}
+\alias{pcondigcopr12}
+\alias{qcondigcopr12}
+\alias{digcopr}
+\alias{pigcopr}
+\alias{rigcopr}
 \title{IG copula: supplemental functions}
 \usage{
 pigcopu(u, v, cpar)
@@ -35,6 +42,20 @@ logdigcopv(u, v, cpar)
 pcondigcopv(v, u, cpar)
 
 qcondigcopv(p, u, cpar)
+
+pcondigcopr(v, u, cpar)
+
+qcondigcopr(p, u, cpar)
+
+pcondigcopr12(u, v, cpar)
+
+qcondigcopr12(p, v, cpar)
+
+digcopr(u, v, cpar)
+
+pigcopr(u, v, cpar)
+
+rigcopr(n, cpar)
 }
 \description{
 Appended "u" means a horizontal flip (i.e. switching u to 1-u).
