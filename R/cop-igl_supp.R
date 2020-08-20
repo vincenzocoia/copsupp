@@ -68,3 +68,34 @@ pcondiglcopv <- function(v, u, cpar) 1 - pcondiglcop(1-v, u, cpar)
 #' @export
 qcondiglcopv <- function(p, u, cpar) 1 - qcondiglcop(1-p, u, cpar)
 
+
+## ----- Reflection ------
+
+
+#' @rdname iglcop_supp
+#' @export
+pcondiglcopr <- function(v, u, cpar) 1 - pcondiglcop(1 - v, 1 - u, cpar)
+
+#' @rdname iglcop_supp
+#' @export
+qcondiglcopr <- function(p, u, cpar) 1 - qcondiglcop(1 - p, 1 - u, cpar)
+
+#' @rdname iglcop_supp
+#' @export
+pcondiglcopr12 <- function(u, v, cpar) 1 - pcondiglcop12(1 - u, 1 - v, cpar)
+
+#' @rdname iglcop_supp
+#' @export
+qcondiglcopr12 <- function(p, v, cpar) 1 - qcondiglcop12(1 - p, 1 - v, cpar)
+
+#' @rdname iglcop_supp
+#' @export
+diglcopr <- function(u, v, cpar) diglcop(1 - u, 1 - v, cpar)
+
+#' @rdname iglcop_supp
+#' @export
+piglcopr <- function(u, v, cpar) u + v - 1 + piglcop(1 - u, 1 - v, cpar)
+
+#' @rdname iglcop_supp
+#' @export
+riglcopr <- function(n, cpar) 1 - riglcop(n, cpar)

@@ -68,3 +68,32 @@ pcondigcopv <- function(v, u, cpar) 1 - pcondigcop(1-v, u, cpar)
 #' @export
 qcondigcopv <- function(p, u, cpar) 1 - qcondigcop(1-p, u, cpar)
 
+## ----- Reflection ------
+
+#' @rdname igcop_supp
+#' @export
+pcondigcopr <- function(v, u, cpar) 1 - pcondigcop(1 - v, 1 - u, cpar)
+
+#' @rdname igcop_supp
+#' @export
+qcondigcopr <- function(p, u, cpar) 1 - qcondigcop(1 - p, 1 - u, cpar)
+
+#' @rdname igcop_supp
+#' @export
+pcondigcopr12 <- function(u, v, cpar) 1 - pcondigcop12(1 - u, 1 - v, cpar)
+
+#' @rdname igcop_supp
+#' @export
+qcondigcopr12 <- function(p, v, cpar) 1 - qcondigcop12(1 - p, 1 - v, cpar)
+
+#' @rdname igcop_supp
+#' @export
+digcopr <- function(u, v, cpar) digcop(1 - u, 1 - v, cpar)
+
+#' @rdname igcop_supp
+#' @export
+pigcopr <- function(u, v, cpar) u + v - 1 + pigcop(1 - u, 1 - v, cpar)
+
+#' @rdname igcop_supp
+#' @export
+rigcopr <- function(n, cpar) 1 - rigcop(n, cpar)
