@@ -64,7 +64,8 @@ igl_geninv <- function(w, k, mxiter=20,eps=1.e-12,bd=5){
             g <- tt * igam0 + igam1 - w * gkm1
             gp <- igam0
             diff <- g/gp
-            diff[diff > tt] <- tt / 2
+            flag <- diff > tt
+            diff[flag] <- tt[flag] / 2
             tt <- tt-diff
             while(max(abs(diff))>bd | any(tt<=0))
             { diff <- diff/2; tt <- tt+diff }

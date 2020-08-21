@@ -61,7 +61,8 @@ ig_geninv <- function(p, eta, k, mxiter=40, eps=1.e-12, bd=5) {
             g <- tt*p - igl_gen(etaloginv, k)
             gp <- p + etaloginv/tt/logt * igl_Dgen(etaloginv, k)
             diff <- g/gp
-            diff[diff > tt - 1] <- (tt - 1) / 2
+            flag <- diff > tt - 1
+            diff[flag] <- (tt[flag] - 1) / 2
             tt <- tt-diff
             while(max(abs(diff))>bd | any(tt<=1))
             { diff <- diff/2; tt <- tt+diff }
