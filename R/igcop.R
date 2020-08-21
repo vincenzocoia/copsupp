@@ -114,11 +114,21 @@ digcop <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
     if (theta == Inf) return(diglcop(u, v, k))
-    negu <- 1-u
-    t <- ig_geninv(1-v, theta, k)
-    x <- theta * negu * log(t)
-    -(dgamma(x, k-1) * theta + pgamma(x, k-1, lower.tail=FALSE)) / t^2 /
-        ig_D1gen(t, theta, k)
+    # negu <- 1-u
+    # t <- ig_geninv(1-v, theta, k)
+    # x <- theta * negu * log(t)
+    # -(dgamma(x, k-1) * theta + pgamma(x, k-1, lower.tail=FALSE)) / t^2 /
+    #     ig_D1gen(t, theta, k)
+    u <- 1 - u
+    v <- 1 - v
+    tv <- ig_geninv(v, theta, k)
+    ltv <- log(tv)
+    # num1 <- (theta * u) ^ (k - 1) * ltv ^ (k - 2) * tv ^ (-theta * u) / gamma(k - 1)
+    num1 <- theta * u * stats::dgamma(theta * u * ltv, k - 1)
+    num2 <- stats::pgamma(theta * u * ltv, k - 1, lower.tail = FALSE)
+    den1 <- (ltv + 1) * (k - 1) / (theta * ltv ^ 2) * stats::pgamma(theta * ltv, k)
+    den2 <- stats::pgamma(theta * ltv, k - 1, lower.tail = FALSE)
+    (num1 + num2) / (den1 + den2)
 }
 
 #' @rdname igcop
