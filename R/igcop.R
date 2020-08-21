@@ -100,10 +100,10 @@ pcondigcop21 <- pcondigcop
 
 #' @rdname igcop
 #' @export
-pcondigcop12 <- function(v, u, cpar) {
+pcondigcop12 <- function(u, v, cpar) {
     theta <- cpar[1]
     k <- cpar[2]
-    if (theta == Inf) return(pcondiglcop12(v, u, k))
+    if (theta == Inf) return(pcondiglcop12(u, v, k))
     Hkinv <- ig_geninv(1-v, theta, k)
     1 - (1-u) * ig_D1gen(Hkinv, theta*(1-u), k) / ig_D1gen(Hkinv, theta, k)
 }
